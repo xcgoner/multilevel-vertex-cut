@@ -1,7 +1,6 @@
 // GraphPartitioner.cpp : 定义控制台应用程序的入口点。
 //
 
-#include <tchar.h>
 #include <iostream>
 #include "basic_graph.hpp"
 #include "partition_strategy.hpp"
@@ -11,7 +10,7 @@ namespace po = boost::program_options;
 
 using namespace std;
 
-int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, char* argv[])
 {
 
 	po::options_description desc("Allowed options");
