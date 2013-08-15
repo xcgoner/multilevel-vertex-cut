@@ -20,7 +20,7 @@
 #ifndef GRAPH_PARTITIONER_GRAPH_PARTITION_STRATEGY
 #define GRAPH_PARTITIONER_GRAPH_PARTITION_STRATEGY
 
-#include <boost/random/uniform_int_distribution.hpp>
+#include <boost/random/uniform_int.hpp>
 #include <boost/random.hpp>
 #include <boost/timer.hpp>
 #include "basic_graph.hpp"
