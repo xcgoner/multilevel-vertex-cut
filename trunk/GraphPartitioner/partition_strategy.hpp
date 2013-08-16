@@ -327,6 +327,12 @@ namespace graphp {
 						}
 					}
 
+					// ???
+					if(local_nbr_list.size() == 0) {
+						cerr << "WTF!!!" << endl;
+						continue;
+					}
+
 					// check balance constraint
 					if(graph.parts_counter[pt] - local_nbr_list.size() < wmin)
 						continue;
