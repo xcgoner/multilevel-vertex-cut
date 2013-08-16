@@ -23,6 +23,8 @@
 #include <google/malloc_extension.h>
 #endif
 
+using namespace std;
+
 namespace graphp {
   namespace memory_info {
 
@@ -42,8 +44,8 @@ namespace graphp {
       MallocExtension::instance()->
         GetNumericProperty("generic.heap_size", &heap_size);
 #else
-      std::cerr << 
-        "memory_info::heap_bytes() requires tcmalloc" << std::endl;
+      cerr << 
+        "memory_info::heap_bytes() requires tcmalloc" << endl;
 #endif
       return heap_size;
     } // end of heap size
@@ -57,42 +59,42 @@ namespace graphp {
         GetNumericProperty("generic.current_allocated_bytes", 
                            &allocated_size);
 #else
-      std::cerr << 
-        "memory_info::allocated_bytes() requires tcmalloc" << std::endl;
+      cerr << 
+        "memory_info::allocated_bytes() requires tcmalloc" << endl;
 #endif
       return allocated_size;
     } // end of allocated bytes
 
 
 
-    void print_usage(const std::string& label) {
+    void print_usage(const string& label) {
 #ifdef HAS_TCMALLOC
         const double BYTES_TO_MB = double(1) / double(1024 * 1024);
-        std::cout 
-          << "Memory Info: " << label << std::endl
+        cout 
+          << "Memory Info: " << label << endl
           << "\t Heap: " << (heap_bytes() * BYTES_TO_MB) << " MB"
-          << std::endl
+          << endl
           << "\t Allocated: " << (allocated_bytes() * BYTES_TO_MB) << " MB" 
-          << std::endl;
+          << endl;
 #else
-        std::cerr 
+        cerr 
           << "Unable to print memory info for: " << label << ". "
-          << "No memory extensions api available." << std::endl;
+          << "No memory extensions api available." << endl;
 #endif
     } // end of print_usage
 
-    void log_usage(const std::string& label) {
+    void log_usage(const string& label) {
 #ifdef HAS_TCMALLOC
         const double BYTES_TO_MB = double(1) / double(1024 * 1024);
-        std::cout
+        cout
           << "Memory Info: " << label
           << "\n\t Heap: " << (heap_bytes() * BYTES_TO_MB) << " MB"
           << "\n\t Allocated: " << (allocated_bytes() * BYTES_TO_MB) << " MB" 
-          << std::endl;
+          << endl;
 #else
-        std::cerr 
+        cerr 
           << "Unable to print memory info for: " << label << ". "
-          << "No memory extensions api available." << std::endl;
+          << "No memory extensions api available." << endl;
 #endif
     } // end of log usage
 

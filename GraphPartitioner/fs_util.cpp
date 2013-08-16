@@ -28,17 +28,14 @@
 #include <sstream>
 #include <string>
 
-
-
-
 #include "fs_util.hpp"
 
-
+using namespace std;
 
 void graphp::fs_util::
-list_files_with_suffix(const std::string& pathname,
-                       const std::string& suffix,
-                       std::vector<std::string>& files) {
+list_files_with_suffix(const string& pathname,
+                       const string& suffix,
+                       vector<string>& files) {
   namespace fs = boost::filesystem;
   fs::path dir_path(pathname);
   fs::directory_iterator end_iter;
@@ -48,9 +45,9 @@ list_files_with_suffix(const std::string& pathname,
          dir_iter != end_iter ; ++dir_iter) {
       if (fs::is_regular_file(dir_iter->status()) ) {
 #if BOOST_FILESYSTEM_VERSION >= 3 
-        const std::string filename = dir_iter->path().filename().string();
+        const string filename = dir_iter->path().filename().string();
 #else
-        const std::string filename = dir_iter->leaf();
+        const string filename = dir_iter->leaf();
 #endif
         if (suffix.size() > 0 && !boost::ends_with(filename, suffix)) 
           continue;
@@ -58,7 +55,7 @@ list_files_with_suffix(const std::string& pathname,
       }
     }
   }
-  std::sort(files.begin(), files.end());
+  sort(files.begin(), files.end());
 //   namespace fs = boost::filesystem;
 //   fs::path path(pathname);
 //   assert(fs::exists(path));
@@ -67,14 +64,14 @@ list_files_with_suffix(const std::string& pathname,
 //     if( ! fs::is_directory(iter->status()) ) {
 
 // #if BOOST_FILESYSTEM_VERSION >= 3
-//       std::string filename(iter->path().filename().string());
+//       string filename(iter->path().filename().string());
 // #else
-//       std::string filename(iter->path().filename());
+//       string filename(iter->path().filename());
 // #endif
 //       size_t pos = 
 //         filename.size() >= suffix.size()?
 //         filename.size() - suffix.size() : 0;
-//       std::string ending(filename.substr(pos));
+//       string ending(filename.substr(pos));
 //       if(ending == suffix) {
 // #if BOOST_FILESYSTEM_VERSION >= 3
 //         files.push_back(iter->path().filename().string());
@@ -84,15 +81,15 @@ list_files_with_suffix(const std::string& pathname,
 //       }
 //     }
 //   }
-//  std::sort(files.begin(), files.end());
+//  sort(files.begin(), files.end());
 } // end of list files with suffix  
 
 
 
 void graphp::fs_util::
-list_files_with_prefix(const std::string& pathname,
-                       const std::string& prefix,
-                       std::vector<std::string>& files) {
+list_files_with_prefix(const string& pathname,
+                       const string& prefix,
+                       vector<string>& files) {
   namespace fs = boost::filesystem;  
   fs::path dir_path(pathname);
   fs::directory_iterator end_iter;
@@ -101,7 +98,7 @@ list_files_with_prefix(const std::string& pathname,
     for( fs::directory_iterator dir_iter(dir_path) ; 
          dir_iter != end_iter ; ++dir_iter) {
       if (fs::is_regular_file(dir_iter->status()) ) {
-        const std::string filename = dir_iter->path().filename().string();
+        const string filename = dir_iter->path().filename().string();
         if (prefix.size() > 0 && !boost::starts_with(filename, prefix)) {
           continue;
         }
@@ -109,19 +106,19 @@ list_files_with_prefix(const std::string& pathname,
       }
     }
   }
-  std::sort(files.begin(), files.end());
+  sort(files.begin(), files.end());
 } // end of list files with prefix
 
 
 
 
 
-std::string graphp::fs_util::
-change_suffix(const std::string& fname,
-              const std::string& new_suffix) {             
+string graphp::fs_util::
+change_suffix(const string& fname,
+              const string& new_suffix) {             
   size_t pos = fname.rfind('.');
-  assert(pos != std::string::npos); 
-  const std::string new_base(fname.substr(0, pos));
+  assert(pos != string::npos); 
+  const string new_base(fname.substr(0, pos));
   return new_base + new_suffix;
 } // end of change_suffix
 
