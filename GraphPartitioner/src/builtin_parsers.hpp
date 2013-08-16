@@ -222,8 +222,8 @@ namespace graphp {
           if (str[i] == (char)255) {
             // escape character
             ++i;
-            ASSERT_MSG(str[i] == 0 || str[i] == 1,
-                       "Malformed escape sequence in graphjrl file.");
+            //ASSERT_MSG(str[i] == 0 || str[i] == 1,
+            //           "Malformed escape sequence in graphjrl file.");
             ret[target] = escapemap[(int)str[i]];
           }
           else {

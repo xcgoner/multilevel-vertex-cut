@@ -77,7 +77,6 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="basic_graph.cpp" />
     <ClCompile Include="GraphPartitioner.cpp" />
     <ClCompile Include="src\fs_util.cpp" />
     <ClCompile Include="src\memory_info.cpp" />
