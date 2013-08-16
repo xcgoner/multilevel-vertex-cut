@@ -27,6 +27,9 @@
     <ClCompile Include="src\memory_info.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="basic_graph.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\basic_graph.hpp">
