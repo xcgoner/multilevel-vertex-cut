@@ -329,7 +329,6 @@ namespace graphp {
 
 					// ???
 					if(local_nbr_list.size() == 0) {
-						cerr << "WTF!!!" << endl;
 						continue;
 					}
 
