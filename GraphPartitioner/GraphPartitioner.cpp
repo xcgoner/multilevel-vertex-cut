@@ -2,8 +2,8 @@
 //
 
 #include <iostream>
-#include "basic_graph.hpp"
-#include "partition_strategy.hpp"
+#include "src/basic_graph.hpp"
+#include "src/partition_strategy.hpp"
 
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
