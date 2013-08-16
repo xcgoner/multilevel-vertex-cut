@@ -26,6 +26,11 @@
 #include "basic_graph.hpp"
 #include "util.hpp"
 
+using namespace std;
+#ifdef __GNUC__ 
+using namespace __gnu_cxx; 
+#endif 
+
 namespace graphp {
 
 	namespace partition_strategy {
@@ -42,7 +47,7 @@ namespace graphp {
 			return state;
 		  }
 
-		static basic_graph::part_t edge_hashing (const std::pair<vertex_id_type, vertex_id_type>& e, const uint32_t seed = 5) {
+		static basic_graph::part_t edge_hashing (const pair<vertex_id_type, vertex_id_type>& e, const uint32_t seed = 5) {
 			// a bunch of random numbers
 			#if (__SIZEOF_PTRDIFF_T__ == 8)
 			static const size_t a[8] = {0x6306AA9DFC13C8E7,
@@ -91,38 +96,38 @@ namespace graphp {
 			// count the vertex-cut
 			size_t vertex_cut_counter = 0;
 
-			for(std::hash_map<vertex_id_type, basic_graph::vertex_type>::const_iterator iter = graph.origin_verts.begin(); iter != graph.origin_verts.end(); iter++) {
+			for(hash_map<vertex_id_type, basic_graph::vertex_type>::const_iterator iter = graph.origin_verts.begin(); iter != graph.origin_verts.end(); iter++) {
 				vertex_cut_counter += (iter->second.mirror_list.size() - 1);
 			}
 
 			// report
 			for(size_t i = 0; i < nparts; i++) {
-				std::cout << "Partition " << i << ": " << graph.parts_counter[i] << " edges" << std::endl;
+				cout << "Partition " << i << ": " << graph.parts_counter[i] << " edges" << endl;
 			}
-			std::cout << "Vertex-cut: " << vertex_cut_counter << std::endl;
+			cout << "Vertex-cut: " << vertex_cut_counter << endl;
 		}
 
 		void random_partition(basic_graph& graph, basic_graph::part_t nparts) {
 			boost::timer ti;
 
-			typedef std::pair<vertex_id_type, vertex_id_type> edge_pair_type;
+			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			foreach(basic_graph::edge_type& e, graph.origin_edges) {
 				// random assign
-				const edge_pair_type edge_pair(std::min(e.source, e.target), std::max(e.source, e.target));
+				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
 				basic_graph::part_t assignment;
 				assignment = edge_hashing(edge_pair, hashing_seed) % (nparts);
 				//assignment = edgernd(gen) % (nparts)
 				assign_edge(graph, e.eid, assignment);
 			}
 
-			std::cout << "Time elapsed: " << ti.elapsed() << std::endl;
+			cout << "Time elapsed: " << ti.elapsed() << endl;
 
 			report_performance(graph, nparts);
 		}
 
 		basic_graph::part_t edge_to_part_greedy(const basic_graph::vertex_type& source_v, 
 			const basic_graph::vertex_type& target_v, 
-			std::vector<size_t>& part_num_edges, 
+			vector<size_t>& part_num_edges, 
 			bool usehash = false, 
 			bool userecent = false
 			) {
@@ -132,9 +137,9 @@ namespace graphp {
 				basic_graph::part_t best_part = -1;
 				double maxscore = 0.0;
 				double epsilon = 1.0;
-				std::vector<double> part_score(nparts);
-				size_t minedges = *std::min_element(part_num_edges.begin(), part_num_edges.end());
-				size_t maxedges = *std::max_element(part_num_edges.begin(), part_num_edges.end());
+				vector<double> part_score(nparts);
+				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
+				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
 
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
@@ -143,19 +148,19 @@ namespace graphp {
 					part_score[i] = bal + ((sd > 0) + (td > 0));
 				}
 
-				maxscore = *std::max_element(part_score.begin(), part_score.end());
+				maxscore = *max_element(part_score.begin(), part_score.end());
 
-				std::vector<basic_graph::part_t> top_parts;
+				vector<basic_graph::part_t> top_parts;
 				for(size_t i = 0; i < nparts; ++i) {
-					if(std::fabs(part_score[i] - maxscore) < 1e-5) {
+					if(fabs(part_score[i] - maxscore) < 1e-5) {
 						top_parts.push_back(i);
 					}
 				}
 
 				// hash the edge to one of the best parts
-				typedef std::pair<vertex_id_type, vertex_id_type> edge_pair_type;
-				const edge_pair_type edge_pair(std::min(source_v.vid, target_v.vid), 
-					std::max(source_v.vid, target_v.vid));
+				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+				const edge_pair_type edge_pair(min(source_v.vid, target_v.vid), 
+					max(source_v.vid, target_v.vid));
 				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
 
 				//if(userecent) {
@@ -167,8 +172,8 @@ namespace graphp {
 
 		basic_graph::part_t edge_to_part_greedy(const basic_graph::vertex_type& source_v, 
 			const basic_graph::vertex_type& target_v, 
-			const std::vector<basic_graph::part_t>& candidates,
-			const std::vector<size_t>& part_num_edges, 
+			const vector<basic_graph::part_t>& candidates,
+			const vector<size_t>& part_num_edges, 
 			bool usehash = false, 
 			bool userecent = false
 			) {
@@ -178,9 +183,9 @@ namespace graphp {
 				basic_graph::part_t best_part = -1;
 				double maxscore = 0.0;
 				double epsilon = 1.0;
-				std::vector<double> part_score(candidates.size());
-				size_t minedges = *std::min_element(part_num_edges.begin(), part_num_edges.end());
-				size_t maxedges = *std::max_element(part_num_edges.begin(), part_num_edges.end());
+				vector<double> part_score(candidates.size());
+				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
+				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
 
 				for(size_t j = 0; j < candidates.size(); ++j) {
 					basic_graph::part_t i = candidates[j];
@@ -190,19 +195,19 @@ namespace graphp {
 					part_score[j] = bal + ((sd > 0) + (td > 0));
 				}
 
-				maxscore = *std::max_element(part_score.begin(), part_score.end());
+				maxscore = *max_element(part_score.begin(), part_score.end());
 
-				std::vector<basic_graph::part_t> top_parts;
+				vector<basic_graph::part_t> top_parts;
 				for (size_t j = 0; j < candidates.size(); ++j) {
-					if(std::fabs(part_score[j] - maxscore) < 1e-5) {
+					if(fabs(part_score[j] - maxscore) < 1e-5) {
 						top_parts.push_back(candidates[j]);
 					}
 				}
 
 				// hash the edge to one of the best parts
-				typedef std::pair<vertex_id_type, vertex_id_type> edge_pair_type;
-				const edge_pair_type edge_pair(std::min(source_v.vid, target_v.vid), 
-					std::max(source_v.vid, target_v.vid));
+				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+				const edge_pair_type edge_pair(min(source_v.vid, target_v.vid), 
+					max(source_v.vid, target_v.vid));
 				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
 
 				//if(userecent) {
@@ -215,7 +220,7 @@ namespace graphp {
 		void greedy_partition(basic_graph& graph, basic_graph::part_t nparts) {
 			boost::timer ti;
 
-			typedef std::pair<vertex_id_type, vertex_id_type> edge_pair_type;
+			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			foreach(basic_graph::edge_type& e, graph.origin_edges) {
 				// random assign
 				basic_graph::part_t assignment;
@@ -223,7 +228,7 @@ namespace graphp {
 				assign_edge(graph, e.eid, assignment);
 			}
 
-			std::cout << "Time elapsed: " << ti.elapsed() << std::endl;
+			cout << "Time elapsed: " << ti.elapsed() << endl;
 
 			report_performance(graph, nparts);
 		}
@@ -282,13 +287,13 @@ namespace graphp {
 			size_t wmax = 1.03 * graph.nedges / nparts;
 
 			// visit the edges in random order
-			std::vector<vertex_id_type> vertex_order(graph.nverts);
+			vector<vertex_id_type> vertex_order(graph.nverts);
 			size_t i = 0;
 			foreach(basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
 				vertex_order[i] = vp.first;
 				i++;
 			}
-			std::random_shuffle(vertex_order.begin(), vertex_order.end());
+			random_shuffle(vertex_order.begin(), vertex_order.end());
 
 			size_t refine_counter = 0;
 
@@ -301,21 +306,21 @@ namespace graphp {
 				// if the vertex is on the boundary, check if it could be refined
 
 				// visit the mirrors in random order
-				std::vector<basic_graph::part_t> parts_order(graph.origin_verts[vid].mirror_list.size());
+				vector<basic_graph::part_t> parts_order(graph.origin_verts[vid].mirror_list.size());
 				size_t j = 0;
 				foreach(const basic_graph::part_t pt, graph.origin_verts[vid].mirror_list) {
 					parts_order[j] = pt;
 					j++;
 				}
-				std::random_shuffle(parts_order.begin(), parts_order.end());
+				random_shuffle(parts_order.begin(), parts_order.end());
 				
-				std::set<basic_graph::part_t> exclude_parts;
+				set<basic_graph::part_t> exclude_parts;
 
 				foreach(const basic_graph::part_t pt, parts_order) {
 					// check if this mirror could be refined
 
 					// the local neighbour vertices in this partiton
-					std::vector<vertex_id_type> local_nbr_list;
+					vector<vertex_id_type> local_nbr_list;
 					foreach(const vertex_id_type& nbr, graph.origin_verts[vid].nbr_list) {
 						if(graph.origin_edges[graph.origin_verts[vid].edge_list[nbr]].placement == pt) {
 							local_nbr_list.push_back(nbr);
@@ -350,12 +355,12 @@ namespace graphp {
 						refine_counter++;
 
 						// move the local_nbr in random order
-						std::random_shuffle(local_nbr_list.begin(), local_nbr_list.end());
+						random_shuffle(local_nbr_list.begin(), local_nbr_list.end());
 
 						foreach(const vertex_id_type local_nbr, local_nbr_list) {
 							basic_graph::part_t assignment;
 
-							std::vector<basic_graph::part_t> move_dst;
+							vector<basic_graph::part_t> move_dst;
 							foreach(const basic_graph::part_t other_part, parts_order) {
 								// check the partition different to this one
 								if(other_part == pt || exclude_parts.count(other_part) > 0)
@@ -382,9 +387,9 @@ namespace graphp {
 			}
 
 			// report the result
-			std::cout << refine_counter << " mirrors are moved" << std::endl;
+			cout << refine_counter << " mirrors are moved" << endl;
 
-			std::cout << "Time elapsed: " << ti.elapsed() << std::endl;
+			cout << "Time elapsed: " << ti.elapsed() << endl;
 
 			report_performance(graph, nparts);
 
@@ -398,11 +403,11 @@ namespace graphp {
 			size_t wmax = 1.03 * graph.nedges / nparts;
 
 			// visit the edges in random order
-			std::vector<edge_id_type> edge_order(graph.nedges);
+			vector<edge_id_type> edge_order(graph.nedges);
 			for(edge_id_type i = 0; i < graph.nedges; i++) {
 				edge_order[i] = i;
 			}
-			std::random_shuffle(edge_order.begin(), edge_order.end());
+			random_shuffle(edge_order.begin(), edge_order.end());
 
 			size_t move_counter = 0;
 
@@ -414,12 +419,12 @@ namespace graphp {
 
 				// check if the edge is a boundary edge
 				if(source.mirror_list.size() > 1 && target.mirror_list.size() > 1) {
-					std::vector<basic_graph::part_t> intersection_parts;
-					std::vector<basic_graph::part_t> candidates;
-					std::set_intersection(
+					vector<basic_graph::part_t> intersection_parts;
+					vector<basic_graph::part_t> candidates;
+					set_intersection(
 						target.mirror_list.begin(), target.mirror_list.end(), source.mirror_list.begin(), 
 						source.mirror_list.end(), 
-						std::inserter(intersection_parts, intersection_parts.begin())
+						inserter(intersection_parts, intersection_parts.begin())
 						);
 
 					// could be moved without increasing the cost
@@ -447,9 +452,9 @@ namespace graphp {
 			}
 
 			// report the result
-			std::cout << move_counter << " edges are moved" << std::endl;
+			cout << move_counter << " edges are moved" << endl;
 
-			std::cout << "Time elapsed: " << ti.elapsed() << std::endl;
+			cout << "Time elapsed: " << ti.elapsed() << endl;
 
 			report_performance(graph, nparts);
 		}

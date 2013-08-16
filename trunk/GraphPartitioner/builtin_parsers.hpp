@@ -27,6 +27,8 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 
+using namespace std;
+
 namespace graphp {
 
   namespace builtin_parsers {
@@ -44,11 +46,11 @@ namespace graphp {
      *
      */
     template <typename Graph>
-    bool snap_parser(Graph& graph, const std::string& srcfilename,
-                     const std::string& str) {
+    bool snap_parser(Graph& graph, const string& srcfilename,
+                     const string& str) {
       if (str.empty()) return true;
       else if (str[0] == '#') {
-        std::cout << str << std::endl;
+        cout << str << endl;
       } else {
         size_t source, target;
         char* targetptr;
@@ -67,8 +69,8 @@ namespace graphp {
      *
      */
     template <typename Graph>
-    bool tsv_parser(Graph& graph, const std::string& srcfilename,
-                    const std::string& str) {
+    bool tsv_parser(Graph& graph, const string& srcfilename,
+                    const string& str) {
       if (str.empty()) return true;
       size_t source, target;
       char* targetptr;
@@ -85,11 +87,11 @@ namespace graphp {
     // The spirit parser seems to have issues when compiling under
     // C++11. Temporary workaround with a hard coded parser. TOFIX
     template <typename Graph>
-    bool adj_parser(Graph& graph, const std::string& srcfilename,
-                    const std::string& line) {
+    bool adj_parser(Graph& graph, const string& srcfilename,
+                    const string& line) {
       // If the line is empty simply skip it
       if(line.empty()) return true;
-      std::stringstream strm(line);
+      stringstream strm(line);
       vertex_id_type source; 
       size_t n;
       strm >> source;
@@ -112,8 +114,8 @@ namespace graphp {
 #else
 
     template <typename Graph>
-    bool adj_parser(Graph& graph, const std::string& srcfilename,
-                    const std::string& line) {
+    bool adj_parser(Graph& graph, const string& srcfilename,
+                    const string& line) {
       // If the line is empty simply skip it
       if(line.empty()) return true;
       // We use the boost spirit parser which requires (too) many separate
@@ -123,7 +125,7 @@ namespace graphp {
       namespace phoenix = boost::phoenix;
       vertex_id_type source(-1);
       vertex_id_type ntargets(-1);
-      std::vector<vertex_id_type> targets;
+      vector<vertex_id_type> targets;
       const bool success = qi::phrase_parse
         (line.begin(), line.end(),       
          //  Begin grammar
@@ -137,7 +139,7 @@ namespace graphp {
          ascii::space); 
       // Test to see if the boost parser was able to parse the line
       if(!success || ntargets != targets.size()) {
-        std::cerr << "Parse error in vertex prior parser." << std::endl;
+        cerr << "Parse error in vertex prior parser." << endl;
         return false;
       }
       for(size_t i = 0; i < targets.size(); ++i) {
@@ -151,8 +153,8 @@ namespace graphp {
     struct tsv_writer{
       typedef typename Graph::vertex_type vertex_type;
       typedef typename Graph::edge_type edge_type;
-      std::string save_vertex(vertex_type) { return ""; }
-      std::string save_edge(edge_type e) {
+      string save_vertex(vertex_type) { return ""; }
+      string save_edge(edge_type e) {
         return tostr(e.source().id()) + "\t" + tostr(e.target().id()) + "\n";
       }
     };
@@ -170,7 +172,7 @@ namespace graphp {
        * Replaces \255 with \255\1
        * Replaces \\n with \255\0
        */
-   /*   static std::string escape_newline(charstream& strm) {
+   /*   static string escape_newline(charstream& strm) {
         size_t ctr = 0;
         char *ptr = strm->c_str();
         size_t strmlen = strm->size();
@@ -178,7 +180,7 @@ namespace graphp {
           ctr += (ptr[i] == (char)255 || ptr[i] == '\n');
         }
 
-        std::string ret(ctr + strmlen, 0);
+        string ret(ctr + strmlen, 0);
 
         size_t target = 0;
         for (size_t i = 0;i < strmlen; ++i, ++ptr) {
@@ -206,14 +208,14 @@ namespace graphp {
        * Replaces \255\1 with \255
        * Replaces \255\0 with \\n
        */
-      static std::string unescape_newline(const std::string& str) {
+      static string unescape_newline(const string& str) {
         size_t ctr = 0;
         // count the number of escapes
         for (size_t i = 0;i < str.length(); ++i) {
           ctr += (str[i] == (char)255);
         }
         // real length is string length - escapes
-        std::string ret(str.size() - ctr, 0);
+        string ret(str.size() - ctr, 0);
 
         const char escapemap[2] = {'\n', (char)255};
         
@@ -233,7 +235,7 @@ namespace graphp {
         return ret;
       }
       
-      //std::string save_vertex(vertex_type v) {
+      //string save_vertex(vertex_type v) {
       //  charstream strm(128);
       //  oarchive oarc(strm);
       //  oarc << char(0) << v.vid << v.weight;
@@ -241,7 +243,7 @@ namespace graphp {
       //  return escape_newline(strm) + "\n";
       //}
       //
-      //std::string save_edge(edge_type e) {
+      //string save_edge(edge_type e) {
       //  charstream strm(128);
       //  oarchive oarc(strm);
       //  oarc << char(1) << e.source().eid << e.target_vid << e.weight;
@@ -253,9 +255,9 @@ namespace graphp {
 
 
   //  template <typename Graph>
-  //  bool graphjrl_parser(Graph& graph, const std::string& srcfilename,
-  //                  const std::string& str) {
-  //    std::string unescapedstr = graphjrl_writer<Graph>::unescape_newline(str);
+  //  bool graphjrl_parser(Graph& graph, const string& srcfilename,
+  //                  const string& str) {
+  //    string unescapedstr = graphjrl_writer<Graph>::unescape_newline(str);
   //    boost::iostreams::stream<boost::iostreams::array_source>
   //                    istrm(unescapedstr.c_str(), unescapedstr.length());
   //    iarchive iarc(istrm);

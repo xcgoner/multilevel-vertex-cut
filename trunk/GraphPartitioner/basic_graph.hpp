@@ -42,6 +42,11 @@
 
 namespace graphp_options = boost::program_options;
 
+using namespace std;
+#ifdef __GNUC__ 
+using namespace __gnu_cxx; 
+#endif
+
 namespace graphp {
 
 	
@@ -51,7 +56,7 @@ namespace graphp {
 
 		typedef graphp::basic_graph graph_type;
 
-		typedef boost::function<bool(basic_graph&, const std::string&, const std::string&)> line_parser_type;
+		typedef boost::function<bool(basic_graph&, const string&, const string&)> line_parser_type;
 
 		typedef graphp::vertex_id_type vertex_id_type;
 		typedef graphp::edge_id_type edge_id_type;
@@ -59,14 +64,14 @@ namespace graphp {
 		typedef size_t part_t;
 
 		// list of vertices
-		typedef std::set<vertex_id_type> vertex_list_type;
+		typedef set<vertex_id_type> vertex_list_type;
 
 		// list of edges
-		typedef std::set<edge_id_type> edge_list_type;
+		typedef set<edge_id_type> edge_list_type;
 
 		size_t nverts, nedges, nparts;
 
-		std::vector<size_t> parts_counter;
+		vector<size_t> parts_counter;
 
 		struct vertex_type {
 			vertex_id_type vid;
@@ -77,9 +82,9 @@ namespace graphp {
 			vertex_list_type nbr_list;
 
 			// key: neighbour target vid, value: edge eid
-			std::map<vertex_id_type, edge_id_type> edge_list;
+			map<vertex_id_type, edge_id_type> edge_list;
 
-			std::set<part_t> mirror_list;
+			set<part_t> mirror_list;
 
 			vertex_type() :
 				vid(-1), degree(0), weight(1) { }
@@ -118,9 +123,9 @@ namespace graphp {
 			friend class basic_graph;
 		};
 
-		typedef std::hash_map<vertex_id_type, vertex_type> verts_map_type;
+		typedef hash_map<vertex_id_type, vertex_type> verts_map_type;
 		verts_map_type origin_verts;
-		std::vector<edge_type> origin_edges;
+		vector<edge_type> origin_edges;
 
 		// constructor
 		basic_graph(size_t nparts) : nverts(0), nedges(0), nparts(nparts) {
@@ -133,7 +138,7 @@ namespace graphp {
 		void add_vertex(const vertex_id_type& vid, const size_t& weight = 1) {
 			if(origin_verts.count(vid) == 0) {
 				vertex_type v(vid, weight);
-				origin_verts.insert(std::pair<vertex_id_type, vertex_type>(vid, v));
+				origin_verts.insert(pair<vertex_id_type, vertex_type>(vid, v));
 				nverts++;
 			}
 		}
@@ -143,35 +148,35 @@ namespace graphp {
 			origin_edges.push_back(e);
 			// undirected
 			add_vertex(source);
-			origin_verts[source].edge_list.insert(std::pair<vertex_id_type, edge_id_type>(target, e.eid));
+			origin_verts[source].edge_list.insert(pair<vertex_id_type, edge_id_type>(target, e.eid));
 			origin_verts[source].nbr_list.insert(target);
 			origin_verts[source].degree++;
 			add_vertex(target);
-			origin_verts[target].edge_list.insert(std::pair<vertex_id_type, edge_id_type>(source, e.eid));
+			origin_verts[target].edge_list.insert(pair<vertex_id_type, edge_id_type>(source, e.eid));
 			origin_verts[target].nbr_list.insert(source);
 			origin_verts[target].degree++;
 			nedges++;
 		}
 
 		void finalize() {
-			std::cout << "Nodes: " << nverts << " Edges: " << nedges <<std::endl;
+			cout << "Nodes: " << nverts << " Edges: " << nedges <<endl;
 			memory_info::print_usage();
 		}
 
 		// some utilities
 		vertex_list_type vertex_intersection(const vertex_list_type& list1, const vertex_list_type& list2) {
 			vertex_list_type result;
-			std::set_intersection(list1.begin(), list1.end(), list2.begin(), list2.end(), std::inserter(result, result.begin()));
+			set_intersection(list1.begin(), list1.end(), list2.begin(), list2.end(), inserter(result, result.begin()));
 			return result;
 		}
 
 		vertex_list_type vertex_union(const vertex_list_type& list1, const vertex_list_type& list2) {
 			vertex_list_type result;
-			std::set_union(list1.begin(), list1.end(), list2.begin(), list2.end(), std::inserter(result, result.begin()));
+			set_union(list1.begin(), list1.end(), list2.begin(), list2.end(), inserter(result, result.begin()));
 			return result;
 		}
 
-		void load_format(const std::string& path, const std::string& format) {
+		void load_format(const string& path, const string& format) {
 			line_parser_type line_parser;
 			if (format == "snap") {
 				line_parser = builtin_parsers::snap_parser<basic_graph>;
@@ -190,16 +195,16 @@ namespace graphp {
 			//} else if (format == "bin") {
 			//	load_binary(path);
 			} else {
-				std::cerr << "Unrecognized Format \"" << format << "\"!" << std::endl;
+				cerr << "Unrecognized Format \"" << format << "\"!" << endl;
 				return;
 			}
 		} // end of load
 
-		void load_graph(std::string prefix, 
+		void load_graph(string prefix, 
 			line_parser_type line_parser) {
-				std::string directory_name; std::string original_path(prefix);
+				string directory_name; string original_path(prefix);
 				boost::filesystem::path path(prefix);
-				std::string search_prefix;
+				string search_prefix;
 				if (boost::filesystem::is_directory(path)) {
 					// if this is a directory
 					// force a "/" at the end of the path
@@ -213,50 +218,50 @@ namespace graphp {
 					search_prefix = path.filename().generic_string();
 					directory_name = (directory_name.empty() ? "." : directory_name);
 				}
-				std::vector<std::string> graph_files;
+				vector<string> graph_files;
 				fs_util::list_files_with_prefix(directory_name, search_prefix, graph_files);
 				if (graph_files.size() == 0) {
-					std::cerr << "No files found matching " << original_path << std::endl;
+					cerr << "No files found matching " << original_path << endl;
 				}
 				for(size_t i = 0; i < graph_files.size(); ++i) {
-					std::cerr << "Loading graph from file: " << graph_files[i] << std::endl;
+					cerr << "Loading graph from file: " << graph_files[i] << endl;
 					// open the stream
-					std::ifstream in_file(graph_files[i].c_str(), 
-						std::ios_base::in | std::ios_base::binary);
+					ifstream in_file(graph_files[i].c_str(), 
+						ios_base::in | ios_base::binary);
 					// attach gzip if the file is gzip
 					boost::iostreams::filtering_stream<boost::iostreams::input> fin;  
 					// Using gzip filter
 					fin.push(in_file);
 					const bool success = load_from_stream(graph_files[i], fin, line_parser);
 					if(!success) { 
-						std::cerr << "\n\tError parsing file: " << graph_files[i] << std::endl;
+						cerr << "\n\tError parsing file: " << graph_files[i] << endl;
 					}
 					fin.pop();
 				}
 		} // end of load graph
 
 		template<typename Fstream>
-		bool load_from_stream(std::string filename, Fstream& fin, 
+		bool load_from_stream(string filename, Fstream& fin, 
 			line_parser_type& line_parser) {
 				size_t linecount = 0;
 				boost::timer ti;
 				ti.restart();
 				while(fin.good() && !fin.eof()) {
-					std::string line;
-					std::getline(fin, line);
+					string line;
+					getline(fin, line);
 					if(line.empty()) continue;
 					if(fin.fail()) break;
 					const bool success = line_parser(*this, filename, line);
 					if (!success) {
-						std::cerr
+						cerr
 							<< "Error parsing line " << linecount << " in "
-							<< filename << ": " << std::endl
-							<< "\t\"" << line << "\"" << std::endl;  
+							<< filename << ": " << endl
+							<< "\t\"" << line << "\"" << endl;  
 						return false;
 					}
 					++linecount;      
 					if (ti.elapsed() > 5.0) {
-						std::cout << linecount << " Lines read" << std::endl;
+						cout << linecount << " Lines read" << endl;
 						ti.restart();
 					}
 				}
