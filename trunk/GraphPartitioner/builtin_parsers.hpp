@@ -27,6 +27,8 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 
+#include "graph_basic_types.hpp"
+
 using namespace std;
 
 namespace graphp {
