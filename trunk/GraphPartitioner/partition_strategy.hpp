@@ -127,13 +127,13 @@ namespace graphp {
 
 		basic_graph::part_t edge_to_part_greedy(const basic_graph::vertex_type& source_v, 
 			const basic_graph::vertex_type& target_v, 
-			vector<size_t>& part_num_edges, 
+			const vector<size_t>& part_num_edges, 
 			bool usehash = false, 
 			bool userecent = false
 			) {
 				const size_t nparts = part_num_edges.size();
 
-				// compute the score of each proc
+				// compute the score of each part
 				basic_graph::part_t best_part = -1;
 				double maxscore = 0.0;
 				double epsilon = 1.0;
@@ -179,7 +179,7 @@ namespace graphp {
 			) {
 				const size_t nparts = part_num_edges.size();
 
-				// compute the score of each proc
+				// compute the score of each part
 				basic_graph::part_t best_part = -1;
 				double maxscore = 0.0;
 				double epsilon = 1.0;
@@ -329,6 +329,7 @@ namespace graphp {
 
 					// ???
 					if(local_nbr_list.size() == 0) {
+						cerr << "WTF" << endl;
 						continue;
 					}
 

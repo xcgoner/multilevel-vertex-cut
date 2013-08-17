@@ -50,6 +50,10 @@ int main(int argc, char* argv[])
 	else if(vm["strategy"].as<string>() == "oblivious")
 		graphp::partition_strategy::greedy_partition(graph, nparts);
 
+	//for(size_t i = 0; i < graph.origin_edges.size(); i++) {
+	//	cout << graph.origin_edges[i].source << "->" << graph.origin_edges[i].target << " : " << graph.origin_edges[i].placement << endl;
+	//}
+
 	// refine
 	graphp::partition_strategy::itr_cost_greedy_refinement(graph, nparts);
 

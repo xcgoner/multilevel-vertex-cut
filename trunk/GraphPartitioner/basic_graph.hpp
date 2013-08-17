@@ -135,23 +135,32 @@ namespace graphp {
 			}
 		}
 
-		void add_vertex(const vertex_id_type& vid, const size_t& weight = 1) {
+		bool add_vertex(const vertex_id_type& vid, const size_t& weight = 1) {
 			if(origin_verts.count(vid) == 0) {
 				vertex_type v(vid, weight);
 				origin_verts.insert(pair<vertex_id_type, vertex_type>(vid, v));
 				nverts++;
+				return true;
 			}
+			return false;
 		}
 
 		void add_edge(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1) {
+			// check if the edge already exists
+			add_vertex(source);
+			add_vertex(target);
+			// just check one of the two conditions should be ok...
+			if(origin_verts[source].nbr_list.count(target) > 0 || origin_verts[target].nbr_list.count(source) > 0)
+				return ;
+
 			edge_type e(nedges, source, target, weight);
 			origin_edges.push_back(e);
+			
 			// undirected
-			add_vertex(source);
 			origin_verts[source].edge_list.insert(pair<vertex_id_type, edge_id_type>(target, e.eid));
 			origin_verts[source].nbr_list.insert(target);
 			origin_verts[source].degree++;
-			add_vertex(target);
+			
 			origin_verts[target].edge_list.insert(pair<vertex_id_type, edge_id_type>(source, e.eid));
 			origin_verts[target].nbr_list.insert(source);
 			origin_verts[target].degree++;
