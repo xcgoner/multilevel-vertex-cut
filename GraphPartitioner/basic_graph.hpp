@@ -23,7 +23,6 @@
 #include <vector>
 #include <map>
 #include <hash_map>
-#include <set>
 #include <fstream>
 #include <sstream>
 
@@ -39,6 +38,7 @@
 #include <boost/iostreams/copy.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/timer.hpp>
+#include <boost/dynamic_bitset.hpp>
 
 namespace graphp_options = boost::program_options;
 
@@ -49,7 +49,6 @@ using namespace __gnu_cxx;
 
 namespace graphp {
 
-	
 	class basic_graph {
 
 	public:
@@ -64,85 +63,50 @@ namespace graphp {
 		typedef size_t part_t;
 
 		// list of vertices
-		typedef set<vertex_id_type> vertex_list_type;
+		typedef vector<vertex_id_type> vertex_list_type;
 
 		// list of edges
-		typedef set<edge_id_type> edge_list_type;
+		typedef vector<edge_id_type> edge_list_type;
 
 		size_t nverts, nedges, nparts;
 
 		vector<size_t> parts_counter;
 
-		struct vertex_type {
-			vertex_id_type vid;
-			size_t degree;
-			size_t weight;
+		typedef boost::dynamic_bitset<> mirror_list_type;
 
-			// neighbour list
-			vertex_list_type nbr_list;
-
-			// key: neighbour target vid, value: edge eid
-			map<vertex_id_type, edge_id_type> edge_list;
-
-			set<part_t> mirror_list;
-
-			vertex_type() :
-				vid(-1), degree(0), weight(1) { }
-			vertex_type(const vertex_id_type& vid) :
-				vid(vid), degree(0), weight(1) { }
-			vertex_type(const vertex_id_type& vid, const size_t& weight) :
-				vid(vid), degree(0), weight(weight) { }
-
-			bool operator==(vertex_type& v) const {
-				return vid == v.vid;
-			}
-
-
-
-			friend class basic_graph;
+		struct vertex_info {
+			vector<size_t> weight;
+			vector<vertex_list_type> nbr_list;
+			vector<edge_list_type> edge_list;
+			vector<mirror_list_type> mirror_list;
 		};
 
-		struct edge_type {
-			edge_id_type eid;
-			vertex_id_type source;
-			vertex_id_type target;
-			size_t weight;
-			part_t placement;
-			edge_type() :
-				eid(-1), weight(1), placement(0) { }
-			edge_type(const edge_id_type& eid) :
-				eid(eid), weight(1), placement(0) { }
-			edge_type(const edge_id_type& eid, const size_t& weight) :
-				eid(eid), weight(weight), placement(0) { }
-			edge_type(const edge_id_type& eid, const vertex_id_type& source, const vertex_id_type& target, const size_t& weight) :
-				eid(eid), source(source), target(target), weight(weight), placement(0) { }
-			bool operator==(edge_type& e) const {
-				return eid == e.eid;
-			}
-
-			friend class basic_graph;
+		struct edge_info {
+			vector<vertex_id_type> source;
+			vector<vertex_id_type> target;
+			vector<size_t> weight;
+			vector<part_t> placement;
 		};
 
-		typedef hash_map<vertex_id_type, vertex_type> verts_map_type;
-		verts_map_type origin_verts;
-		vector<edge_type> origin_edges;
+		vertex_info verts;
+		edge_info edges;
 
 		// constructor
-		basic_graph(size_t nparts) : nverts(0), nedges(0), nparts(nparts) {
+		basic_graph(const size_t nparts) : nverts(0), nedges(0), nparts(nparts) {
 			parts_counter.resize(nparts);
-			foreach(size_t& num_edges, parts_counter) {
-				num_edges = 0;
+			foreach(size_t& part_counter, parts_counter) {
+				part_counter = 0;
 			}
 		}
 
-		bool add_vertex(const vertex_id_type& vid, const size_t& weight = 1) {
-			if(origin_verts.count(vid) == 0) {
-				vertex_type v(vid, weight);
-				origin_verts.insert(pair<vertex_id_type, vertex_type>(vid, v));
-				nverts++;
-				return true;
+		void add_vertex(const vertex_id_type& vid, const size_t& weight = 1) {
+			if(vid >= verts.weight.size()) {
+				verts.weight.resize(vid + 1);
+				verts.nbr_list.resize(vid + 1);
+				verts.edge_list.resize(vid + 1);
+				verts.mirror_list.resize(vid + 1);
 			}
-			return false;
+			verts.weight[vid] = weight;
 		}
 
 		void add_edge(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1) {
@@ -150,41 +114,56 @@ namespace graphp {
 			add_vertex(source);
 			add_vertex(target);
 			// just check one of the two conditions should be ok...
-			if(origin_verts[source].nbr_list.count(target) > 0 || origin_verts[target].nbr_list.count(source) > 0)
-				return ;
+			bool existence = false;
+			for(size_t i = 0; i < verts.nbr_list[source].size(); i++) {
+				if(verts.nbr_list[source][i] == target)
+					existence = true;
+			}
+			if(existence)
+				return;
 
-			edge_type e(nedges, source, target, weight);
-			origin_edges.push_back(e);
+			edges.source.push_back(source);
+			edges.target.push_back(target);
+			edges.weight.push_back(weight);
+			edges.placement.push_back(-1);
 			
 			// undirected
-			origin_verts[source].edge_list.insert(pair<vertex_id_type, edge_id_type>(target, e.eid));
-			origin_verts[source].nbr_list.insert(target);
-			origin_verts[source].degree++;
-			
-			origin_verts[target].edge_list.insert(pair<vertex_id_type, edge_id_type>(source, e.eid));
-			origin_verts[target].nbr_list.insert(source);
-			origin_verts[target].degree++;
+			verts.edge_list[source].push_back(nedges);
+			verts.nbr_list[source].push_back(target);
+
+			verts.edge_list[target].push_back(nedges);
+			verts.nbr_list[target].push_back(source);
+
 			nedges++;
 		}
 
 		void finalize() {
+			foreach(boost::dynamic_bitset<>& mirror_list, verts.mirror_list) {
+				mirror_list.resize(nparts);
+			}
+
+			nverts = verts.weight.size();
+
 			cout << "Nodes: " << nverts << " Edges: " << nedges <<endl;
 			memory_info::print_usage();
 		}
 
 		// some utilities
-		vertex_list_type vertex_intersection(const vertex_list_type& list1, const vertex_list_type& list2) {
-			vertex_list_type result;
-			set_intersection(list1.begin(), list1.end(), list2.begin(), list2.end(), inserter(result, result.begin()));
-			return result;
+		void vertex_intersection(const vertex_list_type& list1, const vertex_list_type& list2, vertex_list_type& result) {
+			foreach(vertex_id_type vid1, list1) {
+				foreach(vertex_id_type vid2, list2) {
+					if(vid1 == vid2)
+						result.push_back(vid1);
+				}
+			}
 		}
 
-		vertex_list_type vertex_union(const vertex_list_type& list1, const vertex_list_type& list2) {
-			vertex_list_type result;
-			set_union(list1.begin(), list1.end(), list2.begin(), list2.end(), inserter(result, result.begin()));
-			return result;
-		}
-
+		//void list_type vertex_union(const vertex_list_type& list1, const vertex_list_type& list2) {
+		//	vertex_list_type result;
+		//	set_union(list1.begin(), list1.end(), list2.begin(), list2.end(), inserter(result, result.begin()));
+		//	return result;
+		//}
+		
 		void load_format(const string& path, const string& format) {
 			line_parser_type line_parser;
 			if (format == "snap") {

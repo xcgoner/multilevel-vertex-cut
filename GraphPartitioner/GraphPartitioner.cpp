@@ -37,6 +37,8 @@ int main(int argc, char* argv[])
 		nparts = vm["nparts"].as<size_t>();
 	}
 
+	const size_t np = nparts;
+
 	graphp::basic_graph graph(nparts);
 
 	if(vm.count("file") > 0 && vm.count("format") > 0) {
@@ -45,17 +47,13 @@ int main(int argc, char* argv[])
 
 	graph.finalize();
 
-	if(vm.count("strategy") == 0 || vm["strategy"].as<string>() == "random")
-		graphp::partition_strategy::random_partition(graph, nparts);
-	else if(vm["strategy"].as<string>() == "oblivious")
-		graphp::partition_strategy::greedy_partition(graph, nparts);
+	//if(vm.count("strategy") == 0 || vm["strategy"].as<string>() == "random")
+	//	graphp::partition_strategy::random_partition(graph, nparts);
+	//else if(vm["strategy"].as<string>() == "oblivious")
+	//	graphp::partition_strategy::greedy_partition(graph, nparts);
 
-	//for(size_t i = 0; i < graph.origin_edges.size(); i++) {
-	//	cout << graph.origin_edges[i].source << "->" << graph.origin_edges[i].target << " : " << graph.origin_edges[i].placement << endl;
-	//}
-
-	// refine
-	graphp::partition_strategy::itr_cost_greedy_refinement(graph, nparts);
+	//// refine
+	//graphp::partition_strategy::itr_cost_greedy_refinement(graph, nparts);
 
 #ifdef WIN32
 	system("Pause");
