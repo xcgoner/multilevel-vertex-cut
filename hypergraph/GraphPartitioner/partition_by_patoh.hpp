@@ -61,16 +61,20 @@ namespace graphp {
 				vt++;
 			}
 			xpins[vt] = et;
+			cout << "converted" << end;
 
 			PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_DEFAULT);
+			cout << "initialized" << end;
 
 			args._k = nparts;
 			partvec = (int *) malloc(_c*sizeof(int));
 			partweights = (int *) malloc(args._k*_nconst*sizeof(int));
 
 			PaToH_Alloc(&args, _c, _n, _nconst, NULL, NULL, xpins, pins);
+			cout << "allocated" << end;
 
 			PaToH_Part(&args, _c, _n, _nconst, 0, NULL, NULL, xpins, pins, NULL, partvec, partweights, &cut);
+			cout << "parted" << end;
 
 			for(int i = 0; i < _c; i++) {
 				graph.origin_edges[i].placement = partvec[i];
