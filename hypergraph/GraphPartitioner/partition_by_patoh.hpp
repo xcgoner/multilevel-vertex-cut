@@ -48,7 +48,7 @@ namespace graphp {
 			_nconst = 1;
 
 			xpins = (int *) malloc((_n + 1) * sizeof(int));
-			pins = (int *) malloc(graph.nedges * 2);
+			pins = (int *) malloc(graph.nedges * 2 * sizeof(int));
 			size_t vt = 0, et = 0;
 			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
 				xpins[vt] = et;
