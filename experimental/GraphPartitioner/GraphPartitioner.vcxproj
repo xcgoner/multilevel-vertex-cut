@@ -87,6 +87,7 @@
     <ClInclude Include="fs_util.hpp" />
     <ClInclude Include="graph_basic_types.hpp" />
     <ClInclude Include="memory_info.hpp" />
+    <ClInclude Include="multilevel_partition_strategy.hpp" />
     <ClInclude Include="partition_strategy.hpp" />
     <ClInclude Include="util.hpp" />
   </ItemGroup>
