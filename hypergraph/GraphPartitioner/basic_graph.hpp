@@ -73,6 +73,7 @@ namespace graphp {
 
 		vector<size_t> parts_counter;
 
+		typedef map<vertex_id_type, edge_id_type> vertex_edge_map_type;
 		struct vertex_type {
 			vertex_id_type vid;
 			size_t degree;
@@ -82,7 +83,7 @@ namespace graphp {
 			vertex_list_type nbr_list;
 
 			// key: neighbour target vid, value: edge eid
-			map<vertex_id_type, edge_id_type> edge_list;
+			vertex_edge_map_type edge_list;
 
 			set<part_t> mirror_list;
 

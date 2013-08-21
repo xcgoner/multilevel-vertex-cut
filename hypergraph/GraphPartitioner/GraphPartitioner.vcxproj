@@ -73,7 +73,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>F:\lab\boost\boost_1_54_0\stage\lib;F:\lab\boost\my project\GraphPartitioner\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libhmetis.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -90,7 +90,9 @@
     <ClInclude Include="fs_util.hpp" />
     <ClInclude Include="graph_basic_types.hpp" />
     <ClInclude Include="memory_info.hpp" />
+    <ClInclude Include="partition_by_patoh.hpp" />
     <ClInclude Include="partition_strategy.hpp" />
+    <ClInclude Include="patoh.h" />
     <ClInclude Include="util.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

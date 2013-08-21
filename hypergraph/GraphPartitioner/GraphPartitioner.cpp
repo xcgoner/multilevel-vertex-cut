@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include "basic_graph.hpp"
-#include "partition_strategy.hpp"
+#include "partition_by_patoh.hpp"
 
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
