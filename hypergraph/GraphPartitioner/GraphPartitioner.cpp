@@ -43,33 +43,22 @@ int main(int argc, char* argv[])
 		nparts = vm["nparts"].as<size_t>();
 	}
 
-	int nvtxs = 7, nhedges = 4;
-	int eptr[5] = {0, 2, 6, 9, 12};
-	int eind[12] = {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6};
-	int ubfactor = 1;
-	int options[9] = {0};
-	int part[7];
-	int edgecut;
-	HMETIS_PartRecursive(nvtxs, nhedges, NULL, eptr, eind, NULL, nparts, ubfactor, options, part, &edgecut);
+	graphp::basic_graph graph(nparts);
 
-	//graphp::basic_graph graph(nparts);
+	if(vm.count("file") > 0 && vm.count("format") > 0) {
+		graph.load_format(vm["file"].as<string>(), vm["format"].as<string>());
+	}
 
-	//if(vm.count("file") > 0 && vm.count("format") > 0) {
-	//	graph.load_format(vm["file"].as<string>(), vm["format"].as<string>());
-	//}
-
-	//graph.finalize();
+	graph.finalize();
 
 	
 
-	//if(vm.count("strategy") == 0 || vm["strategy"].as<string>() == "random")
-	//	graphp::partition_strategy::random_partition(graph, nparts);
-	//else if(vm["strategy"].as<string>() == "oblivious")
-	//	graphp::partition_strategy::greedy_partition(graph, nparts);
-
-	////for(size_t i = 0; i < graph.origin_edges.size(); i++) {
-	////	cout << graph.origin_edges[i].source << "->" << graph.origin_edges[i].target << " : " << graph.origin_edges[i].placement << endl;
-	////}
+	if(vm.count("strategy") == 0 || vm["strategy"].as<string>() == "random")
+		graphp::partition_strategy::random_partition(graph, nparts);
+	else if(vm["strategy"].as<string>() == "oblivious")
+		graphp::partition_strategy::greedy_partition(graph, nparts);
+	else if(vm["strategy"].as<string>() == "hypergraph")
+		graphp::partition_strategy::partition_by_patoh(graph, nparts);
 
 	//// refine
 	//graphp::partition_strategy::itr_cost_greedy_refinement(graph, nparts);
