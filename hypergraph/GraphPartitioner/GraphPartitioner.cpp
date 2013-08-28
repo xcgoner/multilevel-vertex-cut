@@ -1,4 +1,4 @@
-// GraphPartitioner.cpp : ¶¨Òå¿ØÖÆÌ¨Ó¦ÓÃ³ÌÐòµÄÈë¿Úµã¡£
+// GraphPartitioner.cpp : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¨Ó¦ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úµã¡£
 //
 
 #include <iostream>
@@ -51,17 +51,18 @@ int main(int argc, char* argv[])
 
 	graph.finalize();
 
-	
 
-	if(vm.count("strategy") == 0 || vm["strategy"].as<string>() == "random")
+
+	if(vm.count("strategy") == 0 || vm["strategy"].as<string>() == "random" || vm["strategy"].as<string>() == "random_refine")
 		graphp::partition_strategy::random_partition(graph, nparts);
-	else if(vm["strategy"].as<string>() == "oblivious")
+	else if(vm["strategy"].as<string>() == "oblivious" || vm["strategy"].as<string>() == "oblivious_refine")
 		graphp::partition_strategy::greedy_partition(graph, nparts);
 	else if(vm["strategy"].as<string>() == "hypergraph")
 		graphp::partition_strategy::partition_by_patoh(graph, nparts);
 
-	//// refine
-	//graphp::partition_strategy::itr_cost_greedy_refinement(graph, nparts);
+	// refine
+	if(vm["strategy"].as<string>() == "oblivious_refine" || vm["strategy"].as<string>() == "random_refine")
+		graphp::partition_strategy::itr_cost_greedy_refinement(graph, nparts);
 
 #ifdef WIN32
 	system("Pause");

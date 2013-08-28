@@ -1,5 +1,5 @@
-/**  
- * Copyright (c) 2009 Carnegie Mellon University. 
+/**
+ * Copyright (c) 2009 Carnegie Mellon University.
  *     All rights reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,13 +29,59 @@
 #include "patoh.h"
 
 using namespace std;
-#ifdef __GNUC__ 
-using namespace __gnu_cxx; 
-#endif 
+#ifdef __GNUC__
+using namespace __gnu_cxx;
+#endif
 
 namespace graphp {
 
 	namespace partition_strategy {
+		void PrintInfo(int _k, int *partweights, int cut, int _nconst)
+		{
+		 double             *avg, *maxi, maxall=-1.0;
+		 int                i, j;
+
+		 printf("\n-------------------------------------------------------------------");
+		 printf("\n Partitioner: %s", (_nconst>1) ? "Multi-Constraint" : "Single-Constraint");
+
+		 printf("\n %d-way cutsize = %d \n", _k, cut);
+
+		 printf("\nPartWeights are:\n");
+		 avg = (double *) malloc(sizeof(double)*_nconst);
+		 maxi = (double *) malloc(sizeof(double)*_nconst);
+		 for (i=0; i<_nconst; ++i)
+			 maxi[i] = avg[i] = 0.0;
+		 for (i=0; i<_k; ++i)
+			   for (j=0; j<_nconst; ++j)
+				 avg[j] += partweights[i*_nconst+j];
+		  for (i=0; i<_nconst; ++i)
+			 {
+			 maxi[i] = 0.0;
+			 avg[i] /= (double) _k;
+			 }
+
+		 for (i=0; i<_k; ++i)
+			 {
+			 printf("\n %3d :", i);
+			 for (j=0; j<_nconst; ++j)
+				 {
+				 double im= (double)((double)partweights[i*_nconst+j] - avg[j]) / avg[j];
+
+				 maxi[j] = (maxi[j] > im) ? maxi[j] : im;
+				 printf("%10d ", partweights[i*_nconst+j]);
+				 }
+			 }
+		 for (j=0; j<_nconst; ++j)
+			 maxall = (maxi[j] > maxall) ? maxi[j] : maxall;
+		 printf("\n MaxImbals are (as %%): %.3lf", 100.0*maxall);
+		 printf("\n      ");
+		 for (i=0; i<_nconst; ++i)
+			 printf("%10.1lf ", 100.0*maxi[i]);
+		 printf("\n");
+		 free(maxi);
+		 free(avg);
+		}
+
 		void partition_by_patoh (basic_graph& graph, size_t nparts) {
 			boost::timer ti;
 
@@ -61,23 +107,26 @@ namespace graphp {
 				vt++;
 			}
 			xpins[vt] = et;
-			cout << "converted" << endl;
+//			cout << "converted" << endl;
 
 			PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_DEFAULT);
-			cout << "initialized" << endl;
+//			cout << "initialized" << endl;
 
 			args._k = nparts;
 			partvec = (int *) malloc(_c*sizeof(int));
 			partweights = (int *) malloc(args._k*_nconst*sizeof(int));
 
 			PaToH_Alloc(&args, _c, _n, _nconst, NULL, NULL, xpins, pins);
-			cout << "allocated" << endl;
+//			cout << "allocated" << endl;
 
 			PaToH_Part(&args, _c, _n, _nconst, 0, NULL, NULL, xpins, pins, NULL, partvec, partweights, &cut);
-			cout << "parted" << endl;
+//			cout << "parted" << endl;
+
+			cout << "hypergraph " << args._k << "-way cutsize is: " << cut << endl;
+//			PrintInfo(args._k, partweights,  cut, _nconst);
 
 			for(int i = 0; i < _c; i++) {
-				graph.origin_edges[i].placement = partvec[i];
+				assign_edge(graph, i, partvec[i]);
 			}
 
 			//free(cwghts);      free(nwghts);

@@ -1,5 +1,5 @@
-/**  
- * Copyright (c) 2009 Carnegie Mellon University. 
+/**
+ * Copyright (c) 2009 Carnegie Mellon University.
  *     All rights reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,9 +27,9 @@
 #include "util.hpp"
 
 using namespace std;
-#ifdef __GNUC__ 
-using namespace __gnu_cxx; 
-#endif 
+#ifdef __GNUC__
+using namespace __gnu_cxx;
+#endif
 
 namespace graphp {
 
@@ -101,10 +101,23 @@ namespace graphp {
 			}
 
 			// report
+			int max_parts = 0;
 			for(size_t i = 0; i < nparts; i++) {
 				cout << "Partition " << i << ": " << graph.parts_counter[i] << " edges" << endl;
+				if(max_parts < graph.parts_counter[i])
+					max_parts = graph.parts_counter[i];
 			}
 			cout << "Vertex-cut: " << vertex_cut_counter << endl;
+
+			cout << "Normalized replication factor: " << 1.0 * (graph.nverts + vertex_cut_counter) / graph.nverts << endl;
+
+			cout << "Partitioning imbalance: " << 1.0 * max_parts / (graph.nedges / nparts) << endl;
+
+			cout << nparts << " "
+			<< vertex_cut_counter << " "
+			<< 1.0 * (graph.nverts + vertex_cut_counter) / graph.nverts << " "
+			<< 1.0 * max_parts / (graph.nedges / nparts) << endl;
+
 		}
 
 		void random_partition(basic_graph& graph, basic_graph::part_t nparts) {
@@ -125,10 +138,10 @@ namespace graphp {
 			report_performance(graph, nparts);
 		}
 
-		basic_graph::part_t edge_to_part_greedy(const basic_graph::vertex_type& source_v, 
-			const basic_graph::vertex_type& target_v, 
-			const vector<size_t>& part_num_edges, 
-			bool usehash = false, 
+		basic_graph::part_t edge_to_part_greedy(const basic_graph::vertex_type& source_v,
+			const basic_graph::vertex_type& target_v,
+			const vector<size_t>& part_num_edges,
+			bool usehash = false,
 			bool userecent = false
 			) {
 				const size_t nparts = part_num_edges.size();
@@ -159,7 +172,7 @@ namespace graphp {
 
 				// hash the edge to one of the best parts
 				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-				const edge_pair_type edge_pair(min(source_v.vid, target_v.vid), 
+				const edge_pair_type edge_pair(min(source_v.vid, target_v.vid),
 					max(source_v.vid, target_v.vid));
 				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
 
@@ -170,11 +183,11 @@ namespace graphp {
 				return best_part;
 		}
 
-		basic_graph::part_t edge_to_part_greedy(const basic_graph::vertex_type& source_v, 
-			const basic_graph::vertex_type& target_v, 
+		basic_graph::part_t edge_to_part_greedy(const basic_graph::vertex_type& source_v,
+			const basic_graph::vertex_type& target_v,
 			const vector<basic_graph::part_t>& candidates,
-			const vector<size_t>& part_num_edges, 
-			bool usehash = false, 
+			const vector<size_t>& part_num_edges,
+			bool usehash = false,
 			bool userecent = false
 			) {
 				const size_t nparts = part_num_edges.size();
@@ -206,7 +219,7 @@ namespace graphp {
 
 				// hash the edge to one of the best parts
 				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-				const edge_pair_type edge_pair(min(source_v.vid, target_v.vid), 
+				const edge_pair_type edge_pair(min(source_v.vid, target_v.vid),
 					max(source_v.vid, target_v.vid));
 				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
 
@@ -313,7 +326,7 @@ namespace graphp {
 					j++;
 				}
 				random_shuffle(parts_order.begin(), parts_order.end());
-				
+
 				set<basic_graph::part_t> exclude_parts;
 
 				foreach(const basic_graph::part_t pt, parts_order) {
@@ -338,7 +351,7 @@ namespace graphp {
 						continue;
 
 					size_t local_nbr_counter = 0;
-					
+
 					foreach(const vertex_id_type local_nbr, local_nbr_list) {
 						bool movable = false;
 						foreach(const basic_graph::part_t other_part, parts_order) {
@@ -378,7 +391,7 @@ namespace graphp {
 								}
 							}
 
-							if(move_dst.size() == 1) 
+							if(move_dst.size() == 1)
 								assignment = move_dst[0];
 							else {
 								const basic_graph::edge_type& e = graph.origin_edges[graph.origin_verts[vid].edge_list[local_nbr]];
@@ -428,8 +441,8 @@ namespace graphp {
 					vector<basic_graph::part_t> intersection_parts;
 					vector<basic_graph::part_t> candidates;
 					set_intersection(
-						target.mirror_list.begin(), target.mirror_list.end(), source.mirror_list.begin(), 
-						source.mirror_list.end(), 
+						target.mirror_list.begin(), target.mirror_list.end(), source.mirror_list.begin(),
+						source.mirror_list.end(),
 						inserter(intersection_parts, intersection_parts.begin())
 						);
 
@@ -440,11 +453,11 @@ namespace graphp {
 							if(graph.parts_counter[origin_part] > graph.parts_counter[candidate])
 								candidates.push_back(candidate);
 						}
-						
+
 						// check if there exists movement that can improve the balance
 						if(candidates.size() > 0) {
 							basic_graph::part_t assignment;
-							if(candidates.size() == 1) 
+							if(candidates.size() == 1)
 								assignment = candidates[0];
 							else {
 								// use the candidate version of edge_to_part_greedy
@@ -467,7 +480,7 @@ namespace graphp {
 
 		void itr_cost_greedy_refinement(basic_graph& graph, basic_graph::part_t nparts) {
 			size_t refine_counter;
-			do 
+			do
 			{
 				refine_counter = cost_greedy_refinement(graph, nparts);
 				bal_greedy_refinement(graph, nparts);
