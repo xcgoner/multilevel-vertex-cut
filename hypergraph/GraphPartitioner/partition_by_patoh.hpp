@@ -172,19 +172,35 @@ namespace graphp {
 			// filter the vertices
 			boost::dynamic_bitset<> vfilter(graph.max_vid);
 			vertex_filter(graph, vfilter);
-			cout << "Vertices to be partitioned by hypergraph: " << vfilter.count() << endl;
+			//cout << "Vertices to be partitioned by hypergraph: " << vfilter.count() << endl;
 
-			// count the average degree
-			size_t cutted_vertex_num = 0, boundary_degree = 0;
+			//// count the average degree
+			//size_t cutted_vertex_num = 0, boundary_degree = 0;
+			//for(hash_map<vertex_id_type, basic_graph::vertex_type>::const_iterator iter = graph.origin_verts.begin(); iter != graph.origin_verts.end(); iter++) {
+			//	if(vfilter[iter->first]) {
+			//		// is a vertex to be partitioned
+			//		cutted_vertex_num++;
+			//		boundary_degree += iter->second.nbr_list.size();
+			//	}
+			//}
+			//cout << "Average degree: " << 1.0 * boundary_degree / cutted_vertex_num << " : " << 2.0 * graph.origin_edges.size() / graph.origin_verts.size() << endl;
 
-			for(hash_map<vertex_id_type, basic_graph::vertex_type>::const_iterator iter = graph.origin_verts.begin(); iter != graph.origin_verts.end(); iter++) {
-				if(vfilter[iter->first]) {
-					// is a vertex to be partitioned
-					cutted_vertex_num++;
-					boundary_degree += iter->second.nbr_list.size();
+			size_t assign_counter = 0;
+
+			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+			foreach(basic_graph::edge_type& e, graph.origin_edges) {
+				if(vfilter[e.source] == false && vfilter[e.target] == false) {
+					// check if is sparse
+					// random assign
+					const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
+					basic_graph::part_t assignment;
+					assignment = edge_hashing(edge_pair, hashing_seed) % (nparts);
+					//assignment = edgernd(gen) % (nparts)
+					assign_edge(graph, e.eid, assignment);
+					assign_counter++;
 				}
 			}
-			cout << "Average degree: " << 1.0 * boundary_degree / cutted_vertex_num << " : " << 2.0 * graph.origin_edges.size() / graph.origin_verts.size() << endl;
+			cout << "Edges assigned: " << assign_counter << endl; 
 
 //			// in patoh, cell means vertex and net means hyperedge
 //			PaToH_Parameters args;
