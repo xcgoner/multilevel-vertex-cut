@@ -84,7 +84,7 @@ namespace graphp {
 		 free(avg);
 		}
 
-		void partition_by_patoh (basic_graph& graph, size_t nparts) {
+		void partition_by_patoh(basic_graph& graph, size_t nparts) {
 			boost::timer ti;
 
 			// in patoh, cell means vertex and net means hyperedge
@@ -166,7 +166,7 @@ namespace graphp {
 			}
 		}
 
-		void partition_by_patoh_fast (basic_graph& graph, size_t nparts) {
+		void partition_by_patoh_fast(basic_graph& graph, size_t nparts) {
 			boost::timer ti;
 
 			// filter the vertices
@@ -184,6 +184,33 @@ namespace graphp {
 			//	}
 			//}
 			//cout << "Average degree: " << 1.0 * boundary_degree / cutted_vertex_num << " : " << 2.0 * graph.origin_edges.size() / graph.origin_verts.size() << endl;
+
+			// set the subgraph to be partitioned
+			boost::dynamic_bitset<> v_to_part(graph.max_vid);
+			for(size_t idx = vfilter.find_first(); idx != vfilter.npos; idx = vfilter.find_next(idx)) {
+				v_to_part[idx] = true;
+				foreach(vertex_id_type vid, graph.origin_verts[idx].nbr_list) {
+					v_to_part[vid] = true;
+				}
+			}
+			size_t sub_nedges = 0, sub_nverts = 0, npins = 0;
+			typedef map<edge_id_type, edge_id_type> edge_map_type;
+			edge_map_type edge_map;
+			for(size_t idx = v_to_part.find_first(); idx != v_to_part.npos; idx = v_to_part.find_next(idx)) {
+				foreach(vertex_id_type nbr, graph.origin_verts[idx].nbr_list) {
+					edge_id_type eid = graph.origin_verts[idx].edge_list[nbr];
+					if(edge_map.count(eid) == 0) {
+						edge_map.insert(pair<edge_id_type, edge_id_type>(eid, sub_nedges));
+						sub_nedges++;
+					}
+				}
+				npins += graph.origin_verts[idx].edge_list.size();
+			}
+			sub_nverts = v_to_part.count();
+			vector<edge_id_type> edge_remap(sub_nedges);
+			foreach(edge_map_type::value_type edge_map_entry, edge_map) {
+				edge_remap[edge_map_entry.second] = edge_map_entry.first;
+			}
 
 			size_t assign_counter = 0;
 
@@ -204,18 +231,21 @@ namespace graphp {
 			PaToH_Parameters args;
 			int _c, _n, _nconst, *cwghts = NULL, *nwghts = NULL, *xpins, *pins, *partvec, cut, *partweights;
 			// unweighted
-			_c = graph.nedges; _n = graph.nverts;
+			_c = sub_nedges; _n = sub_nverts;
+			cout << "Subgraph size: edges: " << sub_nedges << "verts: " << sub_nverts << endl; 
+
 			// pins = nedges * 2
 			_nconst = 1;
 
 			xpins = (int *) malloc((_n + 1) * sizeof(int));
-			pins = (int *) malloc(graph.nedges * 2 * sizeof(int));
+			pins = (int *) malloc(npins * sizeof(int));
 			size_t vt = 0, et = 0;
-			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
+			for(size_t idx = v_to_part.find_first(); idx != v_to_part.npos; idx = v_to_part.find_next(idx)) {
 				xpins[vt] = et;
 
-				foreach(const basic_graph::vertex_edge_map_type::value_type& ep, vp.second.edge_list) {
-					pins[et] = ep.second;
+				foreach(vertex_id_type nbr, graph.origin_verts[idx].nbr_list) {
+					edge_id_type eid = graph.origin_verts[idx].edge_list[nbr];
+					pins[et] = edge_map[eid];
 					et++;
 				}
 
@@ -228,11 +258,11 @@ namespace graphp {
 //			cout << "initialized" << endl;
 
 			args._k = nparts;
-			partvec = (int *) malloc(_c*sizeof(int));
+			partvec = (int *) malloc(_c * sizeof(int));
 			for(int i = 0; i < _c; i++) {
-				partvec[i] = graph.origin_edges[i].placement;
+				partvec[i] = graph.origin_edges[edge_remap[i]].placement;
 			}
-			partweights = (int *) malloc(args._k*_nconst*sizeof(int));
+			partweights = (int *) malloc(args._k*_nconst * sizeof(int));
 
 			PaToH_Alloc(&args, _c, _n, _nconst, NULL, NULL, xpins, pins);
 //			cout << "allocated" << endl;
@@ -245,8 +275,8 @@ namespace graphp {
 //			PrintInfo(args._k, partweights,  cut, _nconst);
 
 			for(int i = 0; i < _c; i++) {
-				if(vfilter[graph.origin_edges[i].source] == true || vfilter[graph.origin_edges[i].target] == true) {
-					assign_edge(graph, i, partvec[i]);
+				if(vfilter[graph.origin_edges[edge_remap[i]].source] == true || vfilter[graph.origin_edges[edge_remap[i]].target] == true) {
+					assign_edge(graph, edge_remap[i], partvec[i]);
 				}
 			}
 
