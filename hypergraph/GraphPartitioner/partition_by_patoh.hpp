@@ -23,6 +23,8 @@
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/random.hpp>
 #include <boost/timer.hpp>
+#include <boost/dynamic_bitset.hpp>
+#include <cmath>
 #include "basic_graph.hpp"
 #include "util.hpp"
 #include "partition_strategy.hpp"
@@ -138,7 +140,97 @@ namespace graphp {
 			cout << "Time elapsed: " << ti.elapsed() << endl;
 
 			report_performance(graph, nparts);
+		} // end of partition_by_patoh
+
+		void vertex_filter(basic_graph& graph, boost::dynamic_bitset<>& result) {
+			map<size_t, vector<size_t>> buckets;
+			const size_t c = (size_t) pow(2.0 * graph.origin_edges.size() / graph.origin_verts.size(), 1.5);
+			size_t idx = 0;
+			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
+				size_t bucket = vp.second.nbr_list.size() / c;
+				if(buckets.count(bucket) == 0) {
+					vector<size_t> v;
+					buckets.insert(pair<size_t, vector<size_t>>(bucket, v));
+				}
+				buckets[bucket].push_back(idx);
+				idx++;
+			}
+
+			size_t num_of_vertex = 0;
+			const size_t limit = graph.origin_verts.size() / 100;
+			for(map<size_t, vector<size_t>>::reverse_iterator iter = buckets.rbegin(); iter != buckets.rend(); iter++) {
+				foreach(size_t vp, iter->second) {
+					result[vp] = true;
+				}
+				num_of_vertex += iter->second.size();
+				if(num_of_vertex >= limit)
+					break;
+			}
 		}
+
+		void partition_by_patoh_fast (basic_graph& graph, size_t nparts) {
+			boost::timer ti;
+
+			// filter the vertices
+			boost::dynamic_bitset<> vfilter(graph.origin_verts.size());
+			vertex_filter(graph, vfilter);
+			cout << "Vertices to be partitioned by hypergraph: " << vfilter.count() << endl;
+
+//			// in patoh, cell means vertex and net means hyperedge
+//			PaToH_Parameters args;
+//			int _c, _n, _nconst, *cwghts = NULL, *nwghts = NULL, *xpins, *pins, *partvec, cut, *partweights;
+//			// unweighted
+//			_c = graph.nedges; _n = graph.nverts;
+//			// pins = nedges * 2
+//			_nconst = 1;
+//
+//			xpins = (int *) malloc((_n + 1) * sizeof(int));
+//			pins = (int *) malloc(graph.nedges * 2 * sizeof(int));
+//			size_t vt = 0, et = 0;
+//			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
+//				xpins[vt] = et;
+//
+//				foreach(const basic_graph::vertex_edge_map_type::value_type& ep, vp.second.edge_list) {
+//					pins[et] = ep.second;
+//					et++;
+//				}
+//
+//				vt++;
+//			}
+//			xpins[vt] = et;
+////			cout << "converted" << endl;
+//
+//			PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_DEFAULT);
+////			cout << "initialized" << endl;
+//
+//			args._k = nparts;
+//			partvec = (int *) malloc(_c*sizeof(int));
+//			partweights = (int *) malloc(args._k*_nconst*sizeof(int));
+//
+//			PaToH_Alloc(&args, _c, _n, _nconst, NULL, NULL, xpins, pins);
+////			cout << "allocated" << endl;
+//
+//			PaToH_Part(&args, _c, _n, _nconst, 0, NULL, NULL, xpins, pins, NULL, partvec, partweights, &cut);
+////			cout << "parted" << endl;
+//
+//			cout << "hypergraph " << args._k << "-way cutsize is: " << cut << endl;
+////			PrintInfo(args._k, partweights,  cut, _nconst);
+//
+//			for(int i = 0; i < _c; i++) {
+//				assign_edge(graph, i, partvec[i]);
+//			}
+//
+//			//free(cwghts);      free(nwghts);
+//			free(xpins);       free(pins);
+//			free(partweights); free(partvec);
+//
+//			PaToH_Free();
+
+			cout << "Time elapsed: " << ti.elapsed() << endl;
+
+			//report_performance(graph, nparts);
+		} // end of partition_by_patoh
+
 	} // end of namespace partition_strategy
 
 } // end of namespace graphp
