@@ -142,7 +142,7 @@ namespace graphp {
 			report_performance(graph, nparts);
 		} // end of partition_by_patoh
 
-		void vertex_filter(basic_graph& graph, boost::dynamic_bitset<>& result) {
+		void vertex_filter(basic_graph& graph, boost::dynamic_bitset<>& result, size_t factor) {
 			map<size_t, vector<size_t>> buckets;
 			const size_t c = (size_t) pow(2.0 * graph.origin_edges.size() / graph.origin_verts.size(), 1.5);
 			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
@@ -155,7 +155,7 @@ namespace graphp {
 			}
 
 			size_t num_of_vertex = 0;
-			const size_t limit = graph.origin_verts.size() * 1 / 10000;
+			const size_t limit = graph.origin_verts.size() * 1 / factor;
 			for(map<size_t, vector<size_t>>::reverse_iterator iter = buckets.rbegin(); iter != buckets.rend(); iter++) {
 				foreach(size_t vp, iter->second) {
 					result[vp] = true;
@@ -171,7 +171,7 @@ namespace graphp {
 
 			// filter the vertices
 			boost::dynamic_bitset<> vfilter(graph.max_vid);
-			vertex_filter(graph, vfilter);
+			vertex_filter(graph, vfilter, 10000);
 			//cout << "Vertices to be partitioned by hypergraph: " << vfilter.count() << endl;
 
 			//// count the average degree
@@ -267,7 +267,7 @@ namespace graphp {
 
 			targetweights = (float *) malloc(args._k * sizeof(float));
 			for(size_t idx = 0; idx < nparts; idx++) {
-				targetweights[idx] = (float)1.0 * graph.nedges / graph.parts_counter[idx]; 
+				targetweights[idx] = (float)1.0 * graph.nedges / graph.parts_counter[idx];
 			}
 
 			PaToH_Alloc(&args, _c, _n, _nconst, NULL, NULL, xpins, pins);
@@ -306,7 +306,7 @@ namespace graphp {
 
 			// filter the vertices
 			boost::dynamic_bitset<> vfilter(graph.max_vid);
-			vertex_filter(graph, vfilter);
+			vertex_filter(graph, vfilter, 1000);
 			//cout << "Vertices to be partitioned by hypergraph: " << vfilter.count() << endl;
 
 			// set the subgraph to be partitioned
