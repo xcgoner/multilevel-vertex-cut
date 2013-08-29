@@ -247,7 +247,7 @@ namespace graphp {
 			foreach(basic_graph::edge_type& e, graph.origin_edges) {
 				// random assign
 				basic_graph::part_t assignment;
-				assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, true);
+				assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
 				assign_edge(graph, e.eid, assignment);
 			}
 
