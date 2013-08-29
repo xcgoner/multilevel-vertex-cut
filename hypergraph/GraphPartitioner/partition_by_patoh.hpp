@@ -230,6 +230,7 @@ namespace graphp {
 			// in patoh, cell means vertex and net means hyperedge
 			PaToH_Parameters args;
 			int _c, _n, _nconst, *cwghts = NULL, *nwghts = NULL, *xpins, *pins, *partvec, cut, *partweights;
+			float *targetweights;
 			// unweighted
 			_c = sub_nedges; _n = sub_nverts;
 			cout << "Subgraph size: edges: " << sub_nedges << " verts: " << sub_nverts << endl;
@@ -264,11 +265,16 @@ namespace graphp {
 			}
 			partweights = (int *) malloc(args._k*_nconst * sizeof(int));
 
+			targetweights = (float *) malloc(args._k * sizeof(float));
+			for(size_t idx = 0; idx < nparts; idx++) {
+				targetweights[idx] = (float)1.0 * graph.nedges / graph.parts_counter[idx]; 
+			}
+
 			PaToH_Alloc(&args, _c, _n, _nconst, NULL, NULL, xpins, pins);
 //			cout << "allocated" << endl;
 
 			// use fixed cells
-			PaToH_Part(&args, _c, _n, _nconst, 1, NULL, NULL, xpins, pins, NULL, partvec, partweights, &cut);
+			PaToH_Part(&args, _c, _n, _nconst, 1, NULL, NULL, xpins, pins, targetweights, partvec, partweights, &cut);
 //			cout << "parted" << endl;
 
 			cout << "hypergraph " << args._k << "-way cutsize is: " << cut << endl;
