@@ -51,6 +51,8 @@ int main(int argc, char* argv[])
 		graphp::partition_strategy::random_partition(graph, nparts);
 	else if(vm["strategy"].as<string>() == "oblivious" || vm["strategy"].as<string>() == "oblivious_refine")
 		graphp::partition_strategy::greedy_partition(graph, nparts);
+	else if(vm["strategy"].as<string>() == "obliviousreorder")
+		graphp::partition_strategy::greedy_reorder(graph, nparts);
 	else if(vm["strategy"].as<string>() == "hypergraph")
 		graphp::partition_strategy::partition_by_patoh(graph, nparts);
 	else if(vm["strategy"].as<string>() == "fasthypergraph")

@@ -292,13 +292,76 @@ namespace graphp {
 			//free(cwghts);      free(nwghts);
 			free(xpins);       free(pins);
 			free(partweights); free(partvec);
+			free(targetweights);
 
 			PaToH_Free();
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
 
 			report_performance(graph, nparts);
-		} // end of partition_by_patoh
+		} // end of partition_by_patoh_fast
+
+		void greedy_reorder(basic_graph& graph, size_t nparts) {
+			boost::timer ti;
+
+			// filter the vertices
+			boost::dynamic_bitset<> vfilter(graph.max_vid);
+			vertex_filter(graph, vfilter);
+			//cout << "Vertices to be partitioned by hypergraph: " << vfilter.count() << endl;
+
+			// set the subgraph to be partitioned
+			boost::dynamic_bitset<> v_to_part(graph.max_vid);
+			for(size_t idx = vfilter.find_first(); idx != vfilter.npos; idx = vfilter.find_next(idx)) {
+				v_to_part[idx] = true;
+				foreach(vertex_id_type vid, graph.origin_verts[idx].nbr_list) {
+					v_to_part[vid] = true;
+				}
+			}
+			size_t sub_nedges = 0, sub_nverts = 0, npins = 0;
+			typedef map<edge_id_type, edge_id_type> edge_map_type;
+			edge_map_type edge_map;
+			for(size_t idx = v_to_part.find_first(); idx != v_to_part.npos; idx = v_to_part.find_next(idx)) {
+				foreach(vertex_id_type nbr, graph.origin_verts[idx].nbr_list) {
+					edge_id_type eid = graph.origin_verts[idx].edge_list[nbr];
+					if(edge_map.count(eid) == 0) {
+						edge_map.insert(pair<edge_id_type, edge_id_type>(eid, sub_nedges));
+						sub_nedges++;
+					}
+				}
+				npins += graph.origin_verts[idx].edge_list.size();
+			}
+			sub_nverts = v_to_part.count();
+
+			size_t assign_counter = 0;
+
+			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+			foreach(basic_graph::edge_type& e, graph.origin_edges) {
+				if(vfilter[e.source] == false && vfilter[e.target] == false) {
+					// check if is sparse
+					// greedy assign
+					basic_graph::part_t assignment;
+					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+					assign_edge(graph, e.eid, assignment);
+					assign_counter++;
+				}
+			}
+			cout << "Edges assigned: " << assign_counter << endl;
+			foreach(basic_graph::edge_type& e, graph.origin_edges) {
+				if(vfilter[e.source] == true || vfilter[e.target] == true) {
+					// check if is dense
+					// greedy assign
+					basic_graph::part_t assignment;
+					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+					assign_edge(graph, e.eid, assignment);
+					assign_counter++;
+				}
+			}
+			cout << "Edges assigned: " << assign_counter << endl;
+
+			cout << "Time elapsed: " << ti.elapsed() << endl;
+
+			report_performance(graph, nparts);
+		} // end of greedy_reorder
 
 	} // end of namespace partition_strategy
 
