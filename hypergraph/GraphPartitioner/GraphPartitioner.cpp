@@ -53,6 +53,8 @@ int main(int argc, char* argv[])
 		graphp::partition_strategy::greedy_partition(graph, nparts);
 	else if(vm["strategy"].as<string>() == "hypergraph")
 		graphp::partition_strategy::partition_by_patoh(graph, nparts);
+	else if(vm["strategy"].as<string>() == "fasthypergraph")
+		graphp::partition_strategy::partition_by_patoh_fast(graph, nparts);
 
 	// refine
 	if(vm["strategy"].as<string>() == "oblivious_refine" || vm["strategy"].as<string>() == "random_refine")
