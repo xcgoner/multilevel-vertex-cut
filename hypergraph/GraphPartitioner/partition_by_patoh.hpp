@@ -202,59 +202,65 @@ namespace graphp {
 			}
 			cout << "Edges assigned: " << assign_counter << endl; 
 
-//			// in patoh, cell means vertex and net means hyperedge
-//			PaToH_Parameters args;
-//			int _c, _n, _nconst, *cwghts = NULL, *nwghts = NULL, *xpins, *pins, *partvec, cut, *partweights;
-//			// unweighted
-//			_c = graph.nedges; _n = graph.nverts;
-//			// pins = nedges * 2
-//			_nconst = 1;
-//
-//			xpins = (int *) malloc((_n + 1) * sizeof(int));
-//			pins = (int *) malloc(graph.nedges * 2 * sizeof(int));
-//			size_t vt = 0, et = 0;
-//			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
-//				xpins[vt] = et;
-//
-//				foreach(const basic_graph::vertex_edge_map_type::value_type& ep, vp.second.edge_list) {
-//					pins[et] = ep.second;
-//					et++;
-//				}
-//
-//				vt++;
-//			}
-//			xpins[vt] = et;
-////			cout << "converted" << endl;
-//
-//			PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_DEFAULT);
-////			cout << "initialized" << endl;
-//
-//			args._k = nparts;
-//			partvec = (int *) malloc(_c*sizeof(int));
-//			partweights = (int *) malloc(args._k*_nconst*sizeof(int));
-//
-//			PaToH_Alloc(&args, _c, _n, _nconst, NULL, NULL, xpins, pins);
-////			cout << "allocated" << endl;
-//
-//			PaToH_Part(&args, _c, _n, _nconst, 0, NULL, NULL, xpins, pins, NULL, partvec, partweights, &cut);
-////			cout << "parted" << endl;
-//
-//			cout << "hypergraph " << args._k << "-way cutsize is: " << cut << endl;
-////			PrintInfo(args._k, partweights,  cut, _nconst);
-//
-//			for(int i = 0; i < _c; i++) {
-//				assign_edge(graph, i, partvec[i]);
-//			}
-//
-//			//free(cwghts);      free(nwghts);
-//			free(xpins);       free(pins);
-//			free(partweights); free(partvec);
-//
-//			PaToH_Free();
+			// in patoh, cell means vertex and net means hyperedge
+			PaToH_Parameters args;
+			int _c, _n, _nconst, *cwghts = NULL, *nwghts = NULL, *xpins, *pins, *partvec, cut, *partweights;
+			// unweighted
+			_c = graph.nedges; _n = graph.nverts;
+			// pins = nedges * 2
+			_nconst = 1;
+
+			xpins = (int *) malloc((_n + 1) * sizeof(int));
+			pins = (int *) malloc(graph.nedges * 2 * sizeof(int));
+			size_t vt = 0, et = 0;
+			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
+				xpins[vt] = et;
+
+				foreach(const basic_graph::vertex_edge_map_type::value_type& ep, vp.second.edge_list) {
+					pins[et] = ep.second;
+					et++;
+				}
+
+				vt++;
+			}
+			xpins[vt] = et;
+//			cout << "converted" << endl;
+
+			PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_DEFAULT);
+//			cout << "initialized" << endl;
+
+			args._k = nparts;
+			partvec = (int *) malloc(_c*sizeof(int));
+			for(int i = 0; i < _c; i++) {
+				partvec[i] = graph.origin_edges[i].placement;
+			}
+			partweights = (int *) malloc(args._k*_nconst*sizeof(int));
+
+			PaToH_Alloc(&args, _c, _n, _nconst, NULL, NULL, xpins, pins);
+//			cout << "allocated" << endl;
+
+			// use fixed cells
+			PaToH_Part(&args, _c, _n, _nconst, 1, NULL, NULL, xpins, pins, NULL, partvec, partweights, &cut);
+//			cout << "parted" << endl;
+
+			cout << "hypergraph " << args._k << "-way cutsize is: " << cut << endl;
+//			PrintInfo(args._k, partweights,  cut, _nconst);
+
+			for(int i = 0; i < _c; i++) {
+				if(vfilter[graph.origin_edges[i].source] == true || vfilter[graph.origin_edges[i].target] == true) {
+					assign_edge(graph, i, partvec[i]);
+				}
+			}
+
+			//free(cwghts);      free(nwghts);
+			free(xpins);       free(pins);
+			free(partweights); free(partvec);
+
+			PaToH_Free();
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
 
-			//report_performance(graph, nparts);
+			report_performance(graph, nparts);
 		} // end of partition_by_patoh
 
 	} // end of namespace partition_strategy

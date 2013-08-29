@@ -112,13 +112,13 @@ namespace graphp {
 			size_t weight;
 			part_t placement;
 			edge_type() :
-				eid(-1), weight(1), placement(0) { }
+				eid(-1), weight(1), placement(-1) { }
 			edge_type(const edge_id_type& eid) :
-				eid(eid), weight(1), placement(0) { }
+				eid(eid), weight(1), placement(-1) { }
 			edge_type(const edge_id_type& eid, const size_t& weight) :
-				eid(eid), weight(weight), placement(0) { }
+				eid(eid), weight(weight), placement(-1) { }
 			edge_type(const edge_id_type& eid, const vertex_id_type& source, const vertex_id_type& target, const size_t& weight) :
-				eid(eid), source(source), target(target), weight(weight), placement(0) { }
+				eid(eid), source(source), target(target), weight(weight), placement(-1) { }
 			bool operator==(edge_type& e) const {
 				return eid == e.eid;
 			}
