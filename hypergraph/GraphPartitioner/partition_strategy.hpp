@@ -96,8 +96,16 @@ namespace graphp {
 			// count the vertex-cut
 			size_t vertex_cut_counter = 0;
 
+			// count the average degree
+			size_t cutted_vertex_num = 0, boundary_degree = 0;
+
 			for(hash_map<vertex_id_type, basic_graph::vertex_type>::const_iterator iter = graph.origin_verts.begin(); iter != graph.origin_verts.end(); iter++) {
 				vertex_cut_counter += (iter->second.mirror_list.size() - 1);
+				if(iter->second.mirror_list.size() > 1) {
+					// is a boundary vertex
+					cutted_vertex_num++;
+					boundary_degree += iter->second.nbr_list.size();
+				}
 			}
 
 			// report
@@ -113,10 +121,12 @@ namespace graphp {
 
 			cout << "Partitioning imbalance: " << 1.0 * max_parts / (graph.nedges / nparts) << endl;
 
-			cout << nparts << " "
-			<< vertex_cut_counter << " "
-			<< 1.0 * (graph.nverts + vertex_cut_counter) / graph.nverts << " "
-			<< 1.0 * max_parts / (graph.nedges / nparts) << endl;
+			cout << "Average degree: " << 1.0 * boundary_degree / cutted_vertex_num << " : " << 2.0 * graph.origin_edges.size() / graph.origin_verts.size() << endl;
+
+			//cout << nparts << " "
+			//<< vertex_cut_counter << " "
+			//<< 1.0 * (graph.nverts + vertex_cut_counter) / graph.nverts << " "
+			//<< 1.0 * max_parts / (graph.nedges / nparts) << endl;
 
 		}
 

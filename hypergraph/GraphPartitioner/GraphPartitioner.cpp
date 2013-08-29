@@ -1,4 +1,4 @@
-// GraphPartitioner.cpp : �������̨Ӧ�ó������ڵ㡣
+// GraphPartitioner.cpp : �������̨Ӧ�ó������ڵ�?
 //
 
 #include <iostream>
@@ -9,12 +9,6 @@
 namespace po = boost::program_options;
 
 using namespace std;
-
-extern "C" void HMETIS_PartRecursive(int nvtxs, int nhedges,
-        int *vwgts,
-        int *eptr, int *eind,
-        int *hewgts, int nparts,
-        int ubfactor, int *options, int *part, int *edgecut);
 
 int main(int argc, char* argv[])
 {
