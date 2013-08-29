@@ -111,7 +111,7 @@ namespace graphp {
 			// report
 			int max_parts = 0;
 			for(size_t i = 0; i < nparts; i++) {
-				cout << "Partition " << i << ": " << graph.parts_counter[i] << " edges" << endl;
+//				cout << "Partition " << i << ": " << graph.parts_counter[i] << " edges" << endl;
 				if(max_parts < graph.parts_counter[i])
 					max_parts = graph.parts_counter[i];
 			}
@@ -123,10 +123,10 @@ namespace graphp {
 
 			cout << "Average degree: " << 1.0 * boundary_degree / cutted_vertex_num << " : " << 2.0 * graph.origin_edges.size() / graph.origin_verts.size() << endl;
 
-			//cout << nparts << " "
-			//<< vertex_cut_counter << " "
-			//<< 1.0 * (graph.nverts + vertex_cut_counter) / graph.nverts << " "
-			//<< 1.0 * max_parts / (graph.nedges / nparts) << endl;
+			cout << nparts << " "
+			<< vertex_cut_counter << " "
+			<< 1.0 * (graph.nverts + vertex_cut_counter) / graph.nverts << " "
+			<< 1.0 * max_parts / (graph.nedges / nparts) << endl;
 
 		}
 

@@ -155,7 +155,7 @@ namespace graphp {
 			}
 
 			size_t num_of_vertex = 0;
-			const size_t limit = graph.origin_verts.size() * 5 / 1000;
+			const size_t limit = graph.origin_verts.size() * 1 / 100000;
 			for(map<size_t, vector<size_t>>::reverse_iterator iter = buckets.rbegin(); iter != buckets.rend(); iter++) {
 				foreach(size_t vp, iter->second) {
 					result[vp] = true;
@@ -225,14 +225,14 @@ namespace graphp {
 					assign_counter++;
 				}
 			}
-			cout << "Edges assigned: " << assign_counter << endl; 
+			cout << "Edges assigned: " << assign_counter << endl;
 
 			// in patoh, cell means vertex and net means hyperedge
 			PaToH_Parameters args;
 			int _c, _n, _nconst, *cwghts = NULL, *nwghts = NULL, *xpins, *pins, *partvec, cut, *partweights;
 			// unweighted
 			_c = sub_nedges; _n = sub_nverts;
-			cout << "Subgraph size: edges: " << sub_nedges << "verts: " << sub_nverts << endl; 
+			cout << "Subgraph size: edges: " << sub_nedges << " verts: " << sub_nverts << endl;
 
 			// pins = nedges * 2
 			_nconst = 1;
@@ -274,11 +274,14 @@ namespace graphp {
 			cout << "hypergraph " << args._k << "-way cutsize is: " << cut << endl;
 //			PrintInfo(args._k, partweights,  cut, _nconst);
 
+			assign_counter = 0;
 			for(int i = 0; i < _c; i++) {
 				if(vfilter[graph.origin_edges[edge_remap[i]].source] == true || vfilter[graph.origin_edges[edge_remap[i]].target] == true) {
 					assign_edge(graph, edge_remap[i], partvec[i]);
+					assign_counter++;
 				}
 			}
+			cout << "Edges assigned: " << assign_counter << endl;
 
 			//free(cwghts);      free(nwghts);
 			free(xpins);       free(pins);
