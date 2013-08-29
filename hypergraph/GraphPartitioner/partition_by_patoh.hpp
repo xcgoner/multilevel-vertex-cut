@@ -145,15 +145,13 @@ namespace graphp {
 		void vertex_filter(basic_graph& graph, boost::dynamic_bitset<>& result) {
 			map<size_t, vector<size_t>> buckets;
 			const size_t c = (size_t) pow(2.0 * graph.origin_edges.size() / graph.origin_verts.size(), 1.5);
-			size_t idx = 0;
 			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
 				size_t bucket = vp.second.nbr_list.size() / c;
 				if(buckets.count(bucket) == 0) {
 					vector<size_t> v;
 					buckets.insert(pair<size_t, vector<size_t>>(bucket, v));
 				}
-				buckets[bucket].push_back(idx);
-				idx++;
+				buckets[bucket].push_back(vp.second.vid);
 			}
 
 			size_t num_of_vertex = 0;
@@ -172,9 +170,21 @@ namespace graphp {
 			boost::timer ti;
 
 			// filter the vertices
-			boost::dynamic_bitset<> vfilter(graph.origin_verts.size());
+			boost::dynamic_bitset<> vfilter(graph.max_vid);
 			vertex_filter(graph, vfilter);
 			cout << "Vertices to be partitioned by hypergraph: " << vfilter.count() << endl;
+
+			// count the average degree
+			size_t cutted_vertex_num = 0, boundary_degree = 0;
+
+			for(hash_map<vertex_id_type, basic_graph::vertex_type>::const_iterator iter = graph.origin_verts.begin(); iter != graph.origin_verts.end(); iter++) {
+				if(vfilter[iter->first]) {
+					// is a vertex to be partitioned
+					cutted_vertex_num++;
+					boundary_degree += iter->second.nbr_list.size();
+				}
+			}
+			cout << "Average degree: " << 1.0 * boundary_degree / cutted_vertex_num << " : " << 2.0 * graph.origin_edges.size() / graph.origin_verts.size() << endl;
 
 //			// in patoh, cell means vertex and net means hyperedge
 //			PaToH_Parameters args;

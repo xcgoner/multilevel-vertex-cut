@@ -71,6 +71,8 @@ namespace graphp {
 
 		size_t nverts, nedges, nparts;
 
+		vertex_id_type max_vid;
+
 		vector<size_t> parts_counter;
 
 		typedef map<vertex_id_type, edge_id_type> vertex_edge_map_type;
@@ -129,7 +131,7 @@ namespace graphp {
 		vector<edge_type> origin_edges;
 
 		// constructor
-		basic_graph(size_t nparts) : nverts(0), nedges(0), nparts(nparts) {
+		basic_graph(size_t nparts) : nverts(0), nedges(0), max_vid(0), nparts(nparts) {
 			parts_counter.resize(nparts);
 			foreach(size_t& num_edges, parts_counter) {
 				num_edges = 0;
@@ -138,6 +140,8 @@ namespace graphp {
 
 		bool add_vertex(const vertex_id_type& vid, const size_t& weight = 1) {
 			if(origin_verts.count(vid) == 0) {
+				if(vid > max_vid)
+					max_vid = vid;
 				vertex_type v(vid, weight);
 				origin_verts.insert(pair<vertex_id_type, vertex_type>(vid, v));
 				nverts++;
