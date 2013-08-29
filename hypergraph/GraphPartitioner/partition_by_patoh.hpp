@@ -155,7 +155,7 @@ namespace graphp {
 			}
 
 			size_t num_of_vertex = 0;
-			const size_t limit = graph.origin_verts.size() / 100;
+			const size_t limit = graph.origin_verts.size() * 5 / 1000;
 			for(map<size_t, vector<size_t>>::reverse_iterator iter = buckets.rbegin(); iter != buckets.rend(); iter++) {
 				foreach(size_t vp, iter->second) {
 					result[vp] = true;
@@ -191,11 +191,9 @@ namespace graphp {
 			foreach(basic_graph::edge_type& e, graph.origin_edges) {
 				if(vfilter[e.source] == false && vfilter[e.target] == false) {
 					// check if is sparse
-					// random assign
-					const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
+					// greddy assign
 					basic_graph::part_t assignment;
-					assignment = edge_hashing(edge_pair, hashing_seed) % (nparts);
-					//assignment = edgernd(gen) % (nparts)
+					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
 					assign_edge(graph, e.eid, assignment);
 					assign_counter++;
 				}
