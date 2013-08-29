@@ -215,17 +215,19 @@ namespace graphp {
 			size_t assign_counter = 0;
 
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			foreach(basic_graph::edge_type& e, graph.origin_edges) {
-				if(vfilter[e.source] == false && vfilter[e.target] == false) {
-					// check if is sparse
-					// greddy assign
-					basic_graph::part_t assignment;
-					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
-					assign_edge(graph, e.eid, assignment);
-					assign_counter++;
-				}
-			}
-			cout << "Edges assigned: " << assign_counter << endl;
+
+			//// partition the dense part
+			//foreach(basic_graph::edge_type& e, graph.origin_edges) {
+			//	if(vfilter[e.source] == false && vfilter[e.target] == false) {
+			//		// check if is sparse
+			//		// greddy assign
+			//		basic_graph::part_t assignment;
+			//		assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+			//		assign_edge(graph, e.eid, assignment);
+			//		assign_counter++;
+			//	}
+			//}
+			//cout << "Edges assigned: " << assign_counter << endl;
 
 			// in patoh, cell means vertex and net means hyperedge
 			PaToH_Parameters args;
@@ -265,22 +267,22 @@ namespace graphp {
 			}
 			partweights = (int *) malloc(args._k*_nconst * sizeof(int));
 
-			targetweights = (float *) malloc(args._k * sizeof(float));
-			for(size_t idx = 0; idx < nparts; idx++) {
-				targetweights[idx] = (float)1.0 * graph.nedges / graph.parts_counter[idx];
-			}
+			//targetweights = (float *) malloc(args._k * sizeof(float));
+			//for(size_t idx = 0; idx < nparts; idx++) {
+			//	targetweights[idx] = (float)1.0 * graph.nedges / graph.parts_counter[idx];
+			//}
 
 			PaToH_Alloc(&args, _c, _n, _nconst, NULL, NULL, xpins, pins);
 //			cout << "allocated" << endl;
 
 			// use fixed cells
-			PaToH_Part(&args, _c, _n, _nconst, 1, NULL, NULL, xpins, pins, targetweights, partvec, partweights, &cut);
+			PaToH_Part(&args, _c, _n, _nconst, 1, NULL, NULL, xpins, pins, NULL, partvec, partweights, &cut);
 //			cout << "parted" << endl;
 
 			cout << "hypergraph " << args._k << "-way cutsize is: " << cut << endl;
 //			PrintInfo(args._k, partweights,  cut, _nconst);
 
-			assign_counter = 0;
+
 			for(int i = 0; i < _c; i++) {
 				if(vfilter[graph.origin_edges[edge_remap[i]].source] == true || vfilter[graph.origin_edges[edge_remap[i]].target] == true) {
 					assign_edge(graph, edge_remap[i], partvec[i]);
@@ -292,9 +294,22 @@ namespace graphp {
 			//free(cwghts);      free(nwghts);
 			free(xpins);       free(pins);
 			free(partweights); free(partvec);
-			free(targetweights);
+			//free(targetweights);
 
 			PaToH_Free();
+
+			// partition the dense part
+			foreach(basic_graph::edge_type& e, graph.origin_edges) {
+				if(vfilter[e.source] == false && vfilter[e.target] == false) {
+					// check if is sparse
+					// greddy assign
+					basic_graph::part_t assignment;
+					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+					assign_edge(graph, e.eid, assignment);
+					assign_counter++;
+				}
+			}
+			cout << "Edges assigned: " << assign_counter << endl;
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
 
