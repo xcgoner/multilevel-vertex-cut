@@ -25,6 +25,8 @@
 #include <boost/timer.hpp>
 #include <boost/dynamic_bitset.hpp>
 #include <cmath>
+#include <queue>
+#include <list>
 #include "basic_graph.hpp"
 #include "util.hpp"
 #include "partition_strategy.hpp"
@@ -156,8 +158,8 @@ namespace graphp {
 
 			size_t num_of_vertex = 0;
 			const size_t limit = graph.origin_verts.size() * 1 / factor;
-			/*for(map<size_t, vector<size_t>>::reverse_iterator iter = buckets.rbegin(); iter != buckets.rend(); iter++) {*/
-			for(map<size_t, vector<size_t>>::iterator iter = buckets.begin(); iter != buckets.end(); iter++) {
+			for(map<size_t, vector<size_t>>::reverse_iterator iter = buckets.rbegin(); iter != buckets.rend(); iter++) {
+			//for(map<size_t, vector<size_t>>::iterator iter = buckets.begin(); iter != buckets.end(); iter++) {
 				foreach(size_t vp, iter->second) {
 					result[vp] = true;
 				}
@@ -172,7 +174,7 @@ namespace graphp {
 
 			// filter the vertices
 			boost::dynamic_bitset<> vfilter(graph.max_vid + 1);
-			vertex_filter(graph, vfilter, 10);
+			vertex_filter(graph, vfilter, 10000);
 			//cout << "Vertices to be partitioned by hypergraph: " << vfilter.count() << endl;
 
 			//// count the average degree
@@ -189,11 +191,40 @@ namespace graphp {
 			// set the subgraph to be partitioned
 			boost::dynamic_bitset<> v_to_part(graph.max_vid + 1);
 			for(size_t idx = vfilter.find_first(); idx != vfilter.npos; idx = vfilter.find_next(idx)) {
-				v_to_part[idx] = true;
-				//foreach(vertex_id_type vid, graph.origin_verts[idx].nbr_list) {
-				//	v_to_part[vid] = true;
-				//}
+				//v_to_part[idx] = true;
+				foreach(vertex_id_type vid, graph.origin_verts[idx].nbr_list) {
+					if(vfilter[vid] == false)
+						v_to_part[vid] = true;
+				}
 			}
+
+			boost::dynamic_bitset<> vcluster(graph.max_vid + 1);
+			size_t vexclude = vfilter.count() + v_to_part.count();
+			typedef vertex_id_type cluster_vid_type;
+			typedef pair<vertex_id_type, cluster_vid_type> queue_pair_type;
+			queue<queue_pair_type, list<queue_pair_type>> visit_vertex;
+			for(size_t idx = v_to_part.find_first(); idx != v_to_part.npos; idx = v_to_part.find_next(idx)) {
+				visit_vertex.push(queue_pair_type(idx, idx));
+			}
+			int *nwghts = (int *)malloc(vexclude * sizeof(int));
+			for(size_t i = 0; i < vexclude; i++) {
+				nwghts[i] = 1;
+			}
+			while(vcluster.count() + vexclude < graph.nverts && visit_vertex.size() > 0) {
+				vertex_id_type vid = visit_vertex.front().first;
+				cluster_vid_type cvid = visit_vertex.front().second;
+				foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
+					if(vfilter[nbr] == false && v_to_part[nbr] == false && vcluster[nbr] == false) {
+						nwghts[cvid]++;
+						visit_vertex.push(queue_pair_type(nbr, cvid));
+						vcluster[nbr] = true;
+					}
+				}
+				visit_vertex.pop();
+			}
+
+			v_to_part |= vfilter;
+
 			size_t sub_nedges = 0, sub_nverts = 0, npins = 0;
 			typedef map<edge_id_type, edge_id_type> edge_map_type;
 			edge_map_type edge_map;
@@ -232,7 +263,7 @@ namespace graphp {
 
 			// in patoh, cell means vertex and net means hyperedge
 			PaToH_Parameters args;
-			int _c, _n, _nconst, *cwghts = NULL, *nwghts = NULL, *xpins, *pins, *partvec, cut, *partweights;
+			int _c, _n, _nconst, *cwghts = NULL, /**nwghts = NULL,*/ *xpins, *pins, *partvec, cut, *partweights;
 			float *targetweights;
 			// unweighted
 			_c = sub_nedges; _n = sub_nverts;
@@ -274,11 +305,11 @@ namespace graphp {
 			//	targetweights[idx] = (float)1.0 * graph.nedges / graph.parts_counter[idx];
 			//}
 
-			PaToH_Alloc(&args, _c, _n, _nconst, NULL, NULL, xpins, pins);
+			PaToH_Alloc(&args, _c, _n, _nconst, NULL, nwghts, xpins, pins);
 //			cout << "allocated" << endl;
 
 			// use fixed cells
-			PaToH_Part(&args, _c, _n, _nconst, 1, NULL, NULL, xpins, pins, NULL, partvec, partweights, &cut);
+			PaToH_Part(&args, _c, _n, _nconst, 1, NULL, nwghts, xpins, pins, NULL, partvec, partweights, &cut);
 //			cout << "parted" << endl;
 
 			cout << "hypergraph " << args._k << "-way cutsize is: " << cut << endl;
