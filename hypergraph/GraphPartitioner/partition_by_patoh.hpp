@@ -189,9 +189,9 @@ namespace graphp {
 			boost::dynamic_bitset<> v_to_part(graph.max_vid);
 			for(size_t idx = vfilter.find_first(); idx != vfilter.npos; idx = vfilter.find_next(idx)) {
 				v_to_part[idx] = true;
-				foreach(vertex_id_type vid, graph.origin_verts[idx].nbr_list) {
-					v_to_part[vid] = true;
-				}
+				//foreach(vertex_id_type vid, graph.origin_verts[idx].nbr_list) {
+				//	v_to_part[vid] = true;
+				//}
 			}
 			size_t sub_nedges = 0, sub_nverts = 0, npins = 0;
 			typedef map<edge_id_type, edge_id_type> edge_map_type;
