@@ -156,7 +156,8 @@ namespace graphp {
 
 			size_t num_of_vertex = 0;
 			const size_t limit = graph.origin_verts.size() * 1 / factor;
-			for(map<size_t, vector<size_t>>::reverse_iterator iter = buckets.rbegin(); iter != buckets.rend(); iter++) {
+			/*for(map<size_t, vector<size_t>>::reverse_iterator iter = buckets.rbegin(); iter != buckets.rend(); iter++) {*/
+			for(map<size_t, vector<size_t>>::iterator iter = buckets.begin(); iter != buckets.end(); iter++) {
 				foreach(size_t vp, iter->second) {
 					result[vp] = true;
 				}
