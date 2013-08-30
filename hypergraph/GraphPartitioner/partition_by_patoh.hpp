@@ -210,6 +210,7 @@ namespace graphp {
 			for(size_t i = 0; i < vexclude; i++) {
 				nwghts[i] = 1;
 			}
+			cout << "cluster started" << endl
 			while(vcluster.count() + vexclude < graph.nverts && visit_vertex.size() > 0) {
 				vertex_id_type vid = visit_vertex.front().first;
 				cluster_vid_type cvid = visit_vertex.front().second;
@@ -221,9 +222,11 @@ namespace graphp {
 					}
 				}
 				visit_vertex.pop();
+				cout << "queue size: " << visit_vertex.size() << " clustered: " << vcluster.size() << endl;
 			}
 
 			v_to_part |= vfilter;
+			cout << "cluster ended" << endl;
 
 			size_t sub_nedges = 0, sub_nverts = 0, npins = 0;
 			typedef map<edge_id_type, edge_id_type> edge_map_type;
