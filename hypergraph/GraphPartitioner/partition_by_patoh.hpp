@@ -215,7 +215,7 @@ namespace graphp {
 				vertex_id_type vid = visit_vertex.front().first;
 				cluster_vid_type cvid = visit_vertex.front().second;
 				visit_vertex.pop();
-				if(vfilter[vid] || v_to_part[vid] || vcluster[vid])
+				if(vcluster[vid])
 					continue;
 				foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
 					if(vfilter[nbr] == false && v_to_part[nbr] == false && vcluster[nbr] == false) {
