@@ -222,7 +222,7 @@ namespace graphp {
 					}
 				}
 				visit_vertex.pop();
-				cout << "queue size: " << visit_vertex.size() << " clustered: " << vcluster.size() << endl;
+				cout << "queue size: " << visit_vertex.size() << " clustered: " << vcluster.size() << " excluded:" << vexclude << endl;
 			}
 
 			v_to_part |= vfilter;
