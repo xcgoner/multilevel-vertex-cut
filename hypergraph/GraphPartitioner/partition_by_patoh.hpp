@@ -171,8 +171,8 @@ namespace graphp {
 			boost::timer ti;
 
 			// filter the vertices
-			boost::dynamic_bitset<> vfilter(graph.max_vid);
-			vertex_filter(graph, vfilter, 100);
+			boost::dynamic_bitset<> vfilter(graph.max_vid + 1);
+			vertex_filter(graph, vfilter, 10);
 			//cout << "Vertices to be partitioned by hypergraph: " << vfilter.count() << endl;
 
 			//// count the average degree
@@ -187,7 +187,7 @@ namespace graphp {
 			//cout << "Average degree: " << 1.0 * boundary_degree / cutted_vertex_num << " : " << 2.0 * graph.origin_edges.size() / graph.origin_verts.size() << endl;
 
 			// set the subgraph to be partitioned
-			boost::dynamic_bitset<> v_to_part(graph.max_vid);
+			boost::dynamic_bitset<> v_to_part(graph.max_vid + 1);
 			for(size_t idx = vfilter.find_first(); idx != vfilter.npos; idx = vfilter.find_next(idx)) {
 				v_to_part[idx] = true;
 				//foreach(vertex_id_type vid, graph.origin_verts[idx].nbr_list) {
