@@ -224,7 +224,8 @@ namespace graphp {
 						vcluster[nbr] = true;
 					}
 				}
-				//cout << "queue size: " << visit_vertex.size() << " clustered: " << vcluster.count() << " excluded:" << vexclude << endl;
+				if(visit_vertex.size() % 100 == 0)
+					cout << "queue size: " << visit_vertex.size() << " clustered: " << vcluster.count() << " excluded:" << vexclude << endl;
 			}
 
 			v_to_part |= vfilter;
