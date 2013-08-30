@@ -258,7 +258,8 @@ namespace graphp {
 			xpins[vt] = et;
 //			cout << "converted" << endl;
 
-			PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_DEFAULT);
+			PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_SPEED);
+			args.ref_alg = PATOH_REFALG_NONE;
 //			cout << "initialized" << endl;
 
 			args._k = nparts;
