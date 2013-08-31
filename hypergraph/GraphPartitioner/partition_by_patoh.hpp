@@ -354,59 +354,34 @@ namespace graphp {
 			boost::timer ti;
 
 			// filter the vertices
-			boost::dynamic_bitset<> vfilter(graph.max_vid);
-			vertex_filter(graph, vfilter, 1000);
-			//cout << "Vertices to be partitioned by hypergraph: " << vfilter.count() << endl;
-
-			// set the subgraph to be partitioned
-			boost::dynamic_bitset<> v_to_part(graph.max_vid);
-			for(size_t idx = vfilter.find_first(); idx != vfilter.npos; idx = vfilter.find_next(idx)) {
-				v_to_part[idx] = true;
-				foreach(vertex_id_type vid, graph.origin_verts[idx].nbr_list) {
-					v_to_part[vid] = true;
+			map<size_t, vector<vertex_id_type>> buckets;
+			const size_t c = (size_t) (2.0 * graph.origin_edges.size() / graph.origin_verts.size());
+			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
+				size_t bucket = vp.second.nbr_list.size() / c;
+				if(buckets.count(bucket) == 0) {
+					vector<vertex_id_type> v;
+					buckets.insert(pair<size_t, vector<vertex_id_type>>(bucket, v));
 				}
+				buckets[bucket].push_back(vp.second.vid);
 			}
-			size_t sub_nedges = 0, sub_nverts = 0, npins = 0;
-			typedef map<edge_id_type, edge_id_type> edge_map_type;
-			edge_map_type edge_map;
-			for(size_t idx = v_to_part.find_first(); idx != v_to_part.npos; idx = v_to_part.find_next(idx)) {
-				foreach(vertex_id_type nbr, graph.origin_verts[idx].nbr_list) {
-					edge_id_type eid = graph.origin_verts[idx].edge_list[nbr];
-					if(edge_map.count(eid) == 0) {
-						edge_map.insert(pair<edge_id_type, edge_id_type>(eid, sub_nedges));
-						sub_nedges++;
-					}
-				}
-				npins += graph.origin_verts[idx].edge_list.size();
-			}
-			sub_nverts = v_to_part.count();
 
 			size_t assign_counter = 0;
-
-			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-
-			foreach(basic_graph::edge_type& e, graph.origin_edges) {
-				if(vfilter[e.source] == false && vfilter[e.target] == false) {
-					// check if is sparse
-					// greedy assign
-					basic_graph::part_t assignment;
-					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
-					assign_edge(graph, e.eid, assignment);
-					assign_counter++;
+			for(map<size_t, vector<vertex_id_type>>::iterator iter = buckets.begin(); iter != buckets.end(); iter++) {
+				foreach(vertex_id_type vid, iter->second) {
+					foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
+						edge_id_type eid = graph.origin_verts[vid].edge_list[nbr];
+						if(graph.origin_edges[eid].placement == -1) {
+							// check if is not assigned
+							// greedy assign
+							basic_graph::part_t assignment;
+							assignment = edge_to_part_greedy(graph.origin_verts[vid], graph.origin_verts[nbr], graph.parts_counter, false);
+							assign_edge(graph, eid, assignment);
+							assign_counter++;
+						}
+					}
 				}
 			}
-			cout << "Edges assigned: " << assign_counter << endl;
 
-			foreach(basic_graph::edge_type& e, graph.origin_edges) {
-				if(vfilter[e.source] == true || vfilter[e.target] == true) {
-					// check if is dense
-					// greedy assign
-					basic_graph::part_t assignment;
-					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
-					assign_edge(graph, e.eid, assignment);
-					assign_counter++;
-				}
-			}
 			cout << "Edges assigned: " << assign_counter << endl;
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
