@@ -202,7 +202,7 @@ namespace graphp {
 			// partition the sparse part as a way to cluster / coarsen
 			size_t assign_counter = 0;
 			foreach(basic_graph::edge_type& e, graph.origin_edges) {
-				if(vfilter[e.source] == false || vfilter[e.target] == false) {
+				if(vfilter[e.source] == false && vfilter[e.target] == false) {
 					// check if is sparse
 					// greddy assign
 					basic_graph::part_t assignment;
