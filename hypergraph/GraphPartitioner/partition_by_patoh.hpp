@@ -206,7 +206,7 @@ namespace graphp {
 					// check if is sparse
 					// greddy assign
 					basic_graph::part_t assignment;
-					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false, true);
 					assign_edge(graph, e.eid, assignment);
 					assign_counter++;
 				}

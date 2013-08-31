@@ -152,7 +152,8 @@ namespace graphp {
 		basic_graph::part_t edge_to_part_greedy(const basic_graph::vertex_type& source_v,
 			const basic_graph::vertex_type& target_v,
 			const vector<size_t>& part_num_edges,
-			bool usehash = false
+			bool usehash = false,
+			bool unbalanced = false
 			) {
 				const size_t nparts = part_num_edges.size();
 
@@ -164,11 +165,20 @@ namespace graphp {
 				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
 				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
 
-				for(size_t i = 0; i < nparts; ++i) {
-					size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
-					size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
-					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-					part_score[i] = bal + ((sd > 0) + (td > 0));
+				if(unbalanced) {
+					for(size_t i = 0; i < nparts; ++i) {
+						size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
+						size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
+						part_score[i] = ((sd > 0) + (td > 0));
+					}
+				}
+				else {
+					for(size_t i = 0; i < nparts; ++i) {
+						size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
+						size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
+						double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+						part_score[i] = bal + ((sd > 0) + (td > 0));
+					}
 				}
 
 				maxscore = *max_element(part_score.begin(), part_score.end());
