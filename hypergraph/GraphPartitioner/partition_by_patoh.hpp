@@ -238,7 +238,7 @@ namespace graphp {
 			}
 			cout << "Edges assigned: " << assign_counter << endl;
 			report_performance(graph, nparts);
-			return;
+			//return;
 
 			size_t sub_nedges = 0, sub_nverts = 0, npins = 0;
 			typedef map<edge_id_type, edge_id_type> edge_map_type;
