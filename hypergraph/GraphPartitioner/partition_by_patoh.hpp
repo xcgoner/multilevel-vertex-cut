@@ -144,6 +144,64 @@ namespace graphp {
 			report_performance(graph, nparts);
 		} // end of partition_by_patoh
 
+		void partition_by_patoh_w(basic_graph& graph, size_t nparts) {
+			// in patoh, cell means vertex and net means hyperedge
+			PaToH_Parameters args;
+			int _c, _n, _nconst, *cwghts = NULL, *nwghts = NULL, *xpins, *pins, *partvec, cut, *partweights;
+			// unweighted
+			_c = graph.nedges; _n = graph.nverts;
+			// pins = nedges * 2
+			_nconst = 1;
+
+			xpins = (int *) malloc((_n + 1) * sizeof(int));
+			pins = (int *) malloc(graph.nedges * 2 * sizeof(int));
+			size_t vt = 0, et = 0;
+			nwghts = (int *) malloc(_n * sizeof(int));
+			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
+				xpins[vt] = et;
+
+				foreach(const basic_graph::vertex_edge_map_type::value_type& ep, vp.second.edge_list) {
+					pins[et] = ep.second;
+					et++;
+				}
+
+				nwghts[vt] = vp.second.weight;
+
+				vt++;
+			}
+			xpins[vt] = et;
+//			cout << "converted" << endl;
+
+			PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_DEFAULT);
+//			cout << "initialized" << endl;
+
+			args._k = nparts;
+			partvec = (int *) malloc(_c*sizeof(int));
+			for(int i = 0; i < _c; i++) {
+				partvec[i] = graph.origin_edges[i].placement;
+			}
+			partweights = (int *) malloc(args._k*_nconst*sizeof(int));
+
+			PaToH_Alloc(&args, _c, _n, _nconst, NULL, nwghts, xpins, pins);
+//			cout << "allocated" << endl;
+
+			PaToH_Part(&args, _c, _n, _nconst, 0, NULL, nwghts, xpins, pins, NULL, partvec, partweights, &cut);
+//			cout << "parted" << endl;
+
+			cout << "hypergraph " << args._k << "-way cutsize is: " << cut << endl;
+//			PrintInfo(args._k, partweights,  cut, _nconst);
+
+			for(int i = 0; i < _c; i++) {
+				assign_edge(graph, i, partvec[i]);
+			}
+
+			//free(cwghts);      free(nwghts);
+			free(xpins);       free(pins);
+			free(partweights); free(partvec);
+
+			PaToH_Free();
+		} // end of partition_by_patoh
+
 		void vertex_filter(basic_graph& graph, boost::dynamic_bitset<>& result, size_t factor) {
 			map<size_t, vector<size_t>> buckets;
 			const size_t c = (size_t) pow(2.0 * graph.origin_edges.size() / graph.origin_verts.size(), 1.5);
@@ -173,177 +231,57 @@ namespace graphp {
 			boost::timer ti;
 
 			// filter the vertices
-			boost::dynamic_bitset<> vfilter(graph.max_vid + 1);
-			vertex_filter(graph, vfilter, 100);
-			//cout << "Vertices to be partitioned by hypergraph: " << vfilter.count() << endl;
-
-			//// count the average degree
-			//size_t cutted_vertex_num = 0, boundary_degree = 0;
-			//for(hash_map<vertex_id_type, basic_graph::vertex_type>::const_iterator iter = graph.origin_verts.begin(); iter != graph.origin_verts.end(); iter++) {
-			//	if(vfilter[iter->first]) {
-			//		// is a vertex to be partitioned
-			//		cutted_vertex_num++;
-			//		boundary_degree += iter->second.nbr_list.size();
-			//	}
-			//}
-			//cout << "Average degree: " << 1.0 * boundary_degree / cutted_vertex_num << " : " << 2.0 * graph.origin_edges.size() / graph.origin_verts.size() << endl;
-
-			// set the subgraph to be partitioned
 			boost::dynamic_bitset<> v_to_part(graph.max_vid + 1);
-			//for(size_t idx = vfilter.find_first(); idx != vfilter.npos; idx = vfilter.find_next(idx)) {
-			//	v_to_part[idx] = true;
-			//	foreach(vertex_id_type vid, graph.origin_verts[idx].nbr_list) {
-			//		if(vfilter[vid] == false)
-			//			v_to_part[vid] = true;
-			//	}
-			//}
-			v_to_part |= vfilter;
-			cout << "Excluded verts: " << v_to_part.count() << endl;
+			vertex_filter(graph, v_to_part, 1000);
+			cout << "Vertices to be partitioned by hypergraph: " << v_to_part.count() << endl;
 
-			// visit the verts in random order
-			vector<vertex_id_type> vertex_order;
-			foreach(basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
-				if(v_to_part[vp.first] == false)
-					vertex_order.push_back(vp.first);
+			// convert the subgraph
+			basic_graph subgraph(nparts);
+			for(size_t idx = v_to_part.find_first(); idx != v_to_part.npos; idx = v_to_part.find_next(idx)) {
+				foreach(vertex_id_type nbr, graph.origin_verts[idx].nbr_list) {
+					if(v_to_part[nbr]) {
+						subgraph.add_edge(idx, nbr);
+					}
+				}
 			}
-			random_shuffle(vertex_order.begin(), vertex_order.end());
-			// partition the sparse part as a way to cluster / coarsen
+			vertex_id_type max_vid = subgraph.max_vid + 1;
+			for(size_t idx = v_to_part.find_first(); idx != v_to_part.npos; idx = v_to_part.find_next(idx)) {
+				for(size_t part = 0; part < nparts; part++) {
+					subgraph.add_edge(idx, max_vid + part);
+				}
+			}
+			size_t mean_nverts = graph.nverts / nparts;
+			for(size_t part = 0; part < nparts; part++) {
+				subgraph.origin_verts[max_vid + part].weight = mean_nverts;
+				foreach(vertex_id_type nbr, subgraph.origin_verts[max_vid + part].nbr_list) {
+					assign_edge(subgraph, subgraph.origin_verts[max_vid + part].edge_list[nbr], part);
+				}
+			}
+			cout << "subgraph: verts: " << subgraph.nverts << " edges: " << subgraph.nedges << endl;
+			// end of convert
+
+			partition_by_patoh_w(subgraph, nparts);
+
 			size_t assign_counter = 0;
-			foreach(vertex_id_type vid, vertex_order) {
-				foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
-					edge_id_type eid = graph.origin_verts[vid].edge_list[nbr];
-					if(v_to_part[vid] == false && v_to_part[nbr] == false && graph.origin_edges[eid].placement == -1) {
-						// check if is sparse
-						// check if is not assigned
-						// greddy assign
-						basic_graph::part_t assignment;
-						assignment = edge_to_part_greedy(graph.origin_verts[vid], graph.origin_verts[nbr], graph.parts_counter, false, true);
-						assign_edge(graph, eid, assignment);
-						assign_counter++;
-					}
-				}
-			}
-
-			//// partition the sparse part as a way to cluster / coarsen
-			//size_t assign_counter = 0;
-			//foreach(basic_graph::edge_type& e, graph.origin_edges) {
-			//	if(vfilter[e.source] == false && vfilter[e.target] == false) {
-			//		// check if is sparse
-			//		// greddy assign
-			//		basic_graph::part_t assignment;
-			//		assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false, true);
-			//		assign_edge(graph, e.eid, assignment);
-			//		assign_counter++;
-			//	}
-			//}
-			cout << "Edges assigned: " << assign_counter << endl;
-			report_performance(graph, nparts);
-			//return;
-
-			size_t sub_nedges = 0, sub_nverts = 0, npins = 0;
-			typedef map<edge_id_type, edge_id_type> edge_map_type;
-			edge_map_type edge_map;
-			for(size_t idx = v_to_part.find_first(); idx != v_to_part.npos; idx = v_to_part.find_next(idx)) {
-				foreach(vertex_id_type nbr, graph.origin_verts[idx].nbr_list) {
-					edge_id_type eid = graph.origin_verts[idx].edge_list[nbr];
-					if(edge_map.count(eid) == 0) {
-						edge_map.insert(pair<edge_id_type, edge_id_type>(eid, sub_nedges));
-						sub_nedges++;
-					}
-				}
-				npins += graph.origin_verts[idx].edge_list.size();
-			}
-			sub_nverts = v_to_part.count();
-			vector<edge_id_type> edge_remap(sub_nedges);
-			foreach(edge_map_type::value_type edge_map_entry, edge_map) {
-				edge_remap[edge_map_entry.second] = edge_map_entry.first;
-			}
-
-
-			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-
-			// in patoh, cell means vertex and net means hyperedge
-			PaToH_Parameters args;
-			int _c, _n, _nconst, *cwghts = NULL, *nwghts = NULL, *xpins, *pins, *partvec, cut, *partweights;
-			float *targetweights;
-			// unweighted
-			_c = sub_nedges; _n = sub_nverts;
-			cout << "Subgraph size: edges: " << sub_nedges << " verts: " << sub_nverts << endl;
-
-			// pins = nedges * 2
-			_nconst = 1;
-
-			xpins = (int *) malloc((_n + 1) * sizeof(int));
-			pins = (int *) malloc(npins * sizeof(int));
-			size_t vt = 0, et = 0;
-			for(size_t idx = v_to_part.find_first(); idx != v_to_part.npos; idx = v_to_part.find_next(idx)) {
-				xpins[vt] = et;
-
-				foreach(vertex_id_type nbr, graph.origin_verts[idx].nbr_list) {
-					edge_id_type eid = graph.origin_verts[idx].edge_list[nbr];
-					pins[et] = edge_map[eid];
-					et++;
-				}
-
-				vt++;
-			}
-			xpins[vt] = et;
-//			cout << "converted" << endl;
-
-			PaToH_Initialize_Parameters(&args, PATOH_CONPART, PATOH_SUGPARAM_SPEED);
-			args.ref_alg = PATOH_REFALG_NONE;
-//			cout << "initialized" << endl;
-
-			args._k = nparts;
-			partvec = (int *) malloc(_c * sizeof(int));
-			for(int i = 0; i < _c; i++) {
-				partvec[i] = graph.origin_edges[edge_remap[i]].placement;
-			}
-			partweights = (int *) malloc(args._k*_nconst * sizeof(int));
-
-			//targetweights = (float *) malloc(args._k * sizeof(float));
-			//for(size_t idx = 0; idx < nparts; idx++) {
-			//	targetweights[idx] = (float)1.0 * graph.nedges / graph.parts_counter[idx];
-			//}
-
-			PaToH_Alloc(&args, _c, _n, _nconst, NULL, nwghts, xpins, pins);
-//			cout << "allocated" << endl;
-
-			// use fixed cells
-			PaToH_Part(&args, _c, _n, _nconst, 1, NULL, nwghts, xpins, pins, NULL, partvec, partweights, &cut);
-//			cout << "parted" << endl;
-
-			cout << "hypergraph " << args._k << "-way cutsize is: " << cut << endl;
-//			PrintInfo(args._k, partweights,  cut, _nconst);
-
-
-			for(int i = 0; i < _c; i++) {
-				if(vfilter[graph.origin_edges[edge_remap[i]].source] == true || vfilter[graph.origin_edges[edge_remap[i]].target] == true) {
-					assign_edge(graph, edge_remap[i], partvec[i]);
+			// convert back
+			foreach(basic_graph::edge_type& e, subgraph.origin_edges) {
+				if(e.source < max_vid && e.target < max_vid) {
+					assign_edge(graph, graph.origin_verts[e.source].edge_list[e.target], e.placement);
 					assign_counter++;
 				}
 			}
-			cout << "Edges assigned: " << assign_counter << endl;
+			// end of convert back
 
-			//free(cwghts);      free(nwghts);
-			free(xpins);       free(pins);
-			free(partweights); free(partvec);
-			//free(targetweights);
-
-			PaToH_Free();
-
-			//// partition the dense part
-			//foreach(basic_graph::edge_type& e, graph.origin_edges) {
-			//	if(vfilter[e.source] == false && vfilter[e.target] == false) {
-			//		// check if is sparse
-			//		// greddy assign
-			//		basic_graph::part_t assignment;
-			//		assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
-			//		assign_edge(graph, e.eid, assignment);
-			//		assign_counter++;
-			//	}
-			//}
-			//cout << "Edges assigned: " << assign_counter << endl;
+			foreach(basic_graph::edge_type& e, graph.origin_edges) {
+				if(e.placement == -1) {
+					// check if is sparse
+					// greddy assign
+					basic_graph::part_t assignment;
+					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+					assign_edge(graph, e.eid, assignment);
+					assign_counter++;
+				}
+			}
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
 
