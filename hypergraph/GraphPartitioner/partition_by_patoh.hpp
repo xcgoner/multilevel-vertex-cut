@@ -393,6 +393,8 @@ namespace graphp {
 			}
 			cout << "Edges assigned: " << assign_counter << endl;
 
+			bal_greedy_refinement(graph, nparts);
+
 			cout << "Time elapsed: " << ti.elapsed() << endl;
 
 			report_performance(graph, nparts);
