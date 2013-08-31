@@ -190,13 +190,30 @@ namespace graphp {
 
 			// set the subgraph to be partitioned
 			boost::dynamic_bitset<> v_to_part(graph.max_vid + 1);
-			for(size_t idx = vfilter.find_first(); idx != vfilter.npos; idx = vfilter.find_next(idx)) {
-				v_to_part[idx] = true;
-				foreach(vertex_id_type vid, graph.origin_verts[idx].nbr_list) {
-					if(vfilter[vid] == false)
-						v_to_part[vid] = true;
+			//for(size_t idx = vfilter.find_first(); idx != vfilter.npos; idx = vfilter.find_next(idx)) {
+			//	v_to_part[idx] = true;
+			//	foreach(vertex_id_type vid, graph.origin_verts[idx].nbr_list) {
+			//		if(vfilter[vid] == false)
+			//			v_to_part[vid] = true;
+			//	}
+			//}
+			v_to_part |= vfilter;
+
+			// partition the sparse part as a way to cluster / coarsen
+			size_t assign_counter = 0;
+			foreach(basic_graph::edge_type& e, graph.origin_edges) {
+				if(vfilter[e.source] == false || vfilter[e.target] == false) {
+					// check if is sparse
+					// greddy assign
+					basic_graph::part_t assignment;
+					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+					assign_edge(graph, e.eid, assignment);
+					assign_counter++;
 				}
 			}
+			cout << "Edges assigned: " << assign_counter << endl;
+			report_performance(graph, nparts);
+			return;
 
 			size_t sub_nedges = 0, sub_nverts = 0, npins = 0;
 			typedef map<edge_id_type, edge_id_type> edge_map_type;
@@ -217,22 +234,8 @@ namespace graphp {
 				edge_remap[edge_map_entry.second] = edge_map_entry.first;
 			}
 
-			size_t assign_counter = 0;
 
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-
-			//// partition the dense part
-			//foreach(basic_graph::edge_type& e, graph.origin_edges) {
-			//	if(vfilter[e.source] == false && vfilter[e.target] == false) {
-			//		// check if is sparse
-			//		// greddy assign
-			//		basic_graph::part_t assignment;
-			//		assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
-			//		assign_edge(graph, e.eid, assignment);
-			//		assign_counter++;
-			//	}
-			//}
-			//cout << "Edges assigned: " << assign_counter << endl;
 
 			// in patoh, cell means vertex and net means hyperedge
 			PaToH_Parameters args;
@@ -304,18 +307,18 @@ namespace graphp {
 
 			PaToH_Free();
 
-			// partition the dense part
-			foreach(basic_graph::edge_type& e, graph.origin_edges) {
-				if(vfilter[e.source] == false && vfilter[e.target] == false) {
-					// check if is sparse
-					// greddy assign
-					basic_graph::part_t assignment;
-					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
-					assign_edge(graph, e.eid, assignment);
-					assign_counter++;
-				}
-			}
-			cout << "Edges assigned: " << assign_counter << endl;
+			//// partition the dense part
+			//foreach(basic_graph::edge_type& e, graph.origin_edges) {
+			//	if(vfilter[e.source] == false && vfilter[e.target] == false) {
+			//		// check if is sparse
+			//		// greddy assign
+			//		basic_graph::part_t assignment;
+			//		assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+			//		assign_edge(graph, e.eid, assignment);
+			//		assign_counter++;
+			//	}
+			//}
+			//cout << "Edges assigned: " << assign_counter << endl;
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
 
@@ -362,7 +365,7 @@ namespace graphp {
 					// check if is sparse
 					// greedy assign
 					basic_graph::part_t assignment;
-					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false, true);
+					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
 					assign_edge(graph, e.eid, assignment);
 					assign_counter++;
 				}

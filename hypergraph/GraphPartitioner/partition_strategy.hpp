@@ -100,7 +100,8 @@ namespace graphp {
 			size_t cutted_vertex_num = 0, boundary_degree = 0;
 
 			for(hash_map<vertex_id_type, basic_graph::vertex_type>::const_iterator iter = graph.origin_verts.begin(); iter != graph.origin_verts.end(); iter++) {
-				vertex_cut_counter += (iter->second.mirror_list.size() - 1);
+				if(iter->second.mirror_list.size() > 0)
+					vertex_cut_counter += (iter->second.mirror_list.size() - 1);
 				if(iter->second.mirror_list.size() > 1) {
 					// is a boundary vertex
 					cutted_vertex_num++;
@@ -151,8 +152,7 @@ namespace graphp {
 		basic_graph::part_t edge_to_part_greedy(const basic_graph::vertex_type& source_v,
 			const basic_graph::vertex_type& target_v,
 			const vector<size_t>& part_num_edges,
-			bool usehash = false,
-			bool unbalanced = false
+			bool usehash = false
 			) {
 				const size_t nparts = part_num_edges.size();
 
@@ -167,7 +167,7 @@ namespace graphp {
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
 					size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
-					double bal = (!unbalanced) * (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
 					part_score[i] = bal + ((sd > 0) + (td > 0));
 				}
 
@@ -193,8 +193,7 @@ namespace graphp {
 			const basic_graph::vertex_type& target_v,
 			const vector<basic_graph::part_t>& candidates,
 			const vector<size_t>& part_num_edges,
-			bool usehash = false,
-			bool unbalanced = false
+			bool usehash = false
 			) {
 				const size_t nparts = part_num_edges.size();
 
@@ -210,7 +209,7 @@ namespace graphp {
 					basic_graph::part_t i = candidates[j];
 					size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
 					size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
-					double bal = (!unbalanced) * (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
 					part_score[j] = bal + ((sd > 0) + (td > 0));
 				}
 
