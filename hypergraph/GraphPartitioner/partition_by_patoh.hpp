@@ -232,7 +232,7 @@ namespace graphp {
 
 			// filter the vertices
 			boost::dynamic_bitset<> v_to_part(graph.max_vid + 1);
-			vertex_filter(graph, v_to_part, 1000);
+			vertex_filter(graph, v_to_part, 100);
 			cout << "Vertices to be partitioned by hypergraph: " << v_to_part.count() << endl;
 
 			// convert the subgraph
@@ -270,6 +270,7 @@ namespace graphp {
 					assign_counter++;
 				}
 			}
+			cout << "Edges assigned: " << assign_counter << endl;
 			// end of convert back
 
 			foreach(basic_graph::edge_type& e, graph.origin_edges) {
@@ -282,6 +283,7 @@ namespace graphp {
 					assign_counter++;
 				}
 			}
+			cout << "Edges assigned: " << assign_counter << endl;
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
 
