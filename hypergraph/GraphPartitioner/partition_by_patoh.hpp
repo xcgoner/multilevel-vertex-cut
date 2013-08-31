@@ -191,45 +191,12 @@ namespace graphp {
 			// set the subgraph to be partitioned
 			boost::dynamic_bitset<> v_to_part(graph.max_vid + 1);
 			for(size_t idx = vfilter.find_first(); idx != vfilter.npos; idx = vfilter.find_next(idx)) {
-				//v_to_part[idx] = true;
+				v_to_part[idx] = true;
 				foreach(vertex_id_type vid, graph.origin_verts[idx].nbr_list) {
 					if(vfilter[vid] == false)
 						v_to_part[vid] = true;
 				}
 			}
-
-			boost::dynamic_bitset<> vcluster(graph.max_vid + 1);
-			size_t vexclude = vfilter.count() + v_to_part.count();
-			typedef vertex_id_type cluster_vid_type;
-			typedef pair<vertex_id_type, cluster_vid_type> queue_pair_type;
-			queue<queue_pair_type, list<queue_pair_type>> visit_vertex;
-			for(size_t idx = v_to_part.find_first(); idx != v_to_part.npos; idx = v_to_part.find_next(idx)) {
-				visit_vertex.push(queue_pair_type(idx, idx));
-			}
-			int *nwghts = (int *)malloc(vexclude * sizeof(int));
-			for(size_t i = 0; i < vexclude; i++) {
-				nwghts[i] = 1;
-			}
-			cout << "cluster started" << endl;
-			while(vcluster.count() + vexclude < graph.nverts && visit_vertex.size() > 0) {
-				vertex_id_type vid = visit_vertex.front().first;
-				cluster_vid_type cvid = visit_vertex.front().second;
-				visit_vertex.pop();
-				if(vcluster[vid])
-					continue;
-				foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
-					if(vfilter[nbr] == false && v_to_part[nbr] == false && vcluster[nbr] == false) {
-						nwghts[cvid]++;
-						visit_vertex.push(queue_pair_type(nbr, cvid));
-						vcluster[nbr] = true;
-					}
-				}
-				if(visit_vertex.size() % 100 == 0)
-					cout << "queue size: " << visit_vertex.size() << " clustered: " << vcluster.count() << " excluded:" << vexclude << endl;
-			}
-
-			v_to_part |= vfilter;
-			cout << "cluster ended" << endl;
 
 			size_t sub_nedges = 0, sub_nverts = 0, npins = 0;
 			typedef map<edge_id_type, edge_id_type> edge_map_type;
@@ -269,7 +236,7 @@ namespace graphp {
 
 			// in patoh, cell means vertex and net means hyperedge
 			PaToH_Parameters args;
-			int _c, _n, _nconst, *cwghts = NULL, /**nwghts = NULL,*/ *xpins, *pins, *partvec, cut, *partweights;
+			int _c, _n, _nconst, *cwghts = NULL, *nwghts = NULL, *xpins, *pins, *partvec, cut, *partweights;
 			float *targetweights;
 			// unweighted
 			_c = sub_nedges; _n = sub_nverts;
