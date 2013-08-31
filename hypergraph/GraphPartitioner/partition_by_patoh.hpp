@@ -174,7 +174,7 @@ namespace graphp {
 
 			// filter the vertices
 			boost::dynamic_bitset<> vfilter(graph.max_vid + 1);
-			vertex_filter(graph, vfilter, 10000);
+			vertex_filter(graph, vfilter, 1000);
 			//cout << "Vertices to be partitioned by hypergraph: " << vfilter.count() << endl;
 
 			//// count the average degree
