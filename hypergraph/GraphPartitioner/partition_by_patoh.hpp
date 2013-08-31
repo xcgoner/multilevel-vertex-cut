@@ -370,7 +370,7 @@ namespace graphp {
 				foreach(vertex_id_type vid, iter->second) {
 					foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
 						edge_id_type eid = graph.origin_verts[vid].edge_list[nbr];
-						if(graph.origin_edges[eid].placement == -1) {
+						if(graph.origin_edges[eid].placement == -1 && graph.origin_verts[vid].nbr_list.size() >= graph.origin_verts[nbr].nbr_list.size()) {
 							// check if is not assigned
 							// greedy assign
 							basic_graph::part_t assignment;
@@ -381,7 +381,16 @@ namespace graphp {
 					}
 				}
 			}
+			cout << "Edges assigned: " << assign_counter << endl;
 
+			foreach(basic_graph::edge_type& e, graph.origin_edges) {
+				if(e.placement == -1) {
+					basic_graph::part_t assignment;
+					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+					assign_edge(graph, e.eid, assignment);
+					assign_counter++;
+				}
+			}
 			cout << "Edges assigned: " << assign_counter << endl;
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
