@@ -198,6 +198,7 @@ namespace graphp {
 			//	}
 			//}
 			v_to_part |= vfilter;
+			cout << "Excluded verts: " << v_to_part.count() << endl;
 
 			//// visit the verts in random order
 			//vector<vertex_id_type> vertex_order;
