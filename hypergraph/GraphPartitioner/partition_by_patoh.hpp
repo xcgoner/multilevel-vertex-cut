@@ -355,7 +355,7 @@ namespace graphp {
 
 			// filter the vertices
 			map<size_t, vector<vertex_id_type>> buckets;
-			const size_t c = (size_t) (1.0 * graph.origin_edges.size() / graph.origin_verts.size());
+			const size_t c = (size_t) (4.0 * graph.origin_edges.size() / graph.origin_verts.size());
 			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
 				size_t bucket = vp.second.nbr_list.size() / c;
 				if(buckets.count(bucket) == 0) {
@@ -366,7 +366,7 @@ namespace graphp {
 			}
 
 			size_t assign_counter = 0;
-			for(map<size_t, vector<vertex_id_type>>::iterator iter = buckets.begin(); iter != buckets.end(); iter++) {
+			for(map<size_t, vector<vertex_id_type>>::reverse_iterator iter = buckets.rbegin(); iter != buckets.rend(); iter++) {
 				foreach(vertex_id_type vid, iter->second) {
 					foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
 						edge_id_type eid = graph.origin_verts[vid].edge_list[nbr];
