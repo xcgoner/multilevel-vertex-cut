@@ -358,11 +358,11 @@ namespace graphp {
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 
 			foreach(basic_graph::edge_type& e, graph.origin_edges) {
-				if(vfilter[e.source] == true || vfilter[e.target] == true) {
-					// check if is dense
+				if(vfilter[e.source] == false && vfilter[e.target] == false) {
+					// check if is sparse
 					// greedy assign
 					basic_graph::part_t assignment;
-					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false, true);
 					assign_edge(graph, e.eid, assignment);
 					assign_counter++;
 				}
@@ -370,11 +370,11 @@ namespace graphp {
 			cout << "Edges assigned: " << assign_counter << endl;
 
 			foreach(basic_graph::edge_type& e, graph.origin_edges) {
-				if(vfilter[e.source] == false && vfilter[e.target] == false) {
-					// check if is sparse
+				if(vfilter[e.source] == true || vfilter[e.target] == true) {
+					// check if is dense
 					// greedy assign
 					basic_graph::part_t assignment;
-					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, true);
+					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
 					assign_edge(graph, e.eid, assignment);
 					assign_counter++;
 				}

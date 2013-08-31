@@ -152,7 +152,7 @@ namespace graphp {
 			const basic_graph::vertex_type& target_v,
 			const vector<size_t>& part_num_edges,
 			bool usehash = false,
-			bool userecent = false
+			bool unbalanced = false
 			) {
 				const size_t nparts = part_num_edges.size();
 
@@ -167,7 +167,7 @@ namespace graphp {
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
 					size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
-					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+					double bal = (!unbalanced) * (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
 					part_score[i] = bal + ((sd > 0) + (td > 0));
 				}
 
@@ -186,10 +186,6 @@ namespace graphp {
 					max(source_v.vid, target_v.vid));
 				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
 
-				//if(userecent) {
-				//	source_v.mirror_list.clear();
-				//	target_v.mirror_list.clear();
-				//}
 				return best_part;
 		}
 
@@ -198,7 +194,7 @@ namespace graphp {
 			const vector<basic_graph::part_t>& candidates,
 			const vector<size_t>& part_num_edges,
 			bool usehash = false,
-			bool userecent = false
+			bool unbalanced = false
 			) {
 				const size_t nparts = part_num_edges.size();
 
@@ -214,7 +210,7 @@ namespace graphp {
 					basic_graph::part_t i = candidates[j];
 					size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
 					size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
-					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+					double bal = (!unbalanced) * (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
 					part_score[j] = bal + ((sd > 0) + (td > 0));
 				}
 
@@ -233,10 +229,6 @@ namespace graphp {
 					max(source_v.vid, target_v.vid));
 				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
 
-				//if(userecent) {
-				//	source_v.mirror_list.clear();
-				//	target_v.mirror_list.clear();
-				//}
 				return best_part;
 		}
 
