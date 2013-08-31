@@ -366,7 +366,7 @@ namespace graphp {
 			}
 
 			size_t assign_counter = 0;
-			for(map<size_t, vector<vertex_id_type>>::iterator iter = buckets.begin(); iter != buckets.end(); iter++) {
+			for(map<size_t, vector<vertex_id_type>>::reverse_iterator iter = buckets.rbegin(); iter != buckets.rend(); iter++) {
 				foreach(vertex_id_type vid, iter->second) {
 					foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
 						edge_id_type eid = graph.origin_verts[vid].edge_list[nbr];
