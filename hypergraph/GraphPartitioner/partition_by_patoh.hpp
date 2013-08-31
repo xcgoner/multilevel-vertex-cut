@@ -355,7 +355,7 @@ namespace graphp {
 
 			// filter the vertices
 			map<size_t, vector<vertex_id_type>> buckets;
-			const size_t c = (size_t) (2.0 * graph.origin_edges.size() / graph.origin_verts.size());
+			const size_t c = (size_t) (1.0 * graph.origin_edges.size() / graph.origin_verts.size());
 			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
 				size_t bucket = vp.second.nbr_list.size() / c;
 				if(buckets.count(bucket) == 0) {
