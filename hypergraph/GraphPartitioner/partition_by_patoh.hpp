@@ -273,24 +273,25 @@ namespace graphp {
 			cout << "Edges assigned: " << assign_counter << endl;
 			// end of convert back
 
-			foreach(basic_graph::edge_type& e, graph.origin_edges) {
-				if(e.placement == -1) {
-					// check if is sparse
-					// greddy assign
-					basic_graph::part_t assignment;
-					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
-					assign_edge(graph, e.eid, assignment);
-					assign_counter++;
-				}
-			}
-			cout << "Edges assigned: " << assign_counter << endl;
+			//foreach(basic_graph::edge_type& e, graph.origin_edges) {
+			//	if(e.placement == -1) {
+			//		// check if is sparse
+			//		// greedy assign
+			//		basic_graph::part_t assignment;
+			//		assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+			//		assign_edge(graph, e.eid, assignment);
+			//		assign_counter++;
+			//	}
+			//}
+			//cout << "Edges assigned: " << assign_counter << endl;
+			greedy_reorder(graph, nparts);
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
 
 			report_performance(graph, nparts);
 		} // end of partition_by_patoh_fast
 
-		void greedy_reorder(basic_graph& graph, size_t nparts) {
+		void greedy_reorder(basic_graph& graph, size_t nparts, bool reverse_order = true) {
 			boost::timer ti;
 
 			// filter the vertices
@@ -306,17 +307,36 @@ namespace graphp {
 			}
 
 			size_t assign_counter = 0;
-			for(map<size_t, vector<vertex_id_type>>::reverse_iterator iter = buckets.rbegin(); iter != buckets.rend(); iter++) {
-				foreach(vertex_id_type vid, iter->second) {
-					foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
-						edge_id_type eid = graph.origin_verts[vid].edge_list[nbr];
-						if(graph.origin_edges[eid].placement == -1 && graph.origin_verts[vid].nbr_list.size() >= graph.origin_verts[nbr].nbr_list.size()) {
-							// check if is not assigned
-							// greedy assign
-							basic_graph::part_t assignment;
-							assignment = edge_to_part_greedy(graph.origin_verts[vid], graph.origin_verts[nbr], graph.parts_counter, false);
-							assign_edge(graph, eid, assignment);
-							assign_counter++;
+			if(reverse_order) {
+				for(map<size_t, vector<vertex_id_type>>::reverse_iterator iter = buckets.rbegin(); iter != buckets.rend(); iter++) {
+					foreach(vertex_id_type vid, iter->second) {
+						foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
+							edge_id_type eid = graph.origin_verts[vid].edge_list[nbr];
+							if(graph.origin_edges[eid].placement == -1 && graph.origin_verts[vid].nbr_list.size() >= graph.origin_verts[nbr].nbr_list.size()) {
+								// check if is not assigned
+								// greedy assign
+								basic_graph::part_t assignment;
+								assignment = edge_to_part_greedy(graph.origin_verts[vid], graph.origin_verts[nbr], graph.parts_counter, false);
+								assign_edge(graph, eid, assignment);
+								assign_counter++;
+							}
+						}
+					}
+				}
+			}
+			else {
+				for(map<size_t, vector<vertex_id_type>>::iterator iter = buckets.begin(); iter != buckets.end(); iter++) {
+					foreach(vertex_id_type vid, iter->second) {
+						foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
+							edge_id_type eid = graph.origin_verts[vid].edge_list[nbr];
+							if(graph.origin_edges[eid].placement == -1 && graph.origin_verts[vid].nbr_list.size() >= graph.origin_verts[nbr].nbr_list.size()) {
+								// check if is not assigned
+								// greedy assign
+								basic_graph::part_t assignment;
+								assignment = edge_to_part_greedy(graph.origin_verts[vid], graph.origin_verts[nbr], graph.parts_counter, false);
+								assign_edge(graph, eid, assignment);
+								assign_counter++;
+							}
 						}
 					}
 				}
