@@ -299,7 +299,7 @@ namespace graphp {
 		void partition_by_patoh_fast(basic_graph& graph, size_t nparts) {
 			boost::timer ti;
 
-			greedy_reorder(graph, nparts, true);
+			greedy_reorder(graph, nparts, false);
 			// filter the vertices
 			boost::dynamic_bitset<> v_to_part(graph.max_vid + 1);
 			vertex_filter(graph, v_to_part, 200);
