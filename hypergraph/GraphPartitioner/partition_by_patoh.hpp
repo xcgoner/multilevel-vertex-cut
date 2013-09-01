@@ -353,7 +353,7 @@ namespace graphp {
 			//	}
 			//}
 			//cout << "Edges assigned: " << assign_counter << endl;
-			greedy_reorder(graph, nparts);
+			greedy_reorder(graph, nparts, false);
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
 
