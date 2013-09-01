@@ -299,7 +299,7 @@ namespace graphp {
 		void partition_by_patoh_fast(basic_graph& graph, size_t nparts) {
 			boost::timer ti;
 
-			greedy_reorder(graph, nparts, false);
+			greedy_reorder(graph, nparts, true);
 			// filter the vertices
 			boost::dynamic_bitset<> v_to_part(graph.max_vid + 1);
 			vertex_filter(graph, v_to_part, 200);
@@ -358,7 +358,7 @@ namespace graphp {
 			//	}
 			//}
 			//cout << "Edges assigned: " << assign_counter << endl;
-			greedy_reorder(graph, nparts, false);
+			greedy_reorder(graph, nparts, true);
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
 
