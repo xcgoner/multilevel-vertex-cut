@@ -165,16 +165,11 @@ namespace graphp {
 				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
 				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
 
-				// greedy for degree
-				double sum = source_v.nbr_list.size() + target_v.nbr_list.size();
-				double s = target_v.nbr_list.size() / sum + 1;
-				double t = source_v.nbr_list.size() / sum + 1;
-
 				if(unbalanced) {
 					for(size_t i = 0; i < nparts; ++i) {
 						size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
 						size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
-						part_score[i] = ((sd > 0) * s + (td > 0) * t);
+						part_score[i] = ((sd > 0) + (td > 0));
 					}
 				}
 				else {
@@ -182,7 +177,7 @@ namespace graphp {
 						size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
 						size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
 						double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-						part_score[i] = bal + ((sd > 0) * s + (td > 0) * t);
+						part_score[i] = bal + ((sd > 0) + (td > 0));
 					}
 				}
 
@@ -254,6 +249,77 @@ namespace graphp {
 				// random assign
 				basic_graph::part_t assignment;
 				assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+				assign_edge(graph, e.eid, assignment);
+			}
+
+			cout << "Time elapsed: " << ti.elapsed() << endl;
+
+			report_performance(graph, nparts);
+		}
+
+		basic_graph::part_t edge_to_part_greedy2(const basic_graph::vertex_type& source_v,
+			const basic_graph::vertex_type& target_v,
+			const vector<size_t>& part_num_edges,
+			bool usehash = false,
+			bool unbalanced = false
+			) {
+				const size_t nparts = part_num_edges.size();
+
+				// compute the score of each part
+				basic_graph::part_t best_part = -1;
+				double maxscore = 0.0;
+				double epsilon = 1.0;
+				vector<double> part_score(nparts);
+				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
+				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
+
+				// greedy for degree
+				double sum = source_v.nbr_list.size() + target_v.nbr_list.size();
+				double s = target_v.nbr_list.size() / sum + 1;
+				double t = source_v.nbr_list.size() / sum + 1;
+
+				if(unbalanced) {
+					for(size_t i = 0; i < nparts; ++i) {
+						size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
+						size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
+						part_score[i] = ((sd > 0) * s + (td > 0) * t);
+					}
+				}
+				else {
+					for(size_t i = 0; i < nparts; ++i) {
+						size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
+						size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
+						double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+						part_score[i] = bal + ((sd > 0) * s + (td > 0) * t);
+					}
+				}
+
+				maxscore = *max_element(part_score.begin(), part_score.end());
+
+				vector<basic_graph::part_t> top_parts;
+				for(size_t i = 0; i < nparts; ++i) {
+					if(fabs(part_score[i] - maxscore) < 1e-5) {
+						top_parts.push_back(i);
+					}
+				}
+
+				// hash the edge to one of the best parts
+				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+				const edge_pair_type edge_pair(min(source_v.vid, target_v.vid),
+					max(source_v.vid, target_v.vid));
+				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
+
+				return best_part;
+		}
+
+		void greedy_partition2(basic_graph& graph, basic_graph::part_t nparts) {
+			boost::timer ti;
+
+			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+			foreach(basic_graph::edge_type& e, graph.origin_edges) {
+				// random assign
+				basic_graph::part_t assignment;
+				assignment = edge_to_part_greedy2(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
 				assign_edge(graph, e.eid, assignment);
 			}
 
