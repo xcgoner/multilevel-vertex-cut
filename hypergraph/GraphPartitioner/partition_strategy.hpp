@@ -167,8 +167,8 @@ namespace graphp {
 
 				// greedy for degree
 				double sum = source_v.nbr_list.size() + target_v.nbr_list.size();
-				double s = target_v.nbr_list.size() / sum;
-				double t = source_v.nbr_list.size() / sum;
+				double s = target_v.nbr_list.size() / sum + 1;
+				double t = source_v.nbr_list.size() / sum + 1;
 
 				if(unbalanced) {
 					for(size_t i = 0; i < nparts; ++i) {
