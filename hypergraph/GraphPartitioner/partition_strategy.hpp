@@ -165,11 +165,16 @@ namespace graphp {
 				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
 				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
 
+				// greedy for degree
+				double sum = source_v.nbr_list.size() + target_v.nbr_list.size();
+				double s = target_v.nbr_list.size() / sum;
+				double t = source_v.nbr_list.size() / sum;
+
 				if(unbalanced) {
 					for(size_t i = 0; i < nparts; ++i) {
 						size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
 						size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
-						part_score[i] = ((sd > 0) + (td > 0));
+						part_score[i] = ((sd > 0) * s + (td > 0)) * t;
 					}
 				}
 				else {
@@ -177,7 +182,7 @@ namespace graphp {
 						size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
 						size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
 						double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-						part_score[i] = bal + ((sd > 0) + (td > 0));
+						part_score[i] = bal + ((sd > 0) * s + (td > 0)) * t;
 					}
 				}
 
