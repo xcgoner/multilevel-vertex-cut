@@ -173,10 +173,10 @@ namespace graphp {
 		}
 
 		void clear_partition() {
-			foreach(const verts_map_type::value_type& vp, origin_verts) {
+			foreach(verts_map_type::value_type& vp, origin_verts) {
 				vp.second.mirror_list.clear();
 			}
-			foreach(const edge_type& e, origin_edges) {
+			foreach(edge_type& e, origin_edges) {
 				e.placement = -1;
 			}
 		}
