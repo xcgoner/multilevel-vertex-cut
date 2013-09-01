@@ -299,47 +299,79 @@ namespace graphp {
 		void partition_by_patoh_fast(basic_graph& graph, size_t nparts) {
 			boost::timer ti;
 
-			greedy_reorder(graph, nparts, false);
 			// filter the vertices
 			boost::dynamic_bitset<> v_to_part(graph.max_vid + 1);
-			vertex_filter(graph, v_to_part, 200);
-			cout << "Vertices to be partitioned by hypergraph: " << v_to_part.count() << endl;
+			vertex_filter(graph, v_to_part, 1000);
+			cout << "Vertices filtered: " << v_to_part.count() << endl;
+			// end of filter
 
-			// convert the subgraph
-			basic_graph subgraph(nparts);
-			for(size_t idx = v_to_part.find_first(); idx != v_to_part.npos; idx = v_to_part.find_next(idx)) {
-				foreach(vertex_id_type nbr, graph.origin_verts[idx].nbr_list) {
-					if(v_to_part[nbr]) {
-						subgraph.add_edge(idx, nbr);
+			// cluster
+			size_t nclusters = v_to_part.count();
+			graph.nparts = nclusters;
+			graph.parts_counter.resize(nclusters);
+			graph.clear_partition_counter();
+			// initialize the cluster centroid
+			size_t assign_counter = 0;
+			vector<vertex_id_type> map_ncluster_vid(nclusters);
+			for(size_t vid = v_to_part.find_first(), idx = 0; vid != v_to_part.npos; vid = v_to_part.find_next(vid), idx++) {
+				map_ncluster_vid[idx] = vid;
+			}
+			for(size_t idx = 0; idx < nclusters; idx++) {
+				vertex_id_type vid = map_ncluster_vid[idx];
+				foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
+					if(v_to_part[nbr] == false) {
+						assign_edge(graph, graph.origin_verts[vid].edge_list[nbr], idx);
 					}
 				}
 			}
-			vertex_id_type max_vid = subgraph.max_vid + 1;
-			for(size_t idx = v_to_part.find_first(); idx != v_to_part.npos; idx = v_to_part.find_next(idx)) {
-				foreach(basic_graph::part_t part, graph.origin_verts[idx].mirror_list) {
-					subgraph.add_edge(idx, max_vid + part);
+			// do cluster by greedy assignment
+			foreach(basic_graph::edge_type& e, graph.origin_edges) {
+				if(e.placement == -1) {
+					basic_graph::part_t assignment;
+					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+					assign_edge(graph, e.eid, assignment);
 				}
 			}
-			//size_t mean_nverts = graph.nverts / nparts;
-			for(size_t part = 0; part < nparts; part++) {
-				subgraph.origin_verts[max_vid + part].weight = graph.parts_counter[part];
-				foreach(vertex_id_type nbr, subgraph.origin_verts[max_vid + part].nbr_list) {
-					assign_edge(subgraph, subgraph.origin_verts[max_vid + part].edge_list[nbr], part);
+			// end of cluster
+
+			// convert the subgraph
+			basic_graph subgraph(nparts);
+			for(size_t idx = 0; idx < nclusters; idx++) {
+				vertex_id_type vid = map_ncluster_vid[idx];
+				foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
+					//if(v_to_part[nbr]) {
+					//	subgraph.add_edge(idx, nbr);
+					//}
+					subgraph.add_edge(vid, nbr);
 				}
 			}
+			foreach(basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
+				if(v_to_part[vp.first])
+					continue;
+				if(vp.second.mirror_list.size() > 1) {
+					// check if a boundary vertex
+					foreach(basic_graph::part_t pid, vp.second.mirror_list) {
+						subgraph.add_edge(vp.first, map_ncluster_vid[pid]);
+					}
+				}
+			}
+			// weighted ?
 			cout << "subgraph: verts: " << subgraph.nverts << " edges: " << subgraph.nedges << endl;
 			// end of convert
 
 			partition_by_patoh_w(subgraph, nparts);
 
-			graph.clear_partition();
-			report_performance(graph, nparts);
-
-			size_t assign_counter = 0;
+			assign_counter = 0;
 			// convert back
-			foreach(basic_graph::edge_type& e, subgraph.origin_edges) {
-				if(e.source < max_vid && e.target < max_vid) {
-					assign_edge(graph, graph.origin_verts[e.source].edge_list[e.target], e.placement);
+			graph.nparts = nparts;
+			graph.parts_counter.resize(nparts);
+			graph.clear_partition();
+			graph.clear_mirrors();
+			graph.clear_partition_counter();
+			for(size_t idx = 0; idx < nclusters; idx++) {
+				vertex_id_type vid = map_ncluster_vid[idx];
+				foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
+					assign_edge(graph, graph.origin_verts[vid].edge_list[nbr], subgraph.origin_edges[subgraph.origin_verts[vid].edge_list[nbr]].placement);
 					assign_counter++;
 				}
 			}
@@ -347,17 +379,6 @@ namespace graphp {
 			report_performance(graph, nparts);
 			// end of convert back
 
-			//foreach(basic_graph::edge_type& e, graph.origin_edges) {
-			//	if(e.placement == -1) {
-			//		// check if is sparse
-			//		// greedy assign
-			//		basic_graph::part_t assignment;
-			//		assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
-			//		assign_edge(graph, e.eid, assignment);
-			//		assign_counter++;
-			//	}
-			//}
-			//cout << "Edges assigned: " << assign_counter << endl;
 			greedy_reorder(graph, nparts, true);
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
