@@ -204,7 +204,7 @@ namespace graphp {
 
 		void vertex_filter(basic_graph& graph, boost::dynamic_bitset<>& result, size_t factor) {
 			map<size_t, vector<size_t>> buckets;
-			const size_t c = (size_t) pow(2.0 * graph.origin_edges.size() / graph.origin_verts.size(), 1.5);
+			const size_t c = (size_t) pow(2.0 * graph.origin_edges.size() / graph.origin_verts.size(), 1.2);
 			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
 				size_t bucket = vp.second.nbr_list.size() / c;
 				if(buckets.count(bucket) == 0) {
@@ -232,7 +232,7 @@ namespace graphp {
 
 			// filter the vertices
 			boost::dynamic_bitset<> v_to_part(graph.max_vid + 1);
-			vertex_filter(graph, v_to_part, 100);
+			vertex_filter(graph, v_to_part, 1000);
 			cout << "Vertices to be partitioned by hypergraph: " << v_to_part.count() << endl;
 
 			// convert the subgraph
