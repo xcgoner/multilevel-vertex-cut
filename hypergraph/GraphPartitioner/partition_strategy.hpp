@@ -167,14 +167,14 @@ namespace graphp {
 
 				// greedy for degree
 				double sum = source_v.nbr_list.size() + target_v.nbr_list.size();
-				double s = source_v.nbr_list.size() / sum;
-				double t = target_v.nbr_list.size() / sum;
+				double s = target_v.nbr_list.size() / sum + 1;
+				double t = source_v.nbr_list.size() / sum + 1;
 
 				if(unbalanced) {
 					for(size_t i = 0; i < nparts; ++i) {
 						size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
 						size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
-						part_score[i] = ((sd > 0) * s + (td > 0)) * t;
+						part_score[i] = ((sd > 0) * s + (td > 0) * t);
 					}
 				}
 				else {
@@ -182,7 +182,7 @@ namespace graphp {
 						size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
 						size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
 						double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-						part_score[i] = bal + ((sd > 0) * s + (td > 0)) * t;
+						part_score[i] = bal + ((sd > 0) * s + (td > 0) * t);
 					}
 				}
 
