@@ -172,6 +172,15 @@ namespace graphp {
 			nedges++;
 		}
 
+		void clear_partition() {
+			foreach(const verts_map_type::value_type& vp, origin_verts) {
+				vp.second.mirror_list.clear();
+			}
+			foreach(const edge_type& e, origin_edges) {
+				e.placement = -1;
+			}
+		}
+
 		void finalize() {
 			cout << "Nodes: " << nverts << " Edges: " << nedges <<endl;
 			memory_info::print_usage();

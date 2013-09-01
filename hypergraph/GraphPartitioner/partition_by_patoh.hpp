@@ -299,9 +299,10 @@ namespace graphp {
 		void partition_by_patoh_fast(basic_graph& graph, size_t nparts) {
 			boost::timer ti;
 
+			greedy_reorder(graph, nparts, false);
 			// filter the vertices
 			boost::dynamic_bitset<> v_to_part(graph.max_vid + 1);
-			vertex_filter(graph, v_to_part, 100);
+			vertex_filter(graph, v_to_part, 200);
 			cout << "Vertices to be partitioned by hypergraph: " << v_to_part.count() << endl;
 
 			// convert the subgraph
@@ -315,13 +316,13 @@ namespace graphp {
 			}
 			vertex_id_type max_vid = subgraph.max_vid + 1;
 			for(size_t idx = v_to_part.find_first(); idx != v_to_part.npos; idx = v_to_part.find_next(idx)) {
-				for(size_t part = 0; part < nparts; part++) {
+				foreach(basic_graph::part_t part, graph.origin_verts[idx].mirror_list) {
 					subgraph.add_edge(idx, max_vid + part);
 				}
 			}
-			size_t mean_nverts = graph.nverts / nparts;
+			//size_t mean_nverts = graph.nverts / nparts;
 			for(size_t part = 0; part < nparts; part++) {
-				subgraph.origin_verts[max_vid + part].weight = mean_nverts;
+				subgraph.origin_verts[max_vid + part].weight = graph.parts_counter[part];
 				foreach(vertex_id_type nbr, subgraph.origin_verts[max_vid + part].nbr_list) {
 					assign_edge(subgraph, subgraph.origin_verts[max_vid + part].edge_list[nbr], part);
 				}
@@ -330,6 +331,9 @@ namespace graphp {
 			// end of convert
 
 			partition_by_patoh_w(subgraph, nparts);
+
+			graph.clear_partition();
+			report_performance(graph, nparts);
 
 			size_t assign_counter = 0;
 			// convert back
@@ -340,6 +344,7 @@ namespace graphp {
 				}
 			}
 			cout << "Edges assigned: " << assign_counter << endl;
+			report_performance(graph, nparts);
 			// end of convert back
 
 			//foreach(basic_graph::edge_type& e, graph.origin_edges) {
