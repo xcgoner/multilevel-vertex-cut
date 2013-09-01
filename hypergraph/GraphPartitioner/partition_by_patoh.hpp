@@ -339,10 +339,10 @@ namespace graphp {
 			for(size_t idx = 0; idx < nclusters; idx++) {
 				vertex_id_type vid = map_ncluster_vid[idx];
 				foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
-					//if(v_to_part[nbr]) {
-					//	subgraph.add_edge(idx, nbr);
-					//}
-					subgraph.add_edge(vid, nbr);
+					if(v_to_part[nbr]) {
+						subgraph.add_edge(idx, nbr);
+					}
+					//subgraph.add_edge(vid, nbr);
 				}
 			}
 			foreach(basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
@@ -371,8 +371,10 @@ namespace graphp {
 			for(size_t idx = 0; idx < nclusters; idx++) {
 				vertex_id_type vid = map_ncluster_vid[idx];
 				foreach(vertex_id_type nbr, graph.origin_verts[vid].nbr_list) {
-					assign_edge(graph, graph.origin_verts[vid].edge_list[nbr], subgraph.origin_edges[subgraph.origin_verts[vid].edge_list[nbr]].placement);
-					assign_counter++;
+					if(v_to_part[nbr]) {
+						assign_edge(graph, graph.origin_verts[vid].edge_list[nbr], subgraph.origin_edges[subgraph.origin_verts[vid].edge_list[nbr]].placement);
+						assign_counter++;
+					}
 				}
 			}
 			cout << "Edges assigned: " << assign_counter << endl;
