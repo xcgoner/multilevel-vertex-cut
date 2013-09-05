@@ -388,6 +388,37 @@ namespace graphp {
 			report_performance(graph, nparts);
 		} // end of partition_by_patoh_fast
 
+		void oblivious_hypergraph(basic_graph& graph, size_t nparts) {
+			boost::timer ti;
+
+			greedy_partition2(graph, nparts);
+			// pre-partition
+
+			// assign to each machine
+			vector<vector<edge_id_type>> partitions(nparts);
+			foreach(basic_graph::edge_type& e, graph.origin_edges) {
+				partitions[e.placement].push_back(e.eid);
+			}
+
+			for(size_t idx = 0; idx < nparts; idx++) {
+				// partition the subgraph for each machine
+				basic_graph subgraph(nparts);
+				foreach(edge_id_type eid, partitions[idx]) {
+					subgraph.add_edge(graph.origin_edges[eid].source, graph.origin_edges[eid].target);
+				}
+				partition_by_patoh(subgraph, nparts);
+				size_t j = 0;
+				foreach(edge_id_type eid, partitions[idx]) {
+					assign_edge(graph, eid, subgraph.origin_edges[j].placement);
+					j++;
+				}
+			}
+
+			cout << "Time elapsed: " << ti.elapsed() << endl;
+
+			report_performance(graph, nparts);
+		} // end of oblivious_hypergraph
+
 	} // end of namespace partition_strategy
 
 } // end of namespace graphp
