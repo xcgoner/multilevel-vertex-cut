@@ -391,43 +391,36 @@ namespace graphp {
 		void oblivious_hypergraph(basic_graph& graph, size_t nparts) {
 			boost::timer ti;
 
-			// pre-partition
-			greedy_partition2(graph, nparts);
-			
-			// filter the boundary vertex
+			// filter the vertices
 			boost::dynamic_bitset<> vfilter(graph.max_vid + 1);
-			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
-				if(vp.second.mirror_list.size() > 1 && vp.second.mirror_list.size() <= 18)
-					vfilter[vp.first] = true;
-			}
+			vertex_filter(graph, vfilter, 10000);
+			cout << "Vertices filtered: " << vfilter.count() << endl;
+			// end of filter
 
-			// assign to each machine
+			// pre-partition
 			vector<vector<edge_id_type>> partitions(nparts);
 			foreach(basic_graph::edge_type& e, graph.origin_edges) {
-				partitions[e.placement].push_back(e.eid);
+				// greedy assign
+				if(vfilter[e.source] == false && vfilter[e.target] == false) {
+					basic_graph::part_t assignment;
+					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+					partitions[assignment].push_back(e.eid);
+				}
 			}
-
-			// clear the paritioning
-			graph.clear_partition_counter();
-			graph.clear_partition();
-			graph.clear_mirrors();
 
 			size_t assign_counter = 0;
 			for(size_t idx = 0; idx < nparts; idx++) {
 				// partition the subgraph for each machine
 				basic_graph subgraph(nparts);
 				foreach(edge_id_type eid, partitions[idx]) {
-					if(vfilter[graph.origin_edges[eid].source] == false && vfilter[graph.origin_edges[eid].target] == false)
-						subgraph.add_edge(graph.origin_edges[eid].source, graph.origin_edges[eid].target);
+					subgraph.add_edge(graph.origin_edges[eid].source, graph.origin_edges[eid].target);
 				}
 				partition_by_patoh(subgraph, nparts);
 				size_t j = 0;
 				foreach(edge_id_type eid, partitions[idx]) {
-					if(vfilter[graph.origin_edges[eid].source] == false && vfilter[graph.origin_edges[eid].target] == false) {
-						assign_edge(graph, eid, subgraph.origin_edges[j].placement);
-						assign_counter++;
-						j++;
-					}
+					assign_edge(graph, eid, subgraph.origin_edges[j].placement);
+					assign_counter++;
+					j++;
 				}
 			}
 			cout << "Edges assigned: " << assign_counter << endl;
