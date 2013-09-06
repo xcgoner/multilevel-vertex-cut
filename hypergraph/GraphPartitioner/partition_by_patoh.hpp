@@ -440,13 +440,15 @@ namespace graphp {
 				// partition the subgraph for each machine
 				basic_graph subgraph(nparts);
 				foreach(edge_id_type eid, partitions[idx]) {
-					subgraph.add_edge(graph.origin_edges[eid].source, graph.origin_edges[eid].target);
+					subgraph.add_edge(graph.origin_edges[eid].source, graph.origin_edges[eid].target, 1, graph.origin_edges[eid].placement);
 				}
-				partition_by_patoh(subgraph, nparts);
+				partition_by_patoh_w(subgraph, nparts);
 				size_t j = 0;
 				foreach(edge_id_type eid, partitions[idx]) {
-					assign_edge(graph, eid, subgraph.origin_edges[j].placement);
-					assign_counter++;
+					if(graph.origin_edges[eid].placement == -1) {
+						assign_edge(graph, eid, subgraph.origin_edges[j].placement);
+						assign_counter++;
+					}
 					j++;
 				}
 			}
