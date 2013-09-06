@@ -397,7 +397,7 @@ namespace graphp {
 			// filter the boundary vertex
 			boost::dynamic_bitset<> vfilter(graph.max_vid + 1);
 			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
-				if(vp.second.mirror_list.size() > 2 && vp.second.mirror_list.size() <= 18)
+				if(vp.second.mirror_list.size() > 1 && vp.second.mirror_list.size() <= 18)
 					vfilter[vp.first] = true;
 			}
 
@@ -417,15 +417,14 @@ namespace graphp {
 				// partition the subgraph for each machine
 				basic_graph subgraph(nparts);
 				foreach(edge_id_type eid, partitions[idx]) {
-					subgraph.add_edge(graph.origin_edges[eid].source, graph.origin_edges[eid].target);
+					if(vfilter[graph.origin_edges[eid].source] == false && vfilter[graph.origin_edges[eid].target] == false)
+						subgraph.add_edge(graph.origin_edges[eid].source, graph.origin_edges[eid].target);
 				}
 				partition_by_patoh(subgraph, nparts);
 				size_t j = 0;
 				foreach(edge_id_type eid, partitions[idx]) {
-					if(vfilter[graph.origin_edges[eid].source] == false && vfilter[graph.origin_edges[eid].target] == false) {
-						assign_edge(graph, eid, subgraph.origin_edges[j].placement);
-						assign_counter++;
-					}
+					assign_edge(graph, eid, subgraph.origin_edges[j].placement);
+					assign_counter++;
 					j++;
 				}
 			}
