@@ -391,22 +391,24 @@ namespace graphp {
 		void oblivious_hypergraph(basic_graph& graph, size_t nparts) {
 			boost::timer ti;
 
-			// filter the vertices
-			boost::dynamic_bitset<> vfilter(graph.max_vid + 1);
-			vertex_filter(graph, vfilter, 1000);
-			cout << "Vertices filtered: " << vfilter.count() << endl;
-			// end of filter
-
 			// pre-partition
+			greedy_partition2(graph, nparts);
+			
+			// filter the boundary vertex
+			boost::dynamic_bitset<> vfilter(graph.max_vid + 1);
+			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
+				if(vp.second.mirror_list.size() > 1)
+					vfilter[vp.first] = true;
+			}
+
+			// assign to each machine
 			vector<vector<edge_id_type>> partitions(nparts);
+			vector<edge_id_type> vexcluded;
 			foreach(basic_graph::edge_type& e, graph.origin_edges) {
-				// greedy assign
-				if(vfilter[e.source] == false && vfilter[e.target] == false) {
-					basic_graph::part_t assignment;
-					assignment = edge_to_part_greedy2(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
-					assign_edge(graph, e.eid, assignment);
-					partitions[assignment].push_back(e.eid);
-				}
+				if(vfilter[e.source] == false && vfilter[e.target] == false)
+					partitions[e.placement].push_back(e.eid);
+				else
+					vexcluded.push_back(e.eid);
 			}
 
 			// clear the paritioning
