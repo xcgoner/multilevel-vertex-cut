@@ -391,7 +391,7 @@ namespace graphp {
 		void oblivious_hypergraph(basic_graph& graph, size_t nparts) {
 			boost::timer ti;
 
-			greedy_partition(graph, nparts);
+			greedy_partition2(graph, nparts);
 			// pre-partition
 
 			// assign to each machine
