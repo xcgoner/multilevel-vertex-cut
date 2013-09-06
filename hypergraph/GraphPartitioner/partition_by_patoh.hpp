@@ -405,29 +405,22 @@ namespace graphp {
 			graph.clear_partition();
 			graph.clear_mirrors();
 
+			size_t assign_counter = 0;
 			for(size_t idx = 0; idx < nparts; idx++) {
-				if(idx < nparts / 2) {
-					// partition the subgraph for each machine
-					basic_graph subgraph(nparts);
-					foreach(edge_id_type eid, partitions[idx]) {
-						subgraph.add_edge(graph.origin_edges[eid].source, graph.origin_edges[eid].target);
-					}
-					partition_by_patoh(subgraph, nparts);
-					size_t j = 0;
-					foreach(edge_id_type eid, partitions[idx]) {
-						assign_edge(graph, eid, subgraph.origin_edges[j].placement);
-						j++;
-					}
+				// partition the subgraph for each machine
+				basic_graph subgraph(nparts);
+				foreach(edge_id_type eid, partitions[idx]) {
+					subgraph.add_edge(graph.origin_edges[eid].source, graph.origin_edges[eid].target);
 				}
-				else {
-					foreach(edge_id_type eid, partitions[idx]) {
-						basic_graph::part_t assignment;
-						basic_graph::edge_type& e = graph.origin_edges[eid];
-						assignment = edge_to_part_greedy2(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
-						assign_edge(graph, e.eid, assignment);
-					}
+				partition_by_patoh(subgraph, nparts);
+				size_t j = 0;
+				foreach(edge_id_type eid, partitions[idx]) {
+					assign_edge(graph, eid, subgraph.origin_edges[j].placement);
+					assign_counter++;
+					j++;
 				}
 			}
+			cout << "Edges assigned: " << assign_counter << endl;
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
 
