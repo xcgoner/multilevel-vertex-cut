@@ -423,9 +423,11 @@ namespace graphp {
 				partition_by_patoh(subgraph, nparts);
 				size_t j = 0;
 				foreach(edge_id_type eid, partitions[idx]) {
-					assign_edge(graph, eid, subgraph.origin_edges[j].placement);
-					assign_counter++;
-					j++;
+					if(vfilter[graph.origin_edges[eid].source] == false && vfilter[graph.origin_edges[eid].target] == false) {
+						assign_edge(graph, eid, subgraph.origin_edges[j].placement);
+						assign_counter++;
+						j++;
+					}
 				}
 			}
 			cout << "Edges assigned: " << assign_counter << endl;
