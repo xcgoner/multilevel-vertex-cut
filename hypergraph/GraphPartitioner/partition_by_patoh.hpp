@@ -391,7 +391,7 @@ namespace graphp {
 		void oblivious_hypergraph(basic_graph& graph, size_t nparts) {
 			boost::timer ti;
 
-			random_partition(graph, nparts);
+			greedy_partition2(graph, nparts);
 			// pre-partition
 
 			// assign to each machine
@@ -399,6 +399,11 @@ namespace graphp {
 			foreach(basic_graph::edge_type& e, graph.origin_edges) {
 				partitions[e.placement].push_back(e.eid);
 			}
+
+			// clear the paritioning
+			graph.clear_partition_counter();
+			graph.clear_partition();
+			graph.clear_mirrors();
 
 			for(size_t idx = 0; idx < nparts; idx++) {
 				if(idx < nparts / 2) {
