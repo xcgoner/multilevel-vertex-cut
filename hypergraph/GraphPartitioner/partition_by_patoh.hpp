@@ -399,7 +399,7 @@ namespace graphp {
 			boost::dynamic_bitset<> vskewness(graph.max_vid + 1);
 			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
 				if(vp.second.mirror_list.size() > 1) {
-					if(vp.second.mirror_list.size() > 18)
+					if(vp.second.mirror_list.size() > 9)
 						vskewness[vp.first] = true;
 					else
 						preassign[vp.first] = true;
