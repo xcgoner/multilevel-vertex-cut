@@ -391,59 +391,77 @@ namespace graphp {
 		void oblivious_hypergraph(basic_graph& graph, size_t nparts) {
 			boost::timer ti;
 
-			// filter the boundary vertex
-			boost::dynamic_bitset<> vfilter(graph.max_vid + 1);
-			vertex_filter(graph, vfilter, 1000);
-			cout << "Vertices filtered: " << vfilter.count() << endl;
-
 			// pre-partition
+			greedy_partition2(graph, nparts);
+			
+			// filter the boundary vertex
+			boost::dynamic_bitset<> preassign(graph.max_vid + 1);
+			boost::dynamic_bitset<> vskewness(graph.max_vid + 1);
+			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
+				if(vp.second.mirror_list.size() > 1) {
+					if(vp.second.mirror_list.size() > 18)
+						vskewness[vp.first] = true;
+					else
+						preassign[vp.first] = true;
+				}
+			}
+
+			// assign to each machine
 			vector<vector<edge_id_type>> partitions(nparts);
+			vector<edge_id_type> vexcluded;
 			foreach(basic_graph::edge_type& e, graph.origin_edges) {
-				basic_graph::part_t assignment;
-				if(vfilter[e.source] || vfilter[e.target]) {
-					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
-					assign_edge(graph, e.eid, assignment);
-				}
-				else {
-					assignment = edgernd(gen) % (nparts);
-				}
-				partitions[assignment].push_back(e.eid);
+				if(vskewness[e.source] == false && vskewness[e.target] == false)
+					partitions[e.placement].push_back(e.eid);
+				else
+					vexcluded.push_back(e.eid);
 			}
 
 			// clear the paritioning
-			//graph.clear_partition_counter();
-			//graph.clear_partition();
-			//graph.clear_mirrors();
+			graph.clear_partition_counter();
+			graph.clear_partition();
+			graph.clear_mirrors();
 
 			size_t assign_counter = 0;
+
+			// pre-assign
+			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
+				if(preassign[vp.first]) {
+					basic_graph::part_t assignment;
+					assignment = edgernd(gen) % (nparts);
+					foreach(vertex_id_type nbr, vp.second.nbr_list) {
+						if(preassign[nbr] == false && vskewness[nbr] == false) {
+							assign_edge(graph, vp.second.edge_list[nbr], assignment);
+						}
+					}
+				}
+			}
+
 			for(size_t idx = 0; idx < nparts; idx++) {
 				// partition the subgraph for each machine
 				basic_graph subgraph(nparts);
 				foreach(edge_id_type eid, partitions[idx]) {
-					subgraph.add_edge(graph.origin_edges[eid].source, graph.origin_edges[eid].target, 1, graph.origin_edges[eid].placement);
+					subgraph.add_edge(graph.origin_edges[eid].source, graph.origin_edges[eid].target);
 				}
-				partition_by_patoh_w(subgraph, nparts);
+				partition_by_patoh(subgraph, nparts);
 				size_t j = 0;
 				foreach(edge_id_type eid, partitions[idx]) {
-					if(graph.origin_edges[eid].placement == -1) {
-						assign_edge(graph, eid, subgraph.origin_edges[j].placement);
-						assign_counter++;
-					}
+					assign_edge(graph, eid, subgraph.origin_edges[j].placement);
+					assign_counter++;
 					j++;
 				}
 			}
 			cout << "Edges assigned: " << assign_counter << endl;
 
 			// post-partitioning
-			//foreach(basic_graph::edge_type& e, graph.origin_edges) {
-			//	if(e.placement == -1) {
-			//		basic_graph::part_t assignment;
-			//		assignment = edge_to_part_greedy2(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
-			//		assign_edge(graph, e.eid, assignment);
-			//		assign_counter++;
-			//	}
-			//}
-			//cout << "Edges assigned: " << assign_counter << endl;
+			foreach(basic_graph::edge_type& e, graph.origin_edges) {
+				if(e.placement == -1) {
+					basic_graph::part_t assignment;
+					assignment = edge_to_part_greedy2(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+					assign_edge(graph, e.eid, assignment);
+					assign_counter++;
+				}
+			}
+			cout << "Edges assigned: " << assign_counter << endl;
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
 
