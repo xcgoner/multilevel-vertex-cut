@@ -403,10 +403,16 @@ namespace graphp {
 				// greedy assign
 				if(vfilter[e.source] == false && vfilter[e.target] == false) {
 					basic_graph::part_t assignment;
-					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+					assignment = edge_to_part_greedy2(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+					assign_edge(graph, e.eid, assignment);
 					partitions[assignment].push_back(e.eid);
 				}
 			}
+
+			// clear the paritioning
+			graph.clear_partition_counter();
+			graph.clear_partition();
+			graph.clear_mirrors();
 
 			size_t assign_counter = 0;
 			for(size_t idx = 0; idx < nparts; idx++) {
