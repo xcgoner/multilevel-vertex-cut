@@ -424,7 +424,7 @@ namespace graphp {
 			size_t assign_counter = 0;
 
 			// pre-assign
-			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
+			foreach(basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
 				if(preassign[vp.first]) {
 					basic_graph::part_t assignment;
 					assignment = edgernd(gen) % (nparts);
