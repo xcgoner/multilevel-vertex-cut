@@ -391,8 +391,15 @@ namespace graphp {
 		void oblivious_hypergraph(basic_graph& graph, size_t nparts) {
 			boost::timer ti;
 
-			greedy_reorder(graph, nparts);
 			// pre-partition
+			greedy_partition2(graph, nparts);
+			
+			// filter the boundary vertex
+			boost::dynamic_bitset<> vfilter(graph.max_vid + 1);
+			foreach(const basic_graph::verts_map_type::value_type& vp, graph.origin_verts) {
+				if(vp.second.mirror_list.size() > 1)
+					vfilter[vp._Getpfirst] = true;
+			}
 
 			// assign to each machine
 			vector<vector<edge_id_type>> partitions(nparts);
@@ -415,13 +422,24 @@ namespace graphp {
 				partition_by_patoh(subgraph, nparts);
 				size_t j = 0;
 				foreach(edge_id_type eid, partitions[idx]) {
-					assign_edge(graph, eid, subgraph.origin_edges[j].placement);
-					assign_counter++;
+					if(vfilter[graph.origin_edges[eid].source] == false && vfilter[graph.origin_edges[eid].target] == false) {
+						assign_edge(graph, eid, subgraph.origin_edges[j].placement);
+						assign_counter++;
+					}
 					j++;
 				}
 			}
 			cout << "Edges assigned: " << assign_counter << endl;
 
+			// post-partitioning
+			foreach(basic_graph::edge_type& e, graph.origin_edges) {
+				if(e.placement == -1) {
+					basic_graph::part_t assignment;
+					assignment = edge_to_part_greedy2(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+					assign_edge(graph, e.eid, assignment);
+					assign_counter++;
+				}
+			}
 			cout << "Time elapsed: " << ti.elapsed() << endl;
 
 			report_performance(graph, nparts);
