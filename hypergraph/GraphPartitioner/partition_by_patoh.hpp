@@ -431,6 +431,7 @@ namespace graphp {
 					foreach(vertex_id_type nbr, vp.second.nbr_list) {
 						if(preassign[nbr] == false && vskewness[nbr] == false) {
 							assign_edge(graph, vp.second.edge_list[nbr], assignment);
+							assign_counter++;
 						}
 					}
 				}
