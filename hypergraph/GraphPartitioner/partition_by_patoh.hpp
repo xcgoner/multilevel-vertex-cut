@@ -444,13 +444,11 @@ namespace graphp {
 					subgraph.add_edge(graph.origin_edges[eid].source, graph.origin_edges[eid].target, 1, graph.origin_edges[eid].placement);
 				}
 				partition_by_patoh_w(subgraph, nparts);
-				size_t j = 0;
 				foreach(edge_id_type eid, partitions[idx]) {
 					if(graph.origin_edges[eid].placement == -1) {
-						assign_edge(graph, eid, subgraph.origin_edges[j].placement);
+						assign_edge(graph, eid, subgraph.origin_edges[subgraph.origin_verts[graph.origin_edges[eid].source].edge_list[graph.origin_edges[eid].target]].placement);
 						assign_counter++;
 					}
-					j++;
 				}
 			}
 			cout << "Edges assigned: " << assign_counter << endl;
