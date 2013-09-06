@@ -150,7 +150,7 @@ namespace graphp {
 			return false;
 		}
 
-		void add_edge(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1) {
+		void add_edge(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
 			// check if the edge already exists
 			add_vertex(source);
 			add_vertex(target);
@@ -159,6 +159,8 @@ namespace graphp {
 				return ;
 
 			edge_type e(nedges, source, target, weight);
+			if(placement != -1)
+				e.placement = placement;
 			origin_edges.push_back(e);
 			
 			// undirected
