@@ -99,7 +99,7 @@ namespace graphp {
 			// count the average degree
 			size_t cutted_vertex_num = 0, boundary_degree = 0;
 
-			for(hash_map<vertex_id_type, basic_graph::vertex_type>::const_iterator iter = graph.origin_verts.begin(); iter != graph.origin_verts.end(); iter++) {
+			for(basic_graph::verts_map_type::const_iterator iter = graph.origin_verts.begin(); iter != graph.origin_verts.end(); iter++) {
 				if(iter->second.mirror_list.size() > 0)
 					vertex_cut_counter += (iter->second.mirror_list.size() - 1);
 				if(iter->second.mirror_list.size() > 1) {
