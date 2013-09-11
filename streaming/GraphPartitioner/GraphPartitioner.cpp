@@ -45,8 +45,6 @@ int main(int argc, char* argv[])
 
 	graph.finalize();
 
-	return 0;
-
 	if(vm.count("strategy") == 0 || vm["strategy"].as<string>() == "random" || vm["strategy"].as<string>() == "random_refine")
 		graphp::partition_strategy::random_partition(graph, nparts);
 	else if(vm["strategy"].as<string>() == "oblivious" || vm["strategy"].as<string>() == "oblivious_refine")
