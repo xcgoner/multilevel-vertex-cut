@@ -228,7 +228,7 @@ namespace graphp {
 				add_edge(e);
 			}
 
-			cout << "Nodes: " << nverts << " Edges: " << nedges <<endl;
+			cout << "Nodes: " << origin_verts.size() << " Edges: " << origin_edges.size() <<endl;
 			memory_info::print_usage();
 		}
 
