@@ -24,6 +24,7 @@
 #include <map>
 #include <hash_map>
 #include <set>
+#include <list>
 #include <fstream>
 #include <sstream>
 
@@ -126,9 +127,11 @@ namespace graphp {
 			friend class basic_graph;
 		};
 
-		typedef hash_map<vertex_id_type, vertex_type> verts_map_type;
+		typedef map<vertex_id_type, vertex_type> verts_map_type;
 		verts_map_type origin_verts;
 		vector<edge_type> origin_edges;
+
+		list<edge_type> edges_storage;
 
 		// constructor
 		basic_graph(size_t nparts) : nverts(0), nedges(0), max_vid(0), nparts(nparts) {
@@ -148,6 +151,13 @@ namespace graphp {
 				return true;
 			}
 			return false;
+		}
+
+		void add_edge_to_storage(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
+			edge_type e(nedges, source, target, weight);
+			if(placement != -1)
+				e.placement = placement;
+			edges_storage.push_back(e);
 		}
 
 		void add_edge(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
@@ -173,6 +183,28 @@ namespace graphp {
 			origin_verts[target].degree++;
 			nedges++;
 		}
+		void add_edge(edge_type e) {
+			vertex_id_type source = e.source, target = e.target;
+
+			// check if the edge already exists
+			add_vertex(source);
+			add_vertex(target);
+			// just check one of the two conditions should be ok...
+			if(origin_verts[source].nbr_list.count(target) > 0 || origin_verts[target].nbr_list.count(source) > 0)
+				return ;
+
+			origin_edges.push_back(e);
+
+			// undirected
+			origin_verts[source].edge_list.insert(pair<vertex_id_type, edge_id_type>(target, e.eid));
+			origin_verts[source].nbr_list.insert(target);
+			origin_verts[source].degree++;
+
+			origin_verts[target].edge_list.insert(pair<vertex_id_type, edge_id_type>(source, e.eid));
+			origin_verts[target].nbr_list.insert(source);
+			origin_verts[target].degree++;
+			nedges++;
+		}
 
 		void clear_partition_counter() {
 			foreach(size_t& num_edges, parts_counter) {
@@ -191,6 +223,11 @@ namespace graphp {
 		}
 
 		void finalize() {
+			origin_edges.reserve(edges_storage.size() + 1);
+			foreach(edge_type& e, edges_storage) {
+				add_edge(e);
+			}
+
 			cout << "Nodes: " << nverts << " Edges: " << nedges <<endl;
 			memory_info::print_usage();
 		}

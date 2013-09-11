@@ -59,7 +59,7 @@ namespace graphp {
         source = strtoul(str.c_str(), &targetptr, 10);
         if (targetptr == NULL) return false;
         target = strtoul(targetptr, NULL, 10);
-        if(source != target) graph.add_edge(source, target);
+        if(source != target) graph.add_edge_to_storage(source, target);
       }
       return true;
     } // end of snap parser
@@ -79,7 +79,7 @@ namespace graphp {
       source = strtoul(str.c_str(), &targetptr, 10);
       if (targetptr == NULL) return false;
       target = strtoul(targetptr, NULL, 10);
-      if(source != target) graph.add_edge(source, target);
+      if(source != target) graph.add_edge_to_storage(source, target);
       return true;
     } // end of tsv parser
 
@@ -106,7 +106,7 @@ namespace graphp {
         vertex_id_type target;
         strm >> target;
         if (strm.fail()) break;
-        if (source != target) graph.add_edge(source, target);
+        if (source != target) graph.add_edge_to_storage(source, target);
         ++nadded;
       } 
       if (n != nadded) return false;
@@ -145,7 +145,7 @@ namespace graphp {
         return false;
       }
       for(size_t i = 0; i < targets.size(); ++i) {
-        if(source != targets[i]) graph.add_edge(source, targets[i]);
+        if(source != targets[i]) graph.add_edge_to_storage(source, targets[i]);
       }
       return true;
     } // end of adj parser
