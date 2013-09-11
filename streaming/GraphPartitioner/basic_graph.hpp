@@ -183,7 +183,7 @@ namespace graphp {
 			origin_verts[target].degree++;
 			nedges++;
 		}
-		void add_edge(edge_type e) {
+		void add_edge(edge_type& e) {
 			vertex_id_type source = e.source, target = e.target;
 
 			// check if the edge already exists
