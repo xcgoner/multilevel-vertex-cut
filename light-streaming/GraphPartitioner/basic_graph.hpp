@@ -24,7 +24,7 @@
 #include <map>
 #include <hash_map>
 #include <set>
-#include <list>
+#include <deque>
 #include <fstream>
 #include <sstream>
 
@@ -124,9 +124,10 @@ namespace graphp {
 
 		typedef map<vertex_id_type, vertex_type> verts_map_type;
 		vector<vertex_type> verts;
-		vector<list<edge_type>::iterator> edges;
 
-		list<edge_type> edges_storage;
+		deque<edge_type> edges_storage;
+
+		//deque<edge_type>& edges = edges_storage;
 
 		// constructor
 		basic_graph(size_t nparts) : nverts(0), nedges(0), max_vid(0), nparts(nparts) {
@@ -223,14 +224,14 @@ namespace graphp {
 		void finalize() {
 			cout << "finalizing..." << endl;
 
-			edges.reserve(edges_storage.size() + 1);
+			//edges.reserve(edges_storage.size() + 1);
 			verts.resize(max_vid + 1);
 
 			boost::timer ti;
 			size_t edgecount = 0;
-			for(list<edge_type>::iterator itr = edges_storage.begin(); itr != edges_storage.end(); ++itr) {
+			for(deque<edge_type>::iterator itr = edges_storage.begin(); itr != edges_storage.end(); ++itr) {
 				// add edge
-				edges[edgecount] = itr;
+				//edges[edgecount] = itr;
 
 				// add vertex
 				// treat every single edge as an undirected one
@@ -242,7 +243,7 @@ namespace graphp {
 				verts[itr->target].edge_list.push_back(itr->eid);
 
 				edgecount++;
-				if (ti.elapsed() > 5.0) {
+				if(ti.elapsed() > 5.0) {
 					cout << edgecount << " edges saved" << endl;
 					ti.restart();
 				}
@@ -261,7 +262,7 @@ namespace graphp {
 			return verts[vid];
 		}
 		edge_type& getEdge(edge_id_type eid) {
-			return *(edges[eid]);
+			return edges_storage[eid];
 		}
 
 		//// some utilities
