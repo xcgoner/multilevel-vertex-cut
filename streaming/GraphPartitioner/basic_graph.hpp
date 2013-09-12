@@ -228,9 +228,16 @@ namespace graphp {
 
 			nedges = 0;
 			origin_edges.reserve(edges_storage.size() + 1);
+
+			boost::timer ti;
 			foreach(edge_type& e, edges_storage) {
 				add_edge(e);
+
 				//cout << nedges << " "<< e.eid << " " << e.source << " " << e.target << " " << e.weight << " " << e.placement << endl;
+				if (ti.elapsed() > 5.0) {
+					cout << linecount << " Lines read" << endl;
+					ti.restart();
+				}
 			}
 
 			// release the memory
