@@ -158,6 +158,7 @@ namespace graphp {
 			if(placement != -1)
 				e.placement = placement;
 			edges_storage.push_back(e);
+			nedges++;
 		}
 
 		void add_edge(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
@@ -223,10 +224,14 @@ namespace graphp {
 		}
 
 		void finalize() {
+			nedges = 0;
 			origin_edges.reserve(edges_storage.size() + 1);
 			foreach(edge_type& e, edges_storage) {
 				add_edge(e);
 			}
+
+			// release the memory
+			edges_storage.clear();
 
 			cout << "Nodes: " << origin_verts.size() << " Edges: " << origin_edges.size() <<endl;
 			memory_info::print_usage();
