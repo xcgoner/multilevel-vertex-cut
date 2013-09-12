@@ -230,12 +230,14 @@ namespace graphp {
 			origin_edges.reserve(edges_storage.size() + 1);
 
 			boost::timer ti;
+			size_t edgecount = 0;
 			foreach(edge_type& e, edges_storage) {
 				add_edge(e);
 
 				//cout << nedges << " "<< e.eid << " " << e.source << " " << e.target << " " << e.weight << " " << e.placement << endl;
+				edgecount++;
 				if (ti.elapsed() > 5.0) {
-					cout << linecount << " Lines read" << endl;
+					cout << edgecount << " edges saved" << endl;
 					ti.restart();
 				}
 			}
