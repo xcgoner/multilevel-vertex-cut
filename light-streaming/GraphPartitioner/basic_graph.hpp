@@ -40,6 +40,7 @@
 #include <boost/iostreams/copy.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/timer.hpp>
+#include <boost/dynamic_bitset.hpp>
 
 namespace graphp_options = boost::program_options;
 
@@ -65,10 +66,10 @@ namespace graphp {
 		typedef size_t part_t;
 
 		// list of vertices
-		typedef set<vertex_id_type> vertex_list_type;
+		typedef vector<vertex_id_type> vertex_list_type;
 
 		// list of edges
-		typedef set<edge_id_type> edge_list_type;
+		typedef vector<edge_id_type> edge_list_type;
 
 		size_t nverts, nedges, nparts;
 
@@ -76,32 +77,26 @@ namespace graphp {
 
 		vector<size_t> parts_counter;
 
-		typedef map<vertex_id_type, edge_id_type> vertex_edge_map_type;
 		struct vertex_type {
 			vertex_id_type vid;
-			size_t degree;
 			size_t weight;
 
 			// neighbour list
 			vertex_list_type nbr_list;
 
 			// key: neighbour target vid, value: edge eid
-			vertex_edge_map_type edge_list;
+			edge_list_type edge_list;
 
-			set<part_t> mirror_list;
+			boost::dynamic_bitset<> mirror_list;
 
 			vertex_type() :
-				vid(-1), degree(0), weight(1) { }
-			vertex_type(const vertex_id_type& vid) :
-				vid(vid), degree(0), weight(1) { }
-			vertex_type(const vertex_id_type& vid, const size_t& weight) :
-				vid(vid), degree(0), weight(weight) { }
+				vid(-1), weight(1) { }
+			vertex_type(const vertex_id_type& vid, const size_t& weight = 1) :
+				vid(vid), weight(weight) { }
 
 			bool operator==(vertex_type& v) const {
 				return vid == v.vid;
 			}
-
-
 
 			friend class basic_graph;
 		};
@@ -128,8 +123,8 @@ namespace graphp {
 		};
 
 		typedef map<vertex_id_type, vertex_type> verts_map_type;
-		verts_map_type origin_verts;
-		vector<edge_type> origin_edges;
+		vector<vertex_type> verts;
+		vector<list<edge_type>::iterator> edges;
 
 		list<edge_type> edges_storage;
 
@@ -142,11 +137,10 @@ namespace graphp {
 		}
 
 		bool add_vertex(const vertex_id_type& vid, const size_t& weight = 1) {
-			if(origin_verts.count(vid) == 0) {
-				if(vid > max_vid)
-					max_vid = vid;
-				vertex_type v(vid, weight);
-				origin_verts.insert(pair<vertex_id_type, vertex_type>(vid, v));
+			if(verts[vid].vid == -1) {
+				verts[vid].vid = vid;
+				verts[vid].weight = weight;
+				verts[vid].mirror_list.resize(nparts);
 				nverts++;
 				return true;
 			}
@@ -154,87 +148,99 @@ namespace graphp {
 		}
 
 		void add_edge_to_storage(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
-			edge_type e(-1, source, target, weight);
+			edge_type e(nedges, source, target, weight);
+			if(source > max_vid)
+				max_vid = source;
+			if(target > max_vid)
+				max_vid = target;
 			if(placement != -1)
 				e.placement = placement;
 			edges_storage.push_back(e);
-		}
-
-		void add_edge(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
-			// check if the edge already exists
-			add_vertex(source);
-			add_vertex(target);
-			// just check one of the two conditions should be ok...
-			if(origin_verts[source].nbr_list.count(target) > 0 || origin_verts[target].nbr_list.count(source) > 0)
-				return ;
-
-			edge_type e(nedges, source, target, weight);
-			if(placement != -1)
-				e.placement = placement;
-			origin_edges.push_back(e);
-			
-			// undirected
-			origin_verts[source].edge_list.insert(pair<vertex_id_type, edge_id_type>(target, e.eid));
-			origin_verts[source].nbr_list.insert(target);
-			origin_verts[source].degree++;
-			
-			origin_verts[target].edge_list.insert(pair<vertex_id_type, edge_id_type>(source, e.eid));
-			origin_verts[target].nbr_list.insert(source);
-			origin_verts[target].degree++;
-			nedges++;
-		}
-		void add_edge(edge_type& e) {
-			vertex_id_type source = e.source, target = e.target;
-
-			// check if the edge already exists
-			add_vertex(source);
-			add_vertex(target);
-			// just check one of the two conditions should be ok...
-			if(origin_verts[source].nbr_list.count(target) > 0 || origin_verts[target].nbr_list.count(source) > 0)
-				return ;
-
-			e.eid = nedges;
-			origin_edges.push_back(e);
-
-			// undirected
-			origin_verts[source].edge_list.insert(pair<vertex_id_type, edge_id_type>(target, e.eid));
-			origin_verts[source].nbr_list.insert(target);
-			origin_verts[source].degree++;
-
-			origin_verts[target].edge_list.insert(pair<vertex_id_type, edge_id_type>(source, e.eid));
-			origin_verts[target].nbr_list.insert(source);
-			origin_verts[target].degree++;
 			nedges++;
 		}
 
-		void clear_partition_counter() {
-			foreach(size_t& num_edges, parts_counter) {
-				num_edges = 0;
-			}
-		}
-		void clear_partition() {
-			foreach(edge_type& e, origin_edges) {
-				e.placement = -1;
-			}
-		}
-		void clear_mirrors() {
-			foreach(verts_map_type::value_type& vp, origin_verts) {
-				vp.second.mirror_list.clear();
-			}
-		}
+		//void add_edge(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
+		//	// check if the edge already exists
+		//	add_vertex(source);
+		//	add_vertex(target);
+		//	// just check one of the two conditions should be ok...
+		//	if(origin_verts[source].nbr_list.count(target) > 0 || origin_verts[target].nbr_list.count(source) > 0)
+		//		return ;
+
+		//	edge_type e(nedges, source, target, weight);
+		//	if(placement != -1)
+		//		e.placement = placement;
+		//	origin_edges.push_back(e);
+		//	
+		//	// undirected
+		//	origin_verts[source].edge_list.insert(pair<vertex_id_type, edge_id_type>(target, e.eid));
+		//	origin_verts[source].nbr_list.insert(target);
+		//	
+		//	origin_verts[target].edge_list.insert(pair<vertex_id_type, edge_id_type>(source, e.eid));
+		//	origin_verts[target].nbr_list.insert(source);
+		//	nedges++;
+		//}
+		//void add_edge(edge_type& e) {
+		//	vertex_id_type source = e.source, target = e.target;
+
+		//	// check if the edge already exists
+		//	add_vertex(source);
+		//	add_vertex(target);
+		//	// just check one of the two conditions should be ok...
+		//	if(origin_verts[source].nbr_list.count(target) > 0 || origin_verts[target].nbr_list.count(source) > 0)
+		//		return ;
+
+		//	e.eid = nedges;
+		//	origin_edges.push_back(e);
+
+		//	// undirected
+		//	origin_verts[source].edge_list.insert(pair<vertex_id_type, edge_id_type>(target, e.eid));
+		//	origin_verts[source].nbr_list.insert(target);
+		//	origin_verts[source].degree++;
+
+		//	origin_verts[target].edge_list.insert(pair<vertex_id_type, edge_id_type>(source, e.eid));
+		//	origin_verts[target].nbr_list.insert(source);
+		//	origin_verts[target].degree++;
+		//	nedges++;
+		//}
+
+		//void clear_partition_counter() {
+		//	foreach(size_t& num_edges, parts_counter) {
+		//		num_edges = 0;
+		//	}
+		//}
+		//void clear_partition() {
+		//	foreach(edge_type& e, origin_edges) {
+		//		e.placement = -1;
+		//	}
+		//}
+		//void clear_mirrors() {
+		//	foreach(verts_map_type::value_type& vp, origin_verts) {
+		//		vp.second.mirror_list.clear();
+		//	}
+		//}
 
 		void finalize() {
 			cout << "finalizing..." << endl;
 
-			nedges = 0;
-			origin_edges.reserve(edges_storage.size() + 1);
+			edges.reserve(edges_storage.size() + 1);
+			verts.resize(max_vid + 1);
 
 			boost::timer ti;
 			size_t edgecount = 0;
-			foreach(edge_type& e, edges_storage) {
-				add_edge(e);
+			for(list<edge_type>::iterator itr = edges_storage.begin(); itr != edges_storage.end(); ++itr) {
+				// add edge
+				edges[edgecount] = itr;
 
-				//cout << nedges << " "<< e.eid << " " << e.source << " " << e.target << " " << e.weight << " " << e.placement << endl;
+				// add vertex
+				// treat every single edge as an undirected one
+				add_vertex(itr->source);
+				verts[itr->source].nbr_list.push_back(itr->target);
+				verts[itr->source].edge_list.push_back(itr->eid);
+				add_vertex(itr->target);
+				verts[itr->target].nbr_list.push_back(itr->source);
+				verts[itr->target].edge_list.push_back(itr->eid);
+
 				edgecount++;
 				if (ti.elapsed() > 5.0) {
 					cout << edgecount << " edges saved" << endl;
@@ -243,26 +249,33 @@ namespace graphp {
 			}
 
 			// release the memory
-			edges_storage.clear();
+			//edges_storage.clear();
 
-			cout << "Nodes: " << origin_verts.size() << " Edges: " << origin_edges.size() <<endl;
+			cout << "Nodes: " << nverts << " Edges: " << nedges <<endl;
 			memory_info::print_usage();
 
 			cout << "finalized" << endl;
 		}
 
-		// some utilities
-		vertex_list_type vertex_intersection(const vertex_list_type& list1, const vertex_list_type& list2) {
-			vertex_list_type result;
-			set_intersection(list1.begin(), list1.end(), list2.begin(), list2.end(), inserter(result, result.begin()));
-			return result;
+		vertex_type& getVert(vertex_id_type vid) {
+			return verts[vid];
+		}
+		edge_type& getEdge(edge_id_type eid) {
+			return *(edges[eid]);
 		}
 
-		vertex_list_type vertex_union(const vertex_list_type& list1, const vertex_list_type& list2) {
-			vertex_list_type result;
-			set_union(list1.begin(), list1.end(), list2.begin(), list2.end(), inserter(result, result.begin()));
-			return result;
-		}
+		//// some utilities
+		//vertex_list_type vertex_intersection(const vertex_list_type& list1, const vertex_list_type& list2) {
+		//	vertex_list_type result;
+		//	set_intersection(list1.begin(), list1.end(), list2.begin(), list2.end(), inserter(result, result.begin()));
+		//	return result;
+		//}
+
+		//vertex_list_type vertex_union(const vertex_list_type& list1, const vertex_list_type& list2) {
+		//	vertex_list_type result;
+		//	set_union(list1.begin(), list1.end(), list2.begin(), list2.end(), inserter(result, result.begin()));
+		//	return result;
+		//}
 
 		void load_format(const string& path, const string& format) {
 			line_parser_type line_parser;

@@ -44,16 +44,12 @@ int main(int argc, char* argv[])
 
 	graph.finalize();
 
-	if(vm.count("strategy") == 0 || vm["strategy"].as<string>() == "random" || vm["strategy"].as<string>() == "random_refine")
+	if(vm.count("strategy") == 0 || vm["strategy"].as<string>() == "random")
 		graphp::partition_strategy::random_partition(graph, nparts);
-	else if(vm["strategy"].as<string>() == "greedy" || vm["strategy"].as<string>() == "greedy_refine")
+	else if(vm["strategy"].as<string>() == "greedy")
 		graphp::partition_strategy::greedy_partition(graph, nparts);
 	else if(vm["strategy"].as<string>() == "degree")
 		graphp::partition_strategy::greedy_partition2(graph, nparts);
-
-	// refine
-	if(vm["strategy"].as<string>() == "greedy_refine" || vm["strategy"].as<string>() == "random_refine")
-		graphp::partition_strategy::itr_cost_greedy_refinement(graph, nparts);
 
 #ifdef WIN32
 	system("Pause");
