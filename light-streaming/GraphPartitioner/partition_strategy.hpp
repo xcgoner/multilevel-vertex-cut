@@ -320,9 +320,9 @@ namespace graphp {
 
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			foreach(basic_graph::edge_type& e, graph.edges_storage) {
-				// random assign
+				// greedy assign
 				basic_graph::part_t assignment;
-				assignment = edge_to_part_greedy(graph.getVert(e.source), graph.getVert(e.target), graph.parts_counter, false);
+				assignment = edge_to_part_greedy2(graph.getVert(e.source), graph.getVert(e.target), graph.parts_counter, false);
 				assign_edge(graph, e.eid, assignment);
 			}
 
