@@ -3,8 +3,7 @@
 
 #include <iostream>
 #include "basic_graph.hpp"
-#include "partition_by_patoh.hpp"
-
+#include "partition_strategy.hpp"
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
@@ -47,21 +46,13 @@ int main(int argc, char* argv[])
 
 	if(vm.count("strategy") == 0 || vm["strategy"].as<string>() == "random" || vm["strategy"].as<string>() == "random_refine")
 		graphp::partition_strategy::random_partition(graph, nparts);
-	else if(vm["strategy"].as<string>() == "oblivious" || vm["strategy"].as<string>() == "oblivious_refine")
+	else if(vm["strategy"].as<string>() == "greedy" || vm["strategy"].as<string>() == "greedy_refine")
 		graphp::partition_strategy::greedy_partition(graph, nparts);
-	else if(vm["strategy"].as<string>() == "degree" || vm["strategy"].as<string>() == "oblivious_refine")
+	else if(vm["strategy"].as<string>() == "degree")
 		graphp::partition_strategy::greedy_partition2(graph, nparts);
-	else if(vm["strategy"].as<string>() == "obliviousreorder")
-		graphp::partition_strategy::greedy_reorder(graph, nparts);
-	else if(vm["strategy"].as<string>() == "hypergraph")
-		graphp::partition_strategy::partition_by_patoh(graph, nparts);
-	else if(vm["strategy"].as<string>() == "fasthypergraph")
-		graphp::partition_strategy::partition_by_patoh_fast(graph, nparts);
-	else if(vm["strategy"].as<string>() == "oblivioush")
-		graphp::partition_strategy::oblivious_hypergraph(graph, nparts);
 
 	// refine
-	if(vm["strategy"].as<string>() == "oblivious_refine" || vm["strategy"].as<string>() == "random_refine")
+	if(vm["strategy"].as<string>() == "greedy_refine" || vm["strategy"].as<string>() == "random_refine")
 		graphp::partition_strategy::itr_cost_greedy_refinement(graph, nparts);
 
 #ifdef WIN32

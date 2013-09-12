@@ -230,6 +230,7 @@ namespace graphp {
 			origin_edges.reserve(edges_storage.size() + 1);
 			foreach(edge_type& e, edges_storage) {
 				add_edge(e);
+				//cout << nedges << " "<< e.eid << " " << e.source << " " << e.target << " " << e.weight << " " << e.placement << endl;
 			}
 
 			// release the memory

@@ -53,8 +53,5 @@
     <ClInclude Include="patoh.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="partition_by_patoh.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
