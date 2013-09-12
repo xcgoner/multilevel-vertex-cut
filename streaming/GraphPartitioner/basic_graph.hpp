@@ -224,6 +224,8 @@ namespace graphp {
 		}
 
 		void finalize() {
+			cout << "finalizing..." << endl;
+
 			nedges = 0;
 			origin_edges.reserve(edges_storage.size() + 1);
 			foreach(edge_type& e, edges_storage) {
@@ -235,6 +237,8 @@ namespace graphp {
 
 			cout << "Nodes: " << origin_verts.size() << " Edges: " << origin_edges.size() <<endl;
 			memory_info::print_usage();
+
+			cout << "finalized" << endl;
 		}
 
 		// some utilities
