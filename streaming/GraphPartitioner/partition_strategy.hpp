@@ -112,7 +112,7 @@ namespace graphp {
 			// report
 			int max_parts = 0;
 			for(size_t i = 0; i < nparts; i++) {
-				cout << "Partition " << i << ": " << graph.parts_counter[i] << " edges" << endl;
+				//cout << "Partition " << i << ": " << graph.parts_counter[i] << " edges" << endl;
 				if(max_parts < graph.parts_counter[i])
 					max_parts = graph.parts_counter[i];
 			}
@@ -250,6 +250,7 @@ namespace graphp {
 				basic_graph::part_t assignment;
 				assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
 				assign_edge(graph, e.eid, assignment);
+				//cout << e.eid << " " << e.source << " " << e.target << " " << e.weight << " " << e.placement << endl;
 			}
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;

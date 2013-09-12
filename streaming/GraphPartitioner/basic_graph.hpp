@@ -154,11 +154,10 @@ namespace graphp {
 		}
 
 		void add_edge_to_storage(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
-			edge_type e(nedges, source, target, weight);
+			edge_type e(-1, source, target, weight);
 			if(placement != -1)
 				e.placement = placement;
 			edges_storage.push_back(e);
-			nedges++;
 		}
 
 		void add_edge(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
@@ -194,6 +193,7 @@ namespace graphp {
 			if(origin_verts[source].nbr_list.count(target) > 0 || origin_verts[target].nbr_list.count(source) > 0)
 				return ;
 
+			e.eid = nedges;
 			origin_edges.push_back(e);
 
 			// undirected
