@@ -63,7 +63,7 @@ namespace graphp {
 		typedef graphp::vertex_id_type vertex_id_type;
 		typedef graphp::edge_id_type edge_id_type;
 
-		typedef size_t part_t;
+		typedef unsigned char part_t;
 
 		// list of vertices
 		typedef vector<vertex_id_type> vertex_list_type;
@@ -78,9 +78,6 @@ namespace graphp {
 		vector<size_t> parts_counter;
 
 		struct vertex_type {
-			vertex_id_type vid;
-			size_t weight;
-
 			// neighbour list
 			vertex_list_type nbr_list;
 
@@ -89,35 +86,23 @@ namespace graphp {
 
 			boost::dynamic_bitset<> mirror_list;
 
-			vertex_type() :
-				vid(-1), weight(1) { }
-			vertex_type(const vertex_id_type& vid, const size_t& weight = 1) :
-				vid(vid), weight(weight) { }
+			vertex_type() { }
 
-			bool operator==(vertex_type& v) const {
-				return vid == v.vid;
+			bool isFree() const {
+				return (mirror_list.size() == 0);
 			}
 
 			friend class basic_graph;
 		};
 
 		struct edge_type {
-			edge_id_type eid;
 			vertex_id_type source;
 			vertex_id_type target;
-			size_t weight;
 			part_t placement;
 			edge_type() :
-				eid(-1), weight(1), placement(-1) { }
-			edge_type(const edge_id_type& eid) :
-				eid(eid), weight(1), placement(-1) { }
-			edge_type(const edge_id_type& eid, const size_t& weight) :
-				eid(eid), weight(weight), placement(-1) { }
-			edge_type(const edge_id_type& eid, const vertex_id_type& source, const vertex_id_type& target, const size_t& weight) :
-				eid(eid), source(source), target(target), weight(weight), placement(-1) { }
-			bool operator==(edge_type& e) const {
-				return eid == e.eid;
-			}
+				placement(-1) { }
+			edge_type(const vertex_id_type& source, const vertex_id_type& target) :
+				source(source), target(target), placement(-1) { }
 
 			friend class basic_graph;
 		};
@@ -138,9 +123,7 @@ namespace graphp {
 		}
 
 		bool add_vertex(const vertex_id_type& vid, const size_t& weight = 1) {
-			if(verts[vid].vid == -1) {
-				verts[vid].vid = vid;
-				verts[vid].weight = weight;
+			if(verts[vid].isFree()) {
 				verts[vid].mirror_list.resize(nparts);
 				nverts++;
 				return true;
@@ -149,7 +132,7 @@ namespace graphp {
 		}
 
 		void add_edge_to_storage(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
-			edge_type e(nedges, source, target, weight);
+			edge_type e(source, target);
 			if(source > max_vid)
 				max_vid = source;
 			if(target > max_vid)
@@ -237,10 +220,10 @@ namespace graphp {
 				// treat every single edge as an undirected one
 				add_vertex(itr->source);
 				verts[itr->source].nbr_list.push_back(itr->target);
-				verts[itr->source].edge_list.push_back(itr->eid);
+				verts[itr->source].edge_list.push_back(edgecount);
 				add_vertex(itr->target);
 				verts[itr->target].nbr_list.push_back(itr->source);
-				verts[itr->target].edge_list.push_back(itr->eid);
+				verts[itr->target].edge_list.push_back(edgecount);
 
 				edgecount++;
 				if(ti.elapsed() > 5.0) {

@@ -89,7 +89,17 @@ namespace graphp {
 			basic_graph::vertex_type& target = graph.getVert(e.target);
 			source.mirror_list[assignment] = true;
 			target.mirror_list[assignment] = true;
+		}
+		void assign_edge(basic_graph& graph, basic_graph::edge_type& e, basic_graph::part_t assignment) {
+			// assign edge
+			e.placement = assignment;
+			graph.parts_counter[assignment]++;
 
+			// assign vertex
+			basic_graph::vertex_type& source = graph.getVert(e.source);
+			basic_graph::vertex_type& target = graph.getVert(e.target);
+			source.mirror_list[assignment] = true;
+			target.mirror_list[assignment] = true;
 		}
 
 		void report_performance(const basic_graph& graph, basic_graph::part_t nparts) {
@@ -100,7 +110,7 @@ namespace graphp {
 			size_t cutted_vertex_num = 0, boundary_degree = 0;
 
 			foreach(const basic_graph::vertex_type& v, graph.verts) {
-				if(v.vid == -1)
+				if(v.isFree())
 					continue;
 				if(v.mirror_list.count() > 0)
 					vertex_cut_counter += (v.mirror_list.count() - 1);
@@ -143,7 +153,7 @@ namespace graphp {
 				basic_graph::part_t assignment;
 				assignment = edge_hashing(edge_pair, hashing_seed) % (nparts);
 				//assignment = edgernd(gen) % (nparts)
-				assign_edge(graph, e.eid, assignment);
+				assign_edge(graph, e, assignment);
 			}
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
@@ -151,13 +161,17 @@ namespace graphp {
 			report_performance(graph, nparts);
 		}
 
-		basic_graph::part_t edge_to_part_greedy(const basic_graph::vertex_type& source_v,
-			const basic_graph::vertex_type& target_v,
+		basic_graph::part_t edge_to_part_greedy(basic_graph& graph, 
+			const basic_graph::vertex_id_type source,
+			const basic_graph::vertex_id_type target,
 			const vector<size_t>& part_num_edges,
 			bool usehash = false,
 			bool unbalanced = false
 			) {
 				const size_t nparts = part_num_edges.size();
+
+				const basic_graph::vertex_type& source_v = graph.getVert(source);
+				const basic_graph::vertex_type& target_v = graph.getVert(target);
 
 				// compute the score of each part
 				basic_graph::part_t best_part = -1;
@@ -169,15 +183,15 @@ namespace graphp {
 
 				if(unbalanced) {
 					for(size_t i = 0; i < nparts; ++i) {
-						size_t sd = source_v.mirror_list[i] + (usehash && (source_v.vid % nparts == i));
-						size_t td = target_v.mirror_list[i] + (usehash && (source_v.vid % nparts == i));
+						size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
+						size_t td = target_v.mirror_list[i] + (usehash && (target % nparts == i));
 						part_score[i] = ((sd > 0) + (td > 0));
 					}
 				}
 				else {
 					for(size_t i = 0; i < nparts; ++i) {
-						size_t sd = source_v.mirror_list[i] + (usehash && (source_v.vid % nparts == i));
-						size_t td = target_v.mirror_list[i] + (usehash && (source_v.vid % nparts == i));
+						size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
+						size_t td = target_v.mirror_list[i] + (usehash && (target % nparts == i));
 						double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
 						part_score[i] = bal + ((sd > 0) + (td > 0));
 					}
@@ -194,20 +208,24 @@ namespace graphp {
 
 				// hash the edge to one of the best parts
 				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-				const edge_pair_type edge_pair(min(source_v.vid, target_v.vid),
-					max(source_v.vid, target_v.vid));
+				const edge_pair_type edge_pair(min(source, target),
+					max(source, target));
 				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
 
 				return best_part;
 		}
 
-		basic_graph::part_t edge_to_part_greedy(const basic_graph::vertex_type& source_v,
-			const basic_graph::vertex_type& target_v,
+		basic_graph::part_t edge_to_part_greedy(basic_graph& graph, 
+			const basic_graph::vertex_id_type source,
+			const basic_graph::vertex_id_type target,
 			const vector<basic_graph::part_t>& candidates,
 			const vector<size_t>& part_num_edges,
 			bool usehash = false
 			) {
 				const size_t nparts = part_num_edges.size();
+
+				const basic_graph::vertex_type& source_v = graph.getVert(source);
+				const basic_graph::vertex_type& target_v = graph.getVert(target);
 
 				// compute the score of each part
 				basic_graph::part_t best_part = -1;
@@ -219,8 +237,8 @@ namespace graphp {
 
 				for(size_t j = 0; j < candidates.size(); ++j) {
 					basic_graph::part_t i = candidates[j];
-					size_t sd = source_v.mirror_list[i] + (usehash && (source_v.vid % nparts == i));
-					size_t td = target_v.mirror_list[i] + (usehash && (source_v.vid % nparts == i));
+					size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
+					size_t td = target_v.mirror_list[i] + (usehash && (target % nparts == i));
 					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
 					part_score[j] = bal + ((sd > 0) + (td > 0));
 				}
@@ -236,8 +254,8 @@ namespace graphp {
 
 				// hash the edge to one of the best parts
 				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-				const edge_pair_type edge_pair(min(source_v.vid, target_v.vid),
-					max(source_v.vid, target_v.vid));
+				const edge_pair_type edge_pair(min(source, target),
+					max(source, target));
 				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
 
 				return best_part;
@@ -250,8 +268,8 @@ namespace graphp {
 			foreach(basic_graph::edge_type& e, graph.edges_storage) {
 				// greedy assign
 				basic_graph::part_t assignment;
-				assignment = edge_to_part_greedy(graph.getVert(e.source), graph.getVert(e.target), graph.parts_counter, false);
-				assign_edge(graph, e.eid, assignment);
+				assignment = edge_to_part_greedy(graph, e.source, e.target, graph.parts_counter, false);
+				assign_edge(graph, e, assignment);
 				//cout << e.eid << " " << e.source << " " << e.target << " " << e.weight << " " << e.placement << endl;
 			}
 
@@ -260,13 +278,17 @@ namespace graphp {
 			report_performance(graph, nparts);
 		}
 
-		basic_graph::part_t edge_to_part_greedy2(const basic_graph::vertex_type& source_v,
-			const basic_graph::vertex_type& target_v,
+		basic_graph::part_t edge_to_part_greedy2(basic_graph& graph, 
+			const basic_graph::vertex_id_type source,
+			const basic_graph::vertex_id_type target,
 			const vector<size_t>& part_num_edges,
 			bool usehash = false,
 			bool unbalanced = false
 			) {
 				const size_t nparts = part_num_edges.size();
+
+				const basic_graph::vertex_type& source_v = graph.getVert(source);
+				const basic_graph::vertex_type& target_v = graph.getVert(target);
 
 				// compute the score of each part
 				basic_graph::part_t best_part = -1;
@@ -283,15 +305,15 @@ namespace graphp {
 
 				if(unbalanced) {
 					for(size_t i = 0; i < nparts; ++i) {
-						size_t sd = source_v.mirror_list[i] + (usehash && (source_v.vid % nparts == i));
-						size_t td = target_v.mirror_list[i] + (usehash && (source_v.vid % nparts == i));
+						size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
+						size_t td = target_v.mirror_list[i] + (usehash && (target % nparts == i));
 						part_score[i] = ((sd > 0) * s + (td > 0) * t);
 					}
 				}
 				else {
 					for(size_t i = 0; i < nparts; ++i) {
-						size_t sd = source_v.mirror_list[i] + (usehash && (source_v.vid % nparts == i));
-						size_t td = target_v.mirror_list[i] + (usehash && (source_v.vid % nparts == i));
+						size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
+						size_t td = target_v.mirror_list[i] + (usehash && (target % nparts == i));
 						double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
 						part_score[i] = bal + ((sd > 0) * s + (td > 0) * t);
 					}
@@ -308,8 +330,8 @@ namespace graphp {
 
 				// hash the edge to one of the best parts
 				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-				const edge_pair_type edge_pair(min(source_v.vid, target_v.vid),
-					max(source_v.vid, target_v.vid));
+				const edge_pair_type edge_pair(min(source, target),
+					max(source, target));
 				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
 
 				return best_part;
@@ -322,8 +344,8 @@ namespace graphp {
 			foreach(basic_graph::edge_type& e, graph.edges_storage) {
 				// greedy assign
 				basic_graph::part_t assignment;
-				assignment = edge_to_part_greedy2(graph.getVert(e.source), graph.getVert(e.target), graph.parts_counter, false);
-				assign_edge(graph, e.eid, assignment);
+				assignment = edge_to_part_greedy2(graph, e.source, e.target, graph.parts_counter, false);
+				assign_edge(graph, e, assignment);
 			}
 
 			cout << "Time elapsed: " << ti.elapsed() << endl;
