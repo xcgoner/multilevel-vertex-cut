@@ -188,21 +188,21 @@ namespace graphp {
 		//	nedges++;
 		//}
 
-		//void clear_partition_counter() {
-		//	foreach(size_t& num_edges, parts_counter) {
-		//		num_edges = 0;
-		//	}
-		//}
-		//void clear_partition() {
-		//	foreach(edge_type& e, origin_edges) {
-		//		e.placement = -1;
-		//	}
-		//}
-		//void clear_mirrors() {
-		//	foreach(verts_map_type::value_type& vp, origin_verts) {
-		//		vp.second.mirror_list.clear();
-		//	}
-		//}
+		void clear_partition_counter() {
+			foreach(size_t& num_edges, parts_counter) {
+				num_edges = 0;
+			}
+		}
+		void clear_partition() {
+			foreach(edge_type& e, edges_storage) {
+				e.placement = -1;
+			}
+		}
+		void clear_mirrors() {
+			foreach(vertex_type& v, verts) {
+				v.mirror_list.reset();
+			}
+		}
 
 		void finalize() {
 			cout << "finalizing..." << endl;

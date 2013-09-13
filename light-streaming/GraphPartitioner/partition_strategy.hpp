@@ -124,7 +124,7 @@ namespace graphp {
 			// report
 			size_t max_parts = 0;
 			for(size_t i = 0; i < nparts; i++) {
-				cout << "Partition " << i << ": " << graph.parts_counter[i] << " edges" << endl;
+				//cout << "Partition " << i << ": " << graph.parts_counter[i] << " edges" << endl;
 				if(max_parts < graph.parts_counter[i])
 					max_parts = graph.parts_counter[i];
 			}
@@ -141,11 +141,62 @@ namespace graphp {
 			<< 1.0 * (graph.nverts + vertex_cut_counter) / graph.nverts << " "
 			<< 1.0 * max_parts / (graph.nedges / nparts) << endl;
 
-		}
+		} // end of report performance
+
+		struct report_result {
+			size_t nparts;
+			size_t vertex_cut_counter;
+			double replica_factor;
+			double imbalance;
+			double runtime;
+		};
+		void report_performance(const basic_graph& graph, basic_graph::part_t nparts, report_result& result) {
+			// count the vertex-cut
+			size_t vertex_cut_counter = 0;
+
+			// count the average degree
+			size_t cutted_vertex_num = 0, boundary_degree = 0;
+
+			foreach(const basic_graph::vertex_type& v, graph.verts) {
+				if(v.isFree())
+					continue;
+				if(v.mirror_list.count() > 0)
+					vertex_cut_counter += (v.mirror_list.count() - 1);
+				if(v.mirror_list.count() > 1) {
+					// is a boundary vertex
+					cutted_vertex_num++;
+					boundary_degree += v.mirror_list.count();
+				}
+			}
+
+			// report
+			size_t max_parts = 0;
+			for(size_t i = 0; i < nparts; i++) {
+				//cout << "Partition " << i << ": " << graph.parts_counter[i] << " edges" << endl;
+				if(max_parts < graph.parts_counter[i])
+					max_parts = graph.parts_counter[i];
+			}
+			cout << "Vertex-cut: " << vertex_cut_counter << endl;
+
+			cout << "Normalized replication factor: " << 1.0 * (graph.nverts + vertex_cut_counter) / graph.nverts << endl;
+
+			cout << "Partitioning imbalance: " << 1.0 * max_parts / (graph.nedges / nparts) << endl;
+
+			//cout << "Average degree: " << 1.0 * boundary_degree / cutted_vertex_num << " : " << 2.0 * graph.origin_edges.size() / graph.origin_verts.size() << endl;
+
+			result.nparts = nparts;
+			result.vertex_cut_counter = vertex_cut_counter;
+			result.replica_factor = 1.0 * (graph.nverts + vertex_cut_counter) / graph.nverts;
+			result.imbalance = 1.0 * max_parts / (graph.nedges / nparts);
+
+			cout << nparts << " "
+				<< vertex_cut_counter << " "
+				<< result.replica_factor << " "
+				<< result.imbalance << endl;
+
+		} // end of report performance
 
 		void random_partition(basic_graph& graph, basic_graph::part_t nparts) {
-			boost::timer ti;
-
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			foreach(basic_graph::edge_type& e, graph.edges_storage) {
 				// random assign
@@ -155,10 +206,6 @@ namespace graphp {
 				//assignment = edgernd(gen) % (nparts)
 				assign_edge(graph, e, assignment);
 			}
-
-			cout << "Time elapsed: " << ti.elapsed() << endl;
-
-			report_performance(graph, nparts);
 		}
 
 		basic_graph::part_t edge_to_part_greedy(basic_graph& graph, 
@@ -262,8 +309,6 @@ namespace graphp {
 		}
 
 		void greedy_partition(basic_graph& graph, basic_graph::part_t nparts) {
-			boost::timer ti;
-
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			foreach(basic_graph::edge_type& e, graph.edges_storage) {
 				// greedy assign
@@ -272,10 +317,6 @@ namespace graphp {
 				assign_edge(graph, e, assignment);
 				//cout << e.eid << " " << e.source << " " << e.target << " " << e.weight << " " << e.placement << endl;
 			}
-
-			cout << "Time elapsed: " << ti.elapsed() << endl;
-
-			report_performance(graph, nparts);
 		}
 
 		basic_graph::part_t edge_to_part_greedy2(basic_graph& graph, 
@@ -338,8 +379,6 @@ namespace graphp {
 		}
 
 		void greedy_partition2(basic_graph& graph, basic_graph::part_t nparts) {
-			boost::timer ti;
-
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			foreach(basic_graph::edge_type& e, graph.edges_storage) {
 				// greedy assign
@@ -347,10 +386,47 @@ namespace graphp {
 				assignment = edge_to_part_greedy2(graph, e.source, e.target, graph.parts_counter, false);
 				assign_edge(graph, e, assignment);
 			}
+		}
 
-			cout << "Time elapsed: " << ti.elapsed() << endl;
+		void run_partition(basic_graph& graph, vector<basic_graph::part_t>& nparts, string strategy) {
+			void (*partition_func)(basic_graph& graph, basic_graph::part_t nparts);
 
-			report_performance(graph, nparts);
+			if(strategy == "random")
+				partition_func = random_partition;
+			else if(strategy == "greedy")
+				partition_func = greedy_partition;
+			else if(strategy == "degree")
+				partition_func = greedy_partition2;
+
+			vector<report_result> result_table(nparts.size());
+			for(size_t i = 0; i < nparts.size(); i++) {
+				graph.parts_counter.resize(nparts[i]);
+				graph.clear_partition_counter();
+				graph.clear_partition();
+				graph.clear_mirrors();
+
+				boost::timer ti;
+				double runtime;
+
+				partition_func(graph, nparts[i]);
+
+				runtime = ti.elapsed();
+				cout << "Time elapsed: " << runtime << endl;
+
+				report_performance(graph, nparts[i], result_table[i]);
+				result_table[i].runtime = runtime;
+			}
+
+			cout << endl;
+			// report the table
+			foreach(const report_result& result, result_table) {
+				cout << result.nparts << " " 
+					 << result.vertex_cut_counter << " " 
+					 << result.replica_factor << " " 
+					 << result.imbalance << " " 
+					 << result.runtime 
+					 << endl;
+			}
 		}
 
 	} // end of namespace partition_strategy

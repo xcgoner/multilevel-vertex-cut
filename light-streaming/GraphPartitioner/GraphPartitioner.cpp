@@ -5,6 +5,9 @@
 #include "basic_graph.hpp"
 #include "partition_strategy.hpp"
 #include <boost/program_options.hpp>
+#include <boost/tokenizer.hpp>
+#include <boost/lexical_cast.hpp>
+
 namespace po = boost::program_options;
 
 using namespace std;
@@ -17,7 +20,7 @@ int main(int argc, char* argv[])
 		("help", "A vertex-cut based graph partitioner...")
 		("file", po::value<string>(), "Set file path...")
 		("format", po::value<string>(), "Set file format...")
-		("nparts", po::value<size_t>(), "Set the number of partitions...")
+		("nparts", po::value<string>(), "Set the number of partitions...")
 		("strategy", po::value<string>(), "Set file partitioning strategy...")
 	;
 
@@ -31,12 +34,20 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-	size_t nparts = 2;
+	vector<graphp::basic_graph::part_t> nparts;
+	nparts.push_back(2);
 	if(vm.count("nparts") > 0) {
-		nparts = vm["nparts"].as<size_t>();
+		nparts.clear();
+		typedef boost::tokenizer<boost::char_separator<char>> tokenizers;
+		boost::char_separator<char> sep(",");
+		tokenizers tok(vm["nparts"].as<string>(), sep);
+		for(tokenizers::iterator beg=tok.begin(); beg!=tok.end();++beg){
+			cout << *beg << "\n";
+			nparts.push_back(boost::lexical_cast<size_t>(*beg));
+		}
 	}
 
-	graphp::basic_graph graph(nparts);
+	graphp::basic_graph graph(nparts[0]);
 
 	if(vm.count("file") > 0 && vm.count("format") > 0) {
 		graph.load_format(vm["file"].as<string>(), vm["format"].as<string>());
@@ -44,12 +55,15 @@ int main(int argc, char* argv[])
 
 	graph.finalize();
 
-	if(vm.count("strategy") == 0 || vm["strategy"].as<string>() == "random")
-		graphp::partition_strategy::random_partition(graph, nparts);
-	else if(vm["strategy"].as<string>() == "greedy")
-		graphp::partition_strategy::greedy_partition(graph, nparts);
-	else if(vm["strategy"].as<string>() == "degree")
-		graphp::partition_strategy::greedy_partition2(graph, nparts);
+	//if(vm.count("strategy") == 0 || vm["strategy"].as<string>() == "random")
+	//	graphp::partition_strategy::random_partition(graph, nparts);
+	//else if(vm["strategy"].as<string>() == "greedy")
+	//	graphp::partition_strategy::greedy_partition(graph, nparts);
+	//else if(vm["strategy"].as<string>() == "degree")
+	//	graphp::partition_strategy::greedy_partition2(graph, nparts);
+	
+
+	graphp::partition_strategy::run_partition(graph, nparts, vm["strategy"].as<string>());
 
 #ifdef WIN32
 	system("Pause");
