@@ -200,6 +200,7 @@ namespace graphp {
 		}
 		void clear_mirrors() {
 			foreach(vertex_type& v, verts) {
+				v.mirror_list.resize(nparts);
 				v.mirror_list.reset();
 			}
 		}

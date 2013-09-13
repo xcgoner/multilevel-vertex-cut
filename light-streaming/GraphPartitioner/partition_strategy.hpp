@@ -400,6 +400,7 @@ namespace graphp {
 
 			vector<report_result> result_table(nparts.size());
 			for(size_t i = 0; i < nparts.size(); i++) {
+				graph.nparts = nparts[i];
 				graph.parts_counter.resize(nparts[i]);
 				graph.clear_partition_counter();
 				graph.clear_partition();
