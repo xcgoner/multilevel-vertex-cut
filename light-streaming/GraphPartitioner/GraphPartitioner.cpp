@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 		boost::char_separator<char> sep(",");
 		tokenizers tok(vm["nparts"].as<string>(), sep);
 		for(tokenizers::iterator beg=tok.begin(); beg!=tok.end();++beg){
-			cout << *beg << "\n";
+			//cout << *beg << "\n";
 			nparts.push_back(boost::lexical_cast<size_t>(*beg));
 		}
 	}
