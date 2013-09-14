@@ -388,34 +388,40 @@ namespace graphp {
 			}
 		}
 
-		void run_partition(basic_graph& graph, vector<basic_graph::part_t>& nparts, string strategy) {
-			void (*partition_func)(basic_graph& graph, basic_graph::part_t nparts);
+		void run_partition(basic_graph& graph, vector<basic_graph::part_t>& nparts, vector<string>& strategies) {
+			vector<report_result> result_table(strategies.size() * nparts.size());
+			for(size_t j = 0; j < strategies.size(); j++) {
+				// select the strategy
+				void (*partition_func)(basic_graph& graph, basic_graph::part_t nparts);
+				string strategy = strategies[j];
+				if(strategy == "random")
+					partition_func = random_partition;
+				else if(strategy == "greedy")
+					partition_func = greedy_partition;
+				else if(strategy == "degree")
+					partition_func = greedy_partition2;
 
-			if(strategy == "random")
-				partition_func = random_partition;
-			else if(strategy == "greedy")
-				partition_func = greedy_partition;
-			else if(strategy == "degree")
-				partition_func = greedy_partition2;
+				for(size_t i = 0; i < nparts.size(); i++) {
+					// initialize
+					graph.nparts = nparts[i];
+					graph.parts_counter.resize(nparts[i]);
+					graph.clear_partition_counter();
+					graph.clear_partition();
+					graph.clear_mirrors();
 
-			vector<report_result> result_table(nparts.size());
-			for(size_t i = 0; i < nparts.size(); i++) {
-				graph.nparts = nparts[i];
-				graph.parts_counter.resize(nparts[i]);
-				graph.clear_partition_counter();
-				graph.clear_partition();
-				graph.clear_mirrors();
+					cout << endl << strategy << endl;
 
-				boost::timer ti;
-				double runtime;
+					boost::timer ti;
+					double runtime;
 
-				partition_func(graph, nparts[i]);
+					partition_func(graph, nparts[i]);
 
-				runtime = ti.elapsed();
-				cout << "Time elapsed: " << runtime << endl;
+					runtime = ti.elapsed();
+					cout << "Time elapsed: " << runtime << endl;
 
-				report_performance(graph, nparts[i], result_table[i]);
-				result_table[i].runtime = runtime;
+					report_performance(graph, nparts[i], result_table[j * nparts.size() + i]);
+					result_table[j * nparts.size() + i].runtime = runtime;
+				}
 			}
 
 			cout << endl;

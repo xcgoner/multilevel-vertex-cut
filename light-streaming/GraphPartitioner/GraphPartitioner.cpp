@@ -41,9 +41,22 @@ int main(int argc, char* argv[])
 		typedef boost::tokenizer<boost::char_separator<char>> tokenizers;
 		boost::char_separator<char> sep(",");
 		tokenizers tok(vm["nparts"].as<string>(), sep);
-		for(tokenizers::iterator beg=tok.begin(); beg!=tok.end();++beg){
-			//cout << *beg << "\n";
+		for(tokenizers::iterator beg=tok.begin(); beg!=tok.end(); ++beg){
+			//cout << *beg << endl;
 			nparts.push_back(boost::lexical_cast<size_t>(*beg));
+		}
+	}
+
+	vector<string> strategies;
+	strategies.push_back("random");
+	if(vm.count("strategy") > 0) {
+		strategies.clear();
+		typedef boost::tokenizer<boost::char_separator<char>> tokenizers;
+		boost::char_separator<char> sep(",");
+		tokenizers tok(vm["strategy"].as<string>(), sep);
+		for(tokenizers::iterator beg=tok.begin(); beg!=tok.end(); ++beg){
+			//cout << *beg << endl;
+			strategies.push_back(*beg);
 		}
 	}
 
@@ -63,7 +76,7 @@ int main(int argc, char* argv[])
 	//	graphp::partition_strategy::greedy_partition2(graph, nparts);
 	
 
-	graphp::partition_strategy::run_partition(graph, nparts, vm["strategy"].as<string>());
+	graphp::partition_strategy::run_partition(graph, nparts, strategies);
 
 #ifdef WIN32
 	system("Pause");
