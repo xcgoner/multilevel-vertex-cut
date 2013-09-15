@@ -21,6 +21,7 @@ int main(int argc, char* argv[])
 		("file", po::value<string>(), "Set file path...")
 		("format", po::value<string>(), "Set file format...")
 		("nparts", po::value<string>(), "Set the number of partitions...")
+		("nthreads", po::value<string>(), "Set the number of threads...")
 		("strategy", po::value<string>(), "Set file partitioning strategy...")
 	;
 
