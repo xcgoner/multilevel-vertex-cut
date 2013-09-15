@@ -47,6 +47,18 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	vector<size_t> nthreads;
+	if(vm.count("nthreads") > 0) {
+		nthreads.clear();
+		typedef boost::tokenizer<boost::char_separator<char>> tokenizers;
+		boost::char_separator<char> sep(",");
+		tokenizers tok(vm["nthreads"].as<string>(), sep);
+		for(tokenizers::iterator beg=tok.begin(); beg!=tok.end(); ++beg){
+			//cout << *beg << endl;
+			nthreads.push_back(boost::lexical_cast<size_t>(*beg));
+		}
+	}
+
 	vector<string> strategies;
 	strategies.push_back("random");
 	if(vm.count("strategy") > 0) {
@@ -76,7 +88,7 @@ int main(int argc, char* argv[])
 	//	graphp::partition_strategy::greedy_partition2(graph, nparts);
 	
 
-	graphp::partition_strategy::run_partition(graph, nparts, strategies);
+	graphp::partition_strategy::run_partition(graph, nparts, nthreads, strategies);
 
 #ifdef WIN32
 	system("Pause");

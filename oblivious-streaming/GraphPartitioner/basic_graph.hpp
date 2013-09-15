@@ -42,6 +42,8 @@
 #include <boost/timer.hpp>
 #include <boost/dynamic_bitset.hpp>
 
+#include <omp.h>
+
 namespace graphp_options = boost::program_options;
 
 using namespace std;
@@ -109,6 +111,8 @@ namespace graphp {
 
 		typedef map<vertex_id_type, vertex_type> verts_map_type;
 		vector<vertex_type> verts;
+
+		vector<edge_type> edges;
 
 		deque<edge_type> edges_storage;
 
@@ -197,7 +201,7 @@ namespace graphp {
 			}
 		}
 		void clear_partition() {
-			foreach(edge_type& e, edges_storage) {
+			foreach(edge_type& e, edges) {
 				e.placement = -1;
 			}
 		}
@@ -224,7 +228,15 @@ namespace graphp {
 
 			boost::timer ti;
 			size_t edgecount = 0;
+
+			edges.resize(edges_storage.size());
+			size_t edges_idx = 0;
 			for(deque<edge_type>::iterator itr = edges_storage.begin(); itr != edges_storage.end(); ++itr) {
+				edges[edges_idx++] = (*itr);
+			}
+			edges_storage.clear();
+
+			for(vector<edge_type>::iterator itr = edges.begin(); itr != edges.end(); ++itr) {
 				// add edge
 				//edges[edgecount] = itr;
 
@@ -257,7 +269,7 @@ namespace graphp {
 			return verts[vid];
 		}
 		edge_type& getEdge(edge_id_type eid) {
-			return edges_storage[eid];
+			return edges[eid];
 		}
 
 		//// some utilities

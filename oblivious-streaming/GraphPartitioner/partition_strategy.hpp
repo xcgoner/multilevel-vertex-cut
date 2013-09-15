@@ -26,6 +26,8 @@
 #include "basic_graph.hpp"
 #include "util.hpp"
 
+#include <omp.h>
+
 using namespace std;
 #ifdef __GNUC__
 using namespace __gnu_cxx;
@@ -198,7 +200,7 @@ namespace graphp {
 
 		void random_partition(basic_graph& graph, basic_graph::part_t nparts) {
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			foreach(basic_graph::edge_type& e, graph.edges_storage) {
+			foreach(basic_graph::edge_type& e, graph.edges) {
 				// random assign
 				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
 				basic_graph::part_t assignment;
@@ -212,8 +214,7 @@ namespace graphp {
 			const basic_graph::vertex_id_type source,
 			const basic_graph::vertex_id_type target,
 			const vector<size_t>& part_num_edges,
-			bool usehash = false,
-			bool unbalanced = false
+			bool usehash = false
 			) {
 				const size_t nparts = part_num_edges.size();
 
@@ -228,20 +229,11 @@ namespace graphp {
 				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
 				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
 
-				if(unbalanced) {
-					for(size_t i = 0; i < nparts; ++i) {
-						size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
-						size_t td = target_v.mirror_list[i] + (usehash && (target % nparts == i));
-						part_score[i] = ((sd > 0) + (td > 0));
-					}
-				}
-				else {
-					for(size_t i = 0; i < nparts; ++i) {
-						size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
-						size_t td = target_v.mirror_list[i] + (usehash && (target % nparts == i));
-						double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-						part_score[i] = bal + ((sd > 0) + (td > 0));
-					}
+				for(size_t i = 0; i < nparts; ++i) {
+					size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
+					size_t td = target_v.mirror_list[i] + (usehash && (target % nparts == i));
+					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+					part_score[i] = bal + ((sd > 0) + (td > 0));
 				}
 
 				maxscore = *max_element(part_score.begin(), part_score.end());
@@ -310,7 +302,7 @@ namespace graphp {
 
 		void greedy_partition(basic_graph& graph, basic_graph::part_t nparts) {
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			foreach(basic_graph::edge_type& e, graph.edges_storage) {
+			foreach(basic_graph::edge_type& e, graph.edges) {
 				// greedy assign
 				basic_graph::part_t assignment;
 				assignment = edge_to_part_greedy(graph, e.source, e.target, graph.parts_counter, false);
@@ -323,8 +315,7 @@ namespace graphp {
 			const basic_graph::vertex_id_type source,
 			const basic_graph::vertex_id_type target,
 			const vector<size_t>& part_num_edges,
-			bool usehash = false,
-			bool unbalanced = false
+			bool usehash = false
 			) {
 				const size_t nparts = part_num_edges.size();
 
@@ -344,20 +335,11 @@ namespace graphp {
 				double s = target_v.nbr_list.size() / sum + 1;
 				double t = source_v.nbr_list.size() / sum + 1;
 
-				if(unbalanced) {
-					for(size_t i = 0; i < nparts; ++i) {
-						size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
-						size_t td = target_v.mirror_list[i] + (usehash && (target % nparts == i));
-						part_score[i] = ((sd > 0) * s + (td > 0) * t);
-					}
-				}
-				else {
-					for(size_t i = 0; i < nparts; ++i) {
-						size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
-						size_t td = target_v.mirror_list[i] + (usehash && (target % nparts == i));
-						double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-						part_score[i] = bal + ((sd > 0) * s + (td > 0) * t);
-					}
+				for(size_t i = 0; i < nparts; ++i) {
+					size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
+					size_t td = target_v.mirror_list[i] + (usehash && (target % nparts == i));
+					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+					part_score[i] = bal + ((sd > 0) * s + (td > 0) * t);
 				}
 
 				maxscore = *max_element(part_score.begin(), part_score.end());
@@ -380,7 +362,7 @@ namespace graphp {
 
 		void greedy_partition2(basic_graph& graph, basic_graph::part_t nparts) {
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			foreach(basic_graph::edge_type& e, graph.edges_storage) {
+			foreach(basic_graph::edge_type& e, graph.edges) {
 				// greedy assign
 				basic_graph::part_t assignment;
 				assignment = edge_to_part_greedy2(graph, e.source, e.target, graph.parts_counter, false);
@@ -388,7 +370,7 @@ namespace graphp {
 			}
 		}
 
-		void run_partition(basic_graph& graph, vector<basic_graph::part_t>& nparts, vector<string>& strategies) {
+		void run_partition(basic_graph& graph, vector<basic_graph::part_t>& nparts, vector<size_t>& nthreads, vector<string>& strategies) {
 			vector<report_result> result_table(strategies.size() * nparts.size());
 			for(size_t j = 0; j < strategies.size(); j++) {
 				// select the strategy
