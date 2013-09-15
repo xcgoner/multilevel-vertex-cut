@@ -246,10 +246,11 @@ namespace graphp {
 				getVert(itr->target).degree++;
 
 				edgecount++;
-				if(ti.elapsed() > 5.0) {
-					cout << edgecount << " edges saved" << endl;
-					ti.restart();
-				}
+				if(saveEdges)
+					if(ti.elapsed() > 5.0) {
+						cout << edgecount << " edges saved" << endl;
+						ti.restart();
+					}
 			}
 
 			// release the memory
