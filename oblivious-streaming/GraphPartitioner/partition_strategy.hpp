@@ -474,6 +474,7 @@ namespace graphp {
 					for(size_t tid = 0, oeid = 0; tid < nthreads[i]; tid++) {
 						foreach(basic_graph::edge_type& e, subgraphs[tid].edges) {
 							assign_edge(graph, graph.getEdge(oeid), e.placement);
+							oeid++;
 						}
 					}
 					report_performance(graph, nparts[i], result_table[j * nparts.size() + i]);
