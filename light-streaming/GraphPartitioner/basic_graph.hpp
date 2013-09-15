@@ -115,8 +115,9 @@ namespace graphp {
 		//deque<edge_type>& edges = edges_storage;
 
 		// constructor
-		basic_graph() : nverts(0), nedges(0), max_vid(0), nparts(0) {
+		basic_graph() : nverts(0), nedges(0), max_vid(0), nparts(1) {
 		}
+		// do not assign 0 to nparts, something bad will occur ...
 		basic_graph(size_t nparts) : nverts(0), nedges(0), max_vid(0), nparts(nparts) {
 			parts_counter.resize(nparts);
 			foreach(size_t& num_edges, parts_counter) {
