@@ -448,9 +448,10 @@ namespace graphp {
 							end = graph.nedges;
 						subgraphs[tid].edges.reserve(end - begin);
 						for(size_t subeid = begin; subeid < end; subeid++) {
-							subgraphs[tid].edges.push_back(graph.edges[subeid]);
+							subgraphs[tid].edges.push_back(graph.getEdge(subeid));
 						}
 						// do not let finalize to save edges
+						subgraphs[tid].nparts = nparts[i];
 						subgraphs[tid].finalize(false);
 						subgraphs[tid].initialize(nparts[i]);
 					}
