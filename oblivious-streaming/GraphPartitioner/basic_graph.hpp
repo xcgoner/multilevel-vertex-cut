@@ -217,7 +217,6 @@ namespace graphp {
 			}
 			nverts = vmap.count();
 			verts.resize(nverts);
-			size_t idx;
 			for(size_t vid = vmap.find_first(), idx = 0; vid != vmap.npos; vid = vmap.find_next(vid), idx++) {
 				vid_to_lvid.insert(pair<vertex_id_type, vertex_id_type>(vid, idx));
 				verts[idx].degree = 0;
