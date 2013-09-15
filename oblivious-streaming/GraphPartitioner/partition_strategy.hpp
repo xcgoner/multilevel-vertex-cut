@@ -452,6 +452,7 @@ namespace graphp {
 						}
 						// do not let finalize to save edges
 						subgraphs[tid].nparts = nparts[i];
+						subgraphs[tid].max_vid = graph.max_vid;
 						subgraphs[tid].finalize(false);
 						subgraphs[tid].initialize(nparts[i]);
 					}
