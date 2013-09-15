@@ -79,6 +79,7 @@ int main(int argc, char* argv[])
 		graph.load_format(vm["file"].as<string>(), vm["format"].as<string>());
 	}
 	
+	graph.finalize();
 	if(vm.count("nthreads") > 0) {
 		if(nthreads.size() != nparts.size()) {
 			cerr << "The length of paramater nthreads should be the same as that of nparts..." << endl;
@@ -87,7 +88,6 @@ int main(int argc, char* argv[])
 		graphp::partition_strategy::run_partition(graph, nparts, nthreads, strategies);
 	}
 	else {
-		graph.finalize();
 		graphp::partition_strategy::run_partition(graph, nparts, strategies);
 	}
 
