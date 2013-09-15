@@ -177,7 +177,7 @@ namespace graphp {
 					max_parts = graph.parts_counter[i];
 			}
 			cout << "Vertex-cut: " << vertex_cut_counter << endl;
-			cout << 1.0 * (graph.nverts + vertex_cut_counter) << endl; cout << graph.nverts << endl;
+			cout << (graph.nverts + vertex_cut_counter) << endl; cout << graph.nverts << endl;
 			cout << "Normalized replication factor: " << 1.0 * (graph.nverts + vertex_cut_counter) / graph.nverts << endl;
 
 			cout << "Partitioning imbalance: " << 1.0 * max_parts / (graph.nedges / nparts) << endl;
