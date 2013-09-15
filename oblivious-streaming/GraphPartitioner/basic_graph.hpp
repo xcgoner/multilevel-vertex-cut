@@ -41,6 +41,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/timer.hpp>
 #include <boost/dynamic_bitset.hpp>
+#include <boost/unordered_map.hpp>
 
 #include <omp.h>
 
@@ -116,7 +117,7 @@ namespace graphp {
 
 		typedef map<vertex_id_type, vertex_type> verts_map_type;
 		vector<vertex_type> verts;
-		hash_map<vertex_id_type, vertex_id_type> vid_to_lvid;
+		boost::unordered_map<vertex_id_type, vertex_id_type> vid_to_lvid;
 
 		vector<edge_type> edges;
 
