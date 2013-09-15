@@ -197,6 +197,9 @@ namespace graphp {
 			}
 			edges_storage.clear();
 
+			// access the edges in random order
+			random_shuffle(edges.begin(), edges.end());
+
 			for(vector<edge_type>::iterator itr = edges.begin(); itr != edges.end(); ++itr) {
 				// add edge
 				//edges[edgecount] = itr;
