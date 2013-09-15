@@ -115,6 +115,8 @@ namespace graphp {
 		//deque<edge_type>& edges = edges_storage;
 
 		// constructor
+		basic_graph() : nverts(0), nedges(0), max_vid(0), nparts(0) {
+		}
 		basic_graph(size_t nparts) : nverts(0), nedges(0), max_vid(0), nparts(nparts) {
 			parts_counter.resize(nparts);
 			foreach(size_t& num_edges, parts_counter) {
@@ -203,6 +205,14 @@ namespace graphp {
 				v.mirror_list.resize(nparts);
 				v.mirror_list.reset();
 			}
+		}
+
+		void initialize(part_t np) {
+			nparts = np;
+			parts_counter.resize(np);
+			clear_partition_counter();
+			clear_partition();
+			clear_mirrors();
 		}
 
 		void finalize() {

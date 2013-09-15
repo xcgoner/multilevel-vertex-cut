@@ -403,11 +403,7 @@ namespace graphp {
 
 				for(size_t i = 0; i < nparts.size(); i++) {
 					// initialize
-					graph.nparts = nparts[i];
-					graph.parts_counter.resize(nparts[i]);
-					graph.clear_partition_counter();
-					graph.clear_partition();
-					graph.clear_mirrors();
+					graph.initialize(nparts[i]);
 
 					cout << endl << strategy << endl;
 
