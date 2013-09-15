@@ -81,10 +81,15 @@ namespace graphp {
 
 		struct vertex_type {
 			// neighbour list
-			vertex_list_type nbr_list;
+			// not used in streaming partitioning
+			//vertex_list_type nbr_list;
 
 			// key: neighbour target vid, value: edge eid
-			edge_list_type edge_list;
+			// not used in streaming partitioning
+			//edge_list_type edge_list;
+
+			// use degree in streaming partitioning
+			size_t degree;
 
 			boost::dynamic_bitset<> mirror_list;
 
@@ -131,6 +136,7 @@ namespace graphp {
 
 		bool add_vertex(const vertex_id_type& vid, const size_t& weight = 1) {
 			if(verts[vid].isFree()) {
+				verts[vid].degree = 0;
 				verts[vid].mirror_list.resize(nparts);
 				nverts++;
 				return true;
@@ -149,51 +155,6 @@ namespace graphp {
 			edges_storage.push_back(e);
 			nedges++;
 		}
-
-		//void add_edge(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
-		//	// check if the edge already exists
-		//	add_vertex(source);
-		//	add_vertex(target);
-		//	// just check one of the two conditions should be ok...
-		//	if(origin_verts[source].nbr_list.count(target) > 0 || origin_verts[target].nbr_list.count(source) > 0)
-		//		return ;
-
-		//	edge_type e(nedges, source, target, weight);
-		//	if(placement != -1)
-		//		e.placement = placement;
-		//	origin_edges.push_back(e);
-		//	
-		//	// undirected
-		//	origin_verts[source].edge_list.insert(pair<vertex_id_type, edge_id_type>(target, e.eid));
-		//	origin_verts[source].nbr_list.insert(target);
-		//	
-		//	origin_verts[target].edge_list.insert(pair<vertex_id_type, edge_id_type>(source, e.eid));
-		//	origin_verts[target].nbr_list.insert(source);
-		//	nedges++;
-		//}
-		//void add_edge(edge_type& e) {
-		//	vertex_id_type source = e.source, target = e.target;
-
-		//	// check if the edge already exists
-		//	add_vertex(source);
-		//	add_vertex(target);
-		//	// just check one of the two conditions should be ok...
-		//	if(origin_verts[source].nbr_list.count(target) > 0 || origin_verts[target].nbr_list.count(source) > 0)
-		//		return ;
-
-		//	e.eid = nedges;
-		//	origin_edges.push_back(e);
-
-		//	// undirected
-		//	origin_verts[source].edge_list.insert(pair<vertex_id_type, edge_id_type>(target, e.eid));
-		//	origin_verts[source].nbr_list.insert(target);
-		//	origin_verts[source].degree++;
-
-		//	origin_verts[target].edge_list.insert(pair<vertex_id_type, edge_id_type>(source, e.eid));
-		//	origin_verts[target].nbr_list.insert(source);
-		//	origin_verts[target].degree++;
-		//	nedges++;
-		//}
 
 		void clear_partition_counter() {
 			foreach(size_t& num_edges, parts_counter) {
@@ -243,11 +204,17 @@ namespace graphp {
 				// add vertex
 				// treat every single edge as an undirected one
 				add_vertex(itr->source);
-				verts[itr->source].nbr_list.push_back(itr->target);
-				verts[itr->source].edge_list.push_back(edgecount);
+				// not used in streaming partitioning
+				//verts[itr->source].nbr_list.push_back(itr->target);
+				//verts[itr->source].edge_list.push_back(edgecount);
+				// use degree in streaming partitioning
+				verts[itr->source].degree++;
 				add_vertex(itr->target);
-				verts[itr->target].nbr_list.push_back(itr->source);
-				verts[itr->target].edge_list.push_back(edgecount);
+				// not used in streaming partitioning
+				//verts[itr->target].nbr_list.push_back(itr->source);
+				//verts[itr->target].edge_list.push_back(edgecount);
+				// use degree in streaming partitioning
+				verts[itr->target].degree++;
 
 				edgecount++;
 				if(ti.elapsed() > 5.0) {

@@ -331,9 +331,14 @@ namespace graphp {
 				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
 
 				// greedy for degree
-				double sum = source_v.nbr_list.size() + target_v.nbr_list.size();
-				double s = target_v.nbr_list.size() / sum + 1;
-				double t = source_v.nbr_list.size() / sum + 1;
+				// nbr_list is not used in streaming partitioning
+				//double sum = source_v.nbr_list.size() + target_v.nbr_list.size();
+				//double s = target_v.nbr_list.size() / sum + 1;
+				//double t = source_v.nbr_list.size() / sum + 1;
+				// use degree in streaming partitioning
+				double sum = source_v.degree + target_v.degree;
+				double s = target_v.degree / sum + 1;
+				double t = source_v.degree / sum + 1;
 
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
