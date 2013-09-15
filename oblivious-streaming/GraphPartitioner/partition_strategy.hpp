@@ -433,20 +433,47 @@ namespace graphp {
 					partition_func = greedy_partition2;
 
 				for(size_t i = 0; i < nparts.size(); i++) {
-					// notice that the graph has not been finalized...
-					// initialize
-					graph.initialize(nparts[i]);
+					vector<basic_graph> subgraphs(nthreads[i]);
+					size_t blocksize = graph.nedges / nthreads[i];
 
+					// set number of threads
+					omp_set_num_threads(nthreads[i]);
+
+					// initialize each subgraph
+					#pragma omp parallel for
+					for(size_t tid = 0; tid < nthreads[i]; tid++) {
+						size_t begin = tid * blocksize;
+						size_t end = begin + blocksize;
+						if(tid == nthreads[i] - 1)
+							end = graph.nedges;
+						subgraphs[tid].edges.reserve(end - begin);
+						for(size_t subeid = begin; subeid < end; subeid++) {
+							subgraphs[tid].edges.push_back(graph.edges[subeid]);
+						}
+						// do not let finalize to save edges
+						subgraphs[tid].finalize(false);
+						subgraphs[tid].initialize(nparts[i]);
+					}
 					cout << endl << strategy << endl;
 
 					boost::timer ti;
 					double runtime;
 
-					partition_func(graph, nparts[i]);
+					#pragma omp parallel for
+					for(size_t tid = 0; tid < nthreads[i]; tid++) {
+						partition_func(subgraphs[tid], nparts[i]);
+					}
 
 					runtime = ti.elapsed();
 					cout << "Time elapsed: " << runtime << endl;
 
+					// assign back to the origin graph
+					graph.initialize(nparts[i]);
+					for(size_t tid = 0, oeid = 0; tid < nthreads[i]; tid++) {
+						foreach(basic_graph::edge_type& e, subgraphs[tid].edges) {
+							assign_edge(graph, graph.getEdge(oeid), e.placement);
+						}
+					}
 					report_performance(graph, nparts[i], result_table[j * nparts.size() + i]);
 					result_table[j * nparts.size() + i].runtime = runtime;
 				}

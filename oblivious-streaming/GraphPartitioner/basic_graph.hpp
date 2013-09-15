@@ -116,7 +116,7 @@ namespace graphp {
 
 		typedef map<vertex_id_type, vertex_type> verts_map_type;
 		vector<vertex_type> verts;
-		map<vertex_id_type, vertex_id_type> vid_to_lvid;
+		hash_map<vertex_id_type, vertex_id_type> vid_to_lvid;
 
 		vector<edge_type> edges;
 
@@ -189,7 +189,7 @@ namespace graphp {
 			return edges[eid];
 		}
 
-		void finalize(bool saveEdges = true, bool constructVerts = true) {
+		void finalize(bool saveEdges = true) {
 			cout << "finalizing..." << endl;
 
 			//edges.reserve(edges_storage.size() + 1);
