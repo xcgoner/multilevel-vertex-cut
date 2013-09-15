@@ -77,18 +77,14 @@ int main(int argc, char* argv[])
 	if(vm.count("file") > 0 && vm.count("format") > 0) {
 		graph.load_format(vm["file"].as<string>(), vm["format"].as<string>());
 	}
-
-	graph.finalize();
-
-	//if(vm.count("strategy") == 0 || vm["strategy"].as<string>() == "random")
-	//	graphp::partition_strategy::random_partition(graph, nparts);
-	//else if(vm["strategy"].as<string>() == "greedy")
-	//	graphp::partition_strategy::greedy_partition(graph, nparts);
-	//else if(vm["strategy"].as<string>() == "degree")
-	//	graphp::partition_strategy::greedy_partition2(graph, nparts);
 	
-
-	graphp::partition_strategy::run_partition(graph, nparts, nthreads, strategies);
+	if(vm.count("nthreads") > 0) {
+		graphp::partition_strategy::run_partition(graph, nparts, nthreads, strategies);
+	}
+	else {
+		graph.finalize();
+		graphp::partition_strategy::run_partition(graph, nparts, strategies);
+	}
 
 #ifdef WIN32
 	system("Pause");

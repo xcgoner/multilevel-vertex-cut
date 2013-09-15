@@ -116,6 +116,7 @@ namespace graphp {
 
 		typedef map<vertex_id_type, vertex_type> verts_map_type;
 		vector<vertex_type> verts;
+		map<vertex_id_type, vertex_id_type> vid_to_lvid;
 
 		vector<edge_type> edges;
 
@@ -181,43 +182,68 @@ namespace graphp {
 			clear_mirrors();
 		}
 
-		void finalize() {
+		vertex_type& getVert(vertex_id_type vid) {
+			return verts[vid_to_lvid[vid]];
+		}
+		edge_type& getEdge(edge_id_type eid) {
+			return edges[eid];
+		}
+
+		void finalize(bool saveEdges = true, bool constructVerts = true) {
 			cout << "finalizing..." << endl;
 
 			//edges.reserve(edges_storage.size() + 1);
-			verts.resize(max_vid + 1);
+			//verts.resize(max_vid + 1);
 
 			boost::timer ti;
-			size_t edgecount = 0;
 
-			edges.resize(edges_storage.size());
-			size_t edges_idx = 0;
-			for(deque<edge_type>::iterator itr = edges_storage.begin(); itr != edges_storage.end(); ++itr) {
-				edges[edges_idx++] = (*itr);
+			if(saveEdges) {
+				edges.resize(edges_storage.size());
+				size_t edges_idx = 0;
+				for(deque<edge_type>::iterator itr = edges_storage.begin(); itr != edges_storage.end(); ++itr) {
+					edges[edges_idx++] = (*itr);
+				}
+				edges_storage.clear();
 			}
-			edges_storage.clear();
 
 			// access the edges in random order
 			//random_shuffle(edges.begin(), edges.end());
 
+			boost::dynamic_bitset<> vmap(max_vid + 1);
+			for(vector<edge_type>::iterator itr = edges.begin(); itr != edges.end(); ++itr) {
+				vmap[itr->source] = true;
+				vmap[itr->target] = true;
+			}
+			nverts = vmap.count();
+			verts.resize(nverts);
+			size_t idx;
+			for(size_t vid = vmap.find_first(), idx = 0; vid != vmap.npos; vid = vmap.find_next(vid), idx++) {
+				vid_to_lvid.insert(pair<vertex_id_type, vertex_id_type>(vid, idx));
+				verts[idx].degree = 0;
+				verts[idx].mirror_list.resize(nparts);
+			}
+
+			size_t edgecount = 0;
 			for(vector<edge_type>::iterator itr = edges.begin(); itr != edges.end(); ++itr) {
 				// add edge
 				//edges[edgecount] = itr;
 
 				// add vertex
 				// treat every single edge as an undirected one
-				add_vertex(itr->source);
+				//add_vertex(itr->source);
 				// not used in streaming partitioning
 				//verts[itr->source].nbr_list.push_back(itr->target);
 				//verts[itr->source].edge_list.push_back(edgecount);
+				//verts[itr->source].degree++;
 				// use degree in streaming partitioning
-				verts[itr->source].degree++;
-				add_vertex(itr->target);
+				getVert(itr->source).degree++;
+				//add_vertex(itr->target);
 				// not used in streaming partitioning
 				//verts[itr->target].nbr_list.push_back(itr->source);
 				//verts[itr->target].edge_list.push_back(edgecount);
+				//verts[itr->target].degree++;
 				// use degree in streaming partitioning
-				verts[itr->target].degree++;
+				getVert(itr->target).degree++;
 
 				edgecount++;
 				if(ti.elapsed() > 5.0) {
@@ -230,16 +256,9 @@ namespace graphp {
 			//edges_storage.clear();
 
 			cout << "Nodes: " << nverts << " Edges: " << nedges <<endl;
-			memory_info::print_usage();
+			//memory_info::print_usage();
 
 			cout << "finalized" << endl;
-		}
-
-		vertex_type& getVert(vertex_id_type vid) {
-			return verts[vid];
-		}
-		edge_type& getEdge(edge_id_type eid) {
-			return edges[eid];
 		}
 
 		//// some utilities

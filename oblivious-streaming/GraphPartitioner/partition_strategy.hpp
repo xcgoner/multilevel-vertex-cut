@@ -375,7 +375,7 @@ namespace graphp {
 			}
 		}
 
-		void run_partition(basic_graph& graph, vector<basic_graph::part_t>& nparts, vector<size_t>& nthreads, vector<string>& strategies) {
+		void run_partition(basic_graph& graph, vector<basic_graph::part_t>& nparts, vector<string>& strategies) {
 			vector<report_result> result_table(strategies.size() * nparts.size());
 			for(size_t j = 0; j < strategies.size(); j++) {
 				// select the strategy
@@ -411,13 +411,58 @@ namespace graphp {
 			// report the table
 			foreach(const report_result& result, result_table) {
 				cout << result.nparts << " " 
+					<< result.vertex_cut_counter << " " 
+					<< result.replica_factor << " " 
+					<< result.imbalance << " " 
+					<< result.runtime 
+					<< endl;
+			}
+		} // run partition in one thread
+
+		void run_partition(basic_graph& graph, vector<basic_graph::part_t>& nparts, vector<size_t>& nthreads, vector<string>& strategies) {
+			vector<report_result> result_table(strategies.size() * nparts.size());
+			for(size_t j = 0; j < strategies.size(); j++) {
+				// select the strategy
+				void (*partition_func)(basic_graph& graph, basic_graph::part_t nparts);
+				string strategy = strategies[j];
+				if(strategy == "random")
+					partition_func = random_partition;
+				else if(strategy == "greedy")
+					partition_func = greedy_partition;
+				else if(strategy == "degree")
+					partition_func = greedy_partition2;
+
+				for(size_t i = 0; i < nparts.size(); i++) {
+					// notice that the graph has not been finalized...
+					// initialize
+					graph.initialize(nparts[i]);
+
+					cout << endl << strategy << endl;
+
+					boost::timer ti;
+					double runtime;
+
+					partition_func(graph, nparts[i]);
+
+					runtime = ti.elapsed();
+					cout << "Time elapsed: " << runtime << endl;
+
+					report_performance(graph, nparts[i], result_table[j * nparts.size() + i]);
+					result_table[j * nparts.size() + i].runtime = runtime;
+				}
+			}
+
+			cout << endl;
+			// report the table
+			foreach(const report_result& result, result_table) {
+				cout << result.nparts << " " 
 					 << result.vertex_cut_counter << " " 
 					 << result.replica_factor << " " 
 					 << result.imbalance << " " 
 					 << result.runtime 
 					 << endl;
 			}
-		}
+		}// run partition in multi-threads
 
 	} // end of namespace partition_strategy
 
