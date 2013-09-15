@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	graphp::basic_graph graph(nparts[0]);
+	graphp::basic_graph graph(100);
 
 	if(vm.count("file") > 0 && vm.count("format") > 0) {
 		graph.load_format(vm["file"].as<string>(), vm["format"].as<string>());
