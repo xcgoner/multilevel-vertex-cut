@@ -120,6 +120,7 @@ namespace graphp {
 		boost::unordered_map<vertex_id_type, vertex_id_type> vid_to_lvid;
 
 		vector<edge_type> edges;
+		vector<edge_type>::iterator ebegin, eend;
 
 		deque<edge_type> edges_storage;
 
@@ -164,8 +165,9 @@ namespace graphp {
 			}
 		}
 		void clear_partition() {
-			foreach(edge_type& e, edges) {
-				e.placement = -1;
+			// actually this step is useless ...
+			for(vector<edge_type>::iterator itr = ebegin; itr != eend; ++itr) {
+				itr->placement = -1;
 			}
 		}
 		void clear_mirrors() {
@@ -187,7 +189,8 @@ namespace graphp {
 			return verts[vid_to_lvid[vid]];
 		}
 		edge_type& getEdge(edge_id_type eid) {
-			return edges[eid];
+			//return edges[eid];
+			return *(ebegin + eid);
 		}
 
 		void finalize(bool saveEdges = true) {
@@ -205,13 +208,15 @@ namespace graphp {
 					edges[edges_idx++] = (*itr);
 				}
 				edges_storage.clear();
+				ebegin = edges.begin();
+				eend = edges.end();
 			}
 
 			// access the edges in random order
 			//random_shuffle(edges.begin(), edges.end());
 
 			boost::dynamic_bitset<> vmap(max_vid + 1);
-			for(vector<edge_type>::iterator itr = edges.begin(); itr != edges.end(); ++itr) {
+			for(vector<edge_type>::iterator itr = ebegin; itr != eend; ++itr) {
 				vmap[itr->source] = true;
 				vmap[itr->target] = true;
 			}
@@ -224,6 +229,7 @@ namespace graphp {
 			}
 
 			size_t edgecount = 0;
+			if(saveEdges)
 			for(vector<edge_type>::iterator itr = edges.begin(); itr != edges.end(); ++itr) {
 				// add edge
 				//edges[edgecount] = itr;

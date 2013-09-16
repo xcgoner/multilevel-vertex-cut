@@ -197,10 +197,38 @@ namespace graphp {
 				<< result.imbalance << endl;
 
 		} // end of report performance
+		void report_performance(const basic_graph& graph, basic_graph::part_t nparts, size_t vertex_cut_counter, report_result& result) {
+			// report
+			size_t max_parts = 0;
+			for(size_t i = 0; i < nparts; i++) {
+				//cout << "Partition " << i << ": " << graph.parts_counter[i] << " edges" << endl;
+				if(max_parts < graph.parts_counter[i])
+					max_parts = graph.parts_counter[i];
+			}
+			cout << "Vertex-cut: " << vertex_cut_counter << endl;
+			cout << (graph.nverts + vertex_cut_counter) << endl; cout << graph.nverts << endl;
+			cout << "Normalized replication factor: " << 1.0 * (graph.nverts + vertex_cut_counter) / graph.nverts << endl;
+
+			cout << "Partitioning imbalance: " << 1.0 * max_parts / (graph.nedges / nparts) << endl;
+
+			//cout << "Average degree: " << 1.0 * boundary_degree / cutted_vertex_num << " : " << 2.0 * graph.origin_edges.size() / graph.origin_verts.size() << endl;
+
+			result.nparts = nparts;
+			result.vertex_cut_counter = vertex_cut_counter;
+			result.replica_factor = 1.0 * (graph.nverts + vertex_cut_counter) / graph.nverts;
+			result.imbalance = 1.0 * max_parts / (graph.nedges / nparts);
+
+			cout << nparts << " "
+				<< vertex_cut_counter << " "
+				<< result.replica_factor << " "
+				<< result.imbalance << endl;
+
+		} // end of report performance for the total vertex-cut is already summed up
 
 		void random_partition(basic_graph& graph, basic_graph::part_t nparts) {
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			foreach(basic_graph::edge_type& e, graph.edges) {
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
 				// random assign
 				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
 				basic_graph::part_t assignment;
@@ -301,8 +329,8 @@ namespace graphp {
 		}
 
 		void greedy_partition(basic_graph& graph, basic_graph::part_t nparts) {
-			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			foreach(basic_graph::edge_type& e, graph.edges) {
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
 				// greedy assign
 				basic_graph::part_t assignment;
 				assignment = edge_to_part_greedy(graph, e.source, e.target, graph.parts_counter, false);
@@ -366,8 +394,8 @@ namespace graphp {
 		}
 
 		void greedy_partition2(basic_graph& graph, basic_graph::part_t nparts) {
-			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			foreach(basic_graph::edge_type& e, graph.edges) {
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
 				// greedy assign
 				basic_graph::part_t assignment;
 				assignment = edge_to_part_greedy2(graph, e.source, e.target, graph.parts_counter, false);
@@ -420,6 +448,7 @@ namespace graphp {
 		} // run partition in one thread
 
 		void run_partition(basic_graph& graph, vector<basic_graph::part_t>& nparts, vector<size_t>& nthreads, vector<string>& strategies) {
+			cout << endl;
 			vector<report_result> result_table(strategies.size() * nparts.size());
 			for(size_t j = 0; j < strategies.size(); j++) {
 				// select the strategy
@@ -446,17 +475,21 @@ namespace graphp {
 						size_t end = begin + blocksize;
 						if(tid == nthreads[i] - 1)
 							end = graph.nedges;
-						subgraphs[tid].edges.reserve(end - begin);
-						for(size_t subeid = begin; subeid < end; subeid++) {
-							subgraphs[tid].edges.push_back(graph.getEdge(subeid));
-						}
+						subgraphs[tid].ebegin = graph.ebegin + begin;
+						if(tid == nthreads[i] - 1)
+							subgraphs[tid].eend = graph.ebegin + end;
+						else
+							subgraphs[tid].eend = graph.eend;
 						// do not let finalize to save edges
 						subgraphs[tid].nparts = nparts[i];
 						subgraphs[tid].max_vid = graph.max_vid;
 						subgraphs[tid].finalize(false);
 						subgraphs[tid].initialize(nparts[i]);
+						for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = subgraphs[tid].vid_to_lvid.begin(); itr != subgraphs[tid].vid_to_lvid.end(); ++itr) {
+							subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
+						}
 					}
-					cout << endl << strategy << endl;
+					cout << strategy << endl;
 
 					boost::timer ti;
 					double runtime;
@@ -471,13 +504,38 @@ namespace graphp {
 
 					// assign back to the origin graph
 					graph.initialize(nparts[i]);
-					for(size_t tid = 0, oeid = 0; tid < nthreads[i]; tid++) {
-						foreach(basic_graph::edge_type& e, subgraphs[tid].edges) {
-							assign_edge(graph, graph.getEdge(oeid), e.placement);
-							oeid++;
+
+					// do assignment in single thread
+					//for(size_t tid = 0, oeid = 0; tid < nthreads[i]; tid++) {
+					//	foreach(basic_graph::edge_type& e, subgraphs[tid].edges) {
+					//		assign_edge(graph, graph.getEdge(oeid), e.placement);
+					//		oeid++;
+					//	}
+					//}
+
+					// do assignment in multi-threads
+					vector<size_t> vertex_cut_counters(nthreads[i]);
+					#pragma omp parallel for
+					for(size_t tid = 0; tid < nthreads[i]; tid++) {
+						vertex_cut_counters[tid] = 0;
+						foreach(basic_graph::vertex_type& v, subgraphs[tid].verts) {
+							if(v.mirror_list.count() > 0)
+								vertex_cut_counters[tid] += (v.mirror_list.count() - 1);
 						}
 					}
-					report_performance(graph, nparts[i], result_table[j * nparts.size() + i]);
+					size_t vertex_cut_counter = 0;
+					for(size_t tid = 0; tid < nthreads[i]; tid++)
+						vertex_cut_counter += vertex_cut_counters[tid];
+					omp_set_num_threads(nparts[i]);
+					#pragma omp parallel for
+					for(size_t pid = 0; pid < nparts[i]; pid++) {
+						for(size_t tid = 0; tid < nthreads[i]; tid++) {
+							graph.parts_counter[pid] += subgraphs[tid].parts_counter[pid];
+						}
+					}
+
+
+					report_performance(graph, nparts[i], vertex_cut_counter, result_table[j * nparts.size() + i]);
 					result_table[j * nparts.size() + i].runtime = runtime;
 				}
 			}
