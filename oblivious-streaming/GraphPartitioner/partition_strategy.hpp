@@ -535,8 +535,8 @@ namespace graphp {
 						}
 					}
 
-					report_performance(graph, nparts[i], result_table[j * nparts.size() + i]);
-					//report_performance(graph, nparts[i], vertex_cut_counter, result_table[j * nparts.size() + i]);
+					//report_performance(graph, nparts[i], result_table[j * nparts.size() + i]);
+					report_performance(graph, nparts[i], vertex_cut_counter, result_table[j * nparts.size() + i]);
 					result_table[j * nparts.size() + i].runtime = runtime;
 				}
 			}
