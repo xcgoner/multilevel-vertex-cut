@@ -477,9 +477,9 @@ namespace graphp {
 							end = graph.nedges;
 						subgraphs[tid].ebegin = graph.ebegin + begin;
 						if(tid == nthreads[i] - 1)
-							subgraphs[tid].eend = graph.ebegin + end;
-						else
 							subgraphs[tid].eend = graph.eend;
+						else
+							subgraphs[tid].eend = graph.ebegin + end;
 						// do not let finalize to save edges
 						subgraphs[tid].nparts = nparts[i];
 						subgraphs[tid].max_vid = graph.max_vid;
