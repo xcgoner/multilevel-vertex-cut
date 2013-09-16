@@ -506,37 +506,33 @@ namespace graphp {
 					graph.initialize(nparts[i]);
 
 					// do assignment in single thread
-					//for(size_t tid = 0, oeid = 0; tid < nthreads[i]; tid++) {
-					//	for(vector<basic_graph::edge_type>::iterator itr = subgraphs[tid].ebegin; itr != subgraphs[tid].eend; ++itr)  {
-					//		basic_graph::edge_type& e = *itr;
-					//		assign_edge(graph, graph.getEdge(oeid), e.placement);
-					//		oeid++;
+					foreach(basic_graph::edge_type& e, graph.edges) {
+						assign_edge(graph, e, e.placement);
+					}
+
+					// do assignment in multi-threads
+					//vector<size_t> vertex_cut_counters(nthreads[i]);
+					//#pragma omp parallel for
+					//for(size_t tid = 0; tid < nthreads[i]; tid++) {
+					//	vertex_cut_counters[tid] = 0;
+					//	foreach(basic_graph::vertex_type& v, subgraphs[tid].verts) {
+					//		if(v.mirror_list.count() > 0)
+					//			vertex_cut_counters[tid] += (v.mirror_list.count() - 1);
+					//	}
+					//}
+					//size_t vertex_cut_counter = 0;
+					//for(size_t tid = 0; tid < nthreads[i]; tid++)
+					//	vertex_cut_counter += vertex_cut_counters[tid];
+					//omp_set_num_threads(nparts[i]);
+					//#pragma omp parallel for
+					//for(size_t pid = 0; pid < nparts[i]; pid++) {
+					//	for(size_t tid = 0; tid < nthreads[i]; tid++) {
+					//		graph.parts_counter[pid] += subgraphs[tid].parts_counter[pid];
 					//	}
 					//}
 
-					// do assignment in multi-threads
-					vector<size_t> vertex_cut_counters(nthreads[i]);
-					#pragma omp parallel for
-					for(size_t tid = 0; tid < nthreads[i]; tid++) {
-						vertex_cut_counters[tid] = 0;
-						foreach(basic_graph::vertex_type& v, subgraphs[tid].verts) {
-							if(v.mirror_list.count() > 0)
-								vertex_cut_counters[tid] += (v.mirror_list.count() - 1);
-						}
-					}
-					size_t vertex_cut_counter = 0;
-					for(size_t tid = 0; tid < nthreads[i]; tid++)
-						vertex_cut_counter += vertex_cut_counters[tid];
-					omp_set_num_threads(nparts[i]);
-					#pragma omp parallel for
-					for(size_t pid = 0; pid < nparts[i]; pid++) {
-						for(size_t tid = 0; tid < nthreads[i]; tid++) {
-							graph.parts_counter[pid] += subgraphs[tid].parts_counter[pid];
-						}
-					}
-
-					//report_performance(graph, nparts[i], result_table[j * nparts.size() + i]);
-					report_performance(graph, nparts[i], vertex_cut_counter, result_table[j * nparts.size() + i]);
+					report_performance(graph, nparts[i], result_table[j * nparts.size() + i]);
+					//report_performance(graph, nparts[i], vertex_cut_counter, result_table[j * nparts.size() + i]);
 					result_table[j * nparts.size() + i].runtime = runtime;
 				}
 			}
