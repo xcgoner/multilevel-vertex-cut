@@ -491,15 +491,18 @@ namespace graphp {
 					}
 					cout << strategy << endl;
 
-					boost::timer ti;
+					//boost::timer ti;
 					double runtime;
+
+					runtime = omp_get_wtime();
 
 					#pragma omp parallel for
 					for(size_t tid = 0; tid < nthreads[i]; tid++) {
 						partition_func(subgraphs[tid], nparts[i]);
 					}
 
-					runtime = ti.elapsed();
+					//runtime = ti.elapsed();
+					runtime = omp_get_wtime() - runtime;
 					cout << "Time elapsed: " << runtime << endl;
 
 					// assign back to the origin graph
