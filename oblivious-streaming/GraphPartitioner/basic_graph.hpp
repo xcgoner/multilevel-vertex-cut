@@ -166,9 +166,9 @@ namespace graphp {
 		}
 		void clear_partition() {
 			// actually this step is useless ...
-			for(vector<edge_type>::iterator itr = ebegin; itr != eend; ++itr) {
-				itr->placement = -1;
-			}
+			//for(vector<edge_type>::iterator itr = ebegin; itr != eend; ++itr) {
+			//	itr->placement = -1;
+			//}
 		}
 		void clear_mirrors() {
 			foreach(vertex_type& v, verts) {
