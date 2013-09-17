@@ -168,14 +168,14 @@ namespace graphp {
 				if(unbalanced) {
 					for(size_t i = 0; i < nparts; ++i) {
 						size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
-						size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
+						size_t td = target_v.mirror_list.count(i) + (usehash && (target_v.vid % nparts == i));
 						part_score[i] = ((sd > 0) + (td > 0));
 					}
 				}
 				else {
 					for(size_t i = 0; i < nparts; ++i) {
 						size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
-						size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
+						size_t td = target_v.mirror_list.count(i) + (usehash && (target_v.vid % nparts == i));
 						double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
 						part_score[i] = bal + ((sd > 0) + (td > 0));
 					}
@@ -218,7 +218,7 @@ namespace graphp {
 				for(size_t j = 0; j < candidates.size(); ++j) {
 					basic_graph::part_t i = candidates[j];
 					size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
-					size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
+					size_t td = target_v.mirror_list.count(i) + (usehash && (target_v.vid % nparts == i));
 					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
 					part_score[j] = bal + ((sd > 0) + (td > 0));
 				}
@@ -281,14 +281,14 @@ namespace graphp {
 				if(unbalanced) {
 					for(size_t i = 0; i < nparts; ++i) {
 						size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
-						size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
+						size_t td = target_v.mirror_list.count(i) + (usehash && (target_v.vid % nparts == i));
 						part_score[i] = ((sd > 0) * s + (td > 0) * t);
 					}
 				}
 				else {
 					for(size_t i = 0; i < nparts; ++i) {
 						size_t sd = source_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
-						size_t td = target_v.mirror_list.count(i) + (usehash && (source_v.vid % nparts == i));
+						size_t td = target_v.mirror_list.count(i) + (usehash && (target_v.vid % nparts == i));
 						double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
 						part_score[i] = bal + ((sd > 0) * s + (td > 0) * t);
 					}
