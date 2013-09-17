@@ -252,7 +252,7 @@ namespace graphp {
 								// check if is not assigned
 								// greedy assign
 								basic_graph::part_t assignment;
-								assignment = edge_to_part_greedy(graph.origin_verts[vid], graph.origin_verts[nbr], graph.parts_counter, false);
+								assignment = edge_to_part_greedy2(graph.origin_verts[vid], graph.origin_verts[nbr], graph.parts_counter, false);
 								assign_edge(graph, eid, assignment);
 								assign_counter++;
 							}
@@ -269,7 +269,7 @@ namespace graphp {
 								// check if is not assigned
 								// greedy assign
 								basic_graph::part_t assignment;
-								assignment = edge_to_part_greedy(graph.origin_verts[vid], graph.origin_verts[nbr], graph.parts_counter, false);
+								assignment = edge_to_part_greedy2(graph.origin_verts[vid], graph.origin_verts[nbr], graph.parts_counter, false);
 								assign_edge(graph, eid, assignment);
 								assign_counter++;
 							}
@@ -282,7 +282,7 @@ namespace graphp {
 			foreach(basic_graph::edge_type& e, graph.origin_edges) {
 				if(e.placement == -1) {
 					basic_graph::part_t assignment;
-					assignment = edge_to_part_greedy(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
+					assignment = edge_to_part_greedy2(graph.origin_verts[e.source], graph.origin_verts[e.target], graph.parts_counter, false);
 					assign_edge(graph, e.eid, assignment);
 					assign_counter++;
 				}
