@@ -450,6 +450,12 @@ namespace graphp {
 		void run_partition(basic_graph& graph, vector<basic_graph::part_t>& nparts, vector<size_t>& nthreads, vector<string>& strategies) {
 			cout << endl;
 			vector<report_result> result_table(strategies.size() * nparts.size());
+
+			vector<basic_graph::vertex_id_type> vmap(graph.max_vid + 1);
+			for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = graph.vid_to_lvid.begin(); itr != graph.vid_to_lvid.end(); ++itr) {
+				vmap[itr->first] = itr->second;
+			}
+
 			for(size_t j = 0; j < strategies.size(); j++) {
 				// select the strategy
 				void (*partition_func)(basic_graph& graph, basic_graph::part_t nparts);
@@ -509,7 +515,16 @@ namespace graphp {
 
 					// do assignment in single thread
 					foreach(basic_graph::edge_type& e, graph.edges) {
-						assign_edge(graph, e, e.placement);
+						//assign_edge(graph, e, e.placement);
+
+						// assign edge
+						graph.parts_counter[e.placement]++;
+
+						// assign vertex
+						basic_graph::vertex_type& source = graph.verts[vmap[e.source]];
+						basic_graph::vertex_type& target = graph.verts[vmap[e.target]];
+						source.mirror_list[e.placement] = true;
+						target.mirror_list[e.placement] = true;
 					}
 
 					// do assignment in multi-threads
