@@ -53,8 +53,10 @@ int main(int argc, char* argv[])
 		graphp::partition_strategy::greedy_partition(graph, nparts);
 	else if(vm["strategy"].as<string>() == "degree" || vm["strategy"].as<string>() == "oblivious_refine")
 		graphp::partition_strategy::greedy_partition2(graph, nparts);
-	else if(vm["strategy"].as<string>() == "obliviousreorder")
-		graphp::partition_strategy::greedy_reorder(graph, nparts);
+	else if(vm["strategy"].as<string>() == "reorder1")
+		graphp::partition_strategy::greedy_reorder(graph, nparts, true);
+	else if(vm["strategy"].as<string>() == "reorder2")
+		graphp::partition_strategy::greedy_reorder(graph, nparts, false);
 	else if(vm["strategy"].as<string>() == "hypergraph")
 		graphp::partition_strategy::partition_by_patoh(graph, nparts);
 	else if(vm["strategy"].as<string>() == "fasthypergraph")
