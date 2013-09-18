@@ -208,6 +208,8 @@ namespace graphp {
 					edges[edges_idx++] = (*itr);
 				}
 				edges_storage.clear();
+				// access the edges in random order
+				random_shuffle(edges.begin(), edges.end());
 				ebegin = edges.begin();
 				eend = edges.end();
 			}

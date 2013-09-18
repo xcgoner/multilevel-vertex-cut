@@ -450,8 +450,6 @@ namespace graphp {
 		void run_partition(basic_graph& graph, vector<basic_graph::part_t>& nparts, vector<size_t>& nthreads, vector<string>& strategies) {
 			cout << endl;
 
-			random_shuffle(graph.edges.begin(), graph.edges.end());
-
 			vector<report_result> result_table(strategies.size() * nparts.size());
 
 			vector<basic_graph::vertex_id_type> vmap(graph.max_vid + 1);
