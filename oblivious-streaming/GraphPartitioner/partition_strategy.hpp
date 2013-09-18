@@ -452,10 +452,10 @@ namespace graphp {
 
 			vector<report_result> result_table(strategies.size() * nparts.size());
 
-			vector<basic_graph::vertex_id_type> vmap(graph.max_vid + 1);
-			for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = graph.vid_to_lvid.begin(); itr != graph.vid_to_lvid.end(); ++itr) {
-				vmap[itr->first] = itr->second;
-			}
+			//vector<basic_graph::vertex_id_type> vmap(graph.max_vid + 1);
+			//for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = graph.vid_to_lvid.begin(); itr != graph.vid_to_lvid.end(); ++itr) {
+			//	vmap[itr->first] = itr->second;
+			//}
 
 			for(size_t j = 0; j < strategies.size(); j++) {
 				// select the strategy
@@ -522,8 +522,10 @@ namespace graphp {
 						graph.parts_counter[e.placement]++;
 
 						// assign vertex
-						basic_graph::vertex_type& source = graph.verts[vmap[e.source]];
-						basic_graph::vertex_type& target = graph.verts[vmap[e.target]];
+						//basic_graph::vertex_type& source = graph.verts[vmap[e.source]];
+						//basic_graph::vertex_type& target = graph.verts[vmap[e.target]];
+						basic_graph::vertex_type& source = graph.getVert(e.source);
+						basic_graph::vertex_type& target = graph.getVert(e.target);
 						source.mirror_list[e.placement] = true;
 						target.mirror_list[e.placement] = true;
 					}
