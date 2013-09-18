@@ -210,6 +210,7 @@ namespace graphp {
 				edges_storage.clear();
 				// access the edges in random order
 				random_shuffle(edges.begin(), edges.end());
+				cout << "edges are random shuffled ..." << endl;
 				ebegin = edges.begin();
 				eend = edges.end();
 			}
