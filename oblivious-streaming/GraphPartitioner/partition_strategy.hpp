@@ -473,7 +473,9 @@ namespace graphp {
 					size_t blocksize = graph.nedges / nthreads[i];
 
 					// set number of threads
-					omp_set_num_threads(nthreads[i]);
+					//omp_set_num_threads(nthreads[i]);
+
+					cout << strategy << endl;
 
 					// initialize each subgraph
 					#pragma omp parallel for
@@ -495,21 +497,23 @@ namespace graphp {
 						for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = subgraphs[tid].vid_to_lvid.begin(); itr != subgraphs[tid].vid_to_lvid.end(); ++itr) {
 							subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
 						}
+						partition_func(subgraphs[tid], nparts[i]);
+						subgraphs[tid].vid_to_lvid.clear();
+						subgraphs[tid].verts.clear();
 					}
-					cout << strategy << endl;
 
 					//boost::timer ti;
-					double runtime;
-					runtime = omp_get_wtime();
+					double runtime = 0;
+					//runtime = omp_get_wtime();
 
-					#pragma omp parallel for
-					for(size_t tid = 0; tid < nthreads[i]; tid++) {
-						partition_func(subgraphs[tid], nparts[i]);
-					}
+					//#pragma omp parallel for
+					//for(size_t tid = 0; tid < nthreads[i]; tid++) {
+					//	partition_func(subgraphs[tid], nparts[i]);
+					//}
 
 					//runtime = ti.elapsed();
-					runtime = omp_get_wtime() - runtime;
-					cout << "Time elapsed: " << runtime << endl;
+					//runtime = omp_get_wtime() - runtime;
+					//cout << "Time elapsed: " << runtime << endl;
 
 					// assign back to the origin graph
 					graph.initialize(nparts[i]);
