@@ -498,8 +498,9 @@ namespace graphp {
 							subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
 						}
 						partition_func(subgraphs[tid], nparts[i]);
-						subgraphs[tid].vid_to_lvid.clear();
-						subgraphs[tid].verts.clear();
+
+						vector<basic_graph::vertex_type>().swap(subgraphs[tid].verts);
+						boost::unordered_map<basic_graph::vertex_id_type, basic_graph::vertex_id_type>().swap(subgraphs[tid].vid_to_lvid);
 					}
 
 					//boost::timer ti;
