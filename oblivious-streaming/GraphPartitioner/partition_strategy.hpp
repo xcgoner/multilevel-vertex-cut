@@ -481,8 +481,17 @@ namespace graphp {
 
 					// initialize each subgraph
 					for(size_t ptid = 0; ptid <= nthreads[i] / nt; ptid++) {
+						size_t tbegin = nt * ptid;
+						size_t tend = nt * (ptid + 1);
+						if(tbegin >= nthreads[i])
+							break;
+						if(tend >= nthreads[i])
+							tend = nthreads[i];
+						cout << "threads " << tbegin << " to " << tend - 1 << endl;
+						size_t tl = tend - tbegin;
 						#pragma omp parallel for
-						for(size_t tid = nt * ptid; tid < (nt+1) * nt && tid < nthreads[i]; tid++) {
+						for(size_t tt = 0; tt < tl; tt++) {
+							size_t tid = tbegin + tt;
 							size_t begin = tid * blocksize;
 							size_t end = begin + blocksize;
 							if(tid == nthreads[i] - 1)
