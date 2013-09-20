@@ -478,7 +478,7 @@ namespace graphp {
 					//omp_set_num_threads(nthreads[i]);
 
 					cout << strategy << endl;
-					size_t nt = omp_get_num_threads();
+					size_t nt = omp_get_num_procs();
 					cout << "using " << nt << " threads..." << endl;
 
 					// initialize each subgraph
