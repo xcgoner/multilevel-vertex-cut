@@ -468,6 +468,8 @@ namespace graphp {
 				else if(strategy == "degree")
 					partition_func = greedy_partition2;
 
+				omp_set_num_threads(omp_get_num_procs());
+
 				for(size_t i = 0; i < nparts.size(); i++) {
 					vector<basic_graph> subgraphs(nthreads[i]);
 					size_t blocksize = graph.nedges / nthreads[i];
