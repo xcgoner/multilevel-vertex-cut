@@ -28,6 +28,8 @@
 
 #include <omp.h>
 
+#define NUM_THREADS 4
+
 using namespace std;
 #ifdef __GNUC__
 using namespace __gnu_cxx;
@@ -468,7 +470,7 @@ namespace graphp {
 				else if(strategy == "degree")
 					partition_func = greedy_partition2;
 
-				omp_set_num_threads(omp_get_num_procs());
+				omp_set_num_threads(NUM_THREADS);
 
 				for(size_t i = 0; i < nparts.size(); i++) {
 					vector<basic_graph> subgraphs(nthreads[i]);
@@ -478,7 +480,7 @@ namespace graphp {
 					//omp_set_num_threads(nthreads[i]);
 
 					cout << strategy << endl;
-					size_t nt = omp_get_num_procs();
+					size_t nt = NUM_THREADS;
 					cout << "using " << nt << " threads..." << endl;
 
 					// initialize each subgraph
