@@ -505,6 +505,10 @@ namespace graphp {
 								subgraphs[tid].eend = graph.eend;
 							else
 								subgraphs[tid].eend = graph.ebegin + end;
+
+							// access the edges in random order
+							random_shuffle(subgraphs[tid].ebegin, subgraphs[tid].eend);
+
 							// do not let finalize to save edges
 							subgraphs[tid].nparts = nparts[i];
 							subgraphs[tid].max_vid = graph.max_vid;

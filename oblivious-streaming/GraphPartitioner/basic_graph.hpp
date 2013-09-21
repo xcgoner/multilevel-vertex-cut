@@ -209,9 +209,9 @@ namespace graphp {
 				}
 				edges_storage.clear();
 				// access the edges in random order
-				srand(time(0));
-				random_shuffle(edges.begin(), edges.end());
-				cout << "edges are random shuffled ..." << endl;
+				//srand(time(0));
+				//random_shuffle(edges.begin(), edges.end());
+				//cout << "edges are random shuffled ..." << endl;
 				ebegin = edges.begin();
 				eend = edges.end();
 			}
