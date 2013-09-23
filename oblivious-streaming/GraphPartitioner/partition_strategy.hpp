@@ -569,6 +569,7 @@ namespace graphp {
 					graph.initialize(nparts[i]);
 
 					// do assignment in single thread
+					// note: use edges_p
 					for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
 						basic_graph::edge_type& e = *itr;
 						//assign_edge(graph, e, e.placement);
