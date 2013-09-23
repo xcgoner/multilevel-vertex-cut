@@ -467,6 +467,7 @@ namespace graphp {
 				foreach(basic_graph::part_t& p, thread_p) {
 					p = 0;
 				}
+				cout << "nedges: " << graph.edges.size() << endl;
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
 					basic_graph::edge_type& e = *itr;
 					// random assign
