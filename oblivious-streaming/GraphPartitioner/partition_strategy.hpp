@@ -476,6 +476,10 @@ namespace graphp {
 					e.placement = assignment;
 					thread_p[assignment]++;
 				}
+				foreach(basic_graph::part_t p, thread_p) {
+					cout << p << " ";
+				}
+				cout << endl;
 				vector<size_t> pp(nthreads[i]);
 				pp[0] = 0;
 				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
@@ -486,10 +490,8 @@ namespace graphp {
 					basic_graph::edge_type& e = *itr;
 					size_t t = e.placement;
 					graph.edges_p[pp[t]] = e;
-					counter++;
 					pp[t]++;
 				}
-				cout << counter << " edges saved..." << endl;
 				graph.ebegin = graph.edges_p.begin();
 				graph.eend = graph.edges_p.end();
 				pp[0] = 0;
