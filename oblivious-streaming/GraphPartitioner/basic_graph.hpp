@@ -121,6 +121,7 @@ namespace graphp {
 
 		vector<edge_type> edges;
 		vector<edge_type>::iterator ebegin, eend;
+		vector<edge_type> edges_p;
 
 		deque<edge_type> edges_storage;
 
@@ -212,8 +213,11 @@ namespace graphp {
 				//srand(time(0));
 				//random_shuffle(edges.begin(), edges.end());
 				//cout << "edges are random shuffled ..." << endl;
+
 				ebegin = edges.begin();
 				eend = edges.end();
+
+				edges_p.resize(edges.size());
 			}
 
 			// access the edges in random order
