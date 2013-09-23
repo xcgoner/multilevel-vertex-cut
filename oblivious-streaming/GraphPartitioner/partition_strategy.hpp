@@ -481,21 +481,28 @@ namespace graphp {
 				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
 					pp[idx_p] = thread_p[idx_p - 1] + pp[idx_p - 1];
 				}
+				size_t counter = 0;
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
 					basic_graph::edge_type& e = *itr;
 					size_t t = e.placement;
 					graph.edges_p[pp[t]] = e;
+					counter++;
 					pp[t]++;
 				}
+				cout << counter << " edges saved..." << endl;
 				graph.ebegin = graph.edges_p.begin();
 				graph.eend = graph.edges_p.end();
 				pp[0] = 0;
 				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
 					pp[idx_p] = thread_p[idx_p - 1] + pp[idx_p - 1];
+					cout << pp[idx_p] << " ";
 				}
+				cout << endl;
 				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
 					thread_p[idx_p] = thread_p[idx_p] + thread_p[idx_p - 1];
+					cout << thread_p[idx_p] << " ";
 				}
+				cout << endl;
 
 
 				for(size_t j = 0; j < strategies.size(); j++) {
@@ -510,7 +517,6 @@ namespace graphp {
 						partition_func = greedy_partition2;
 
 					vector<basic_graph> subgraphs(nthreads[i]);
-					size_t blocksize = graph.nedges / nthreads[i];
 
 					cout << strategy << endl;
 					size_t nt = NUM_THREADS;
