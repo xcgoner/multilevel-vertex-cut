@@ -507,6 +507,7 @@ namespace graphp {
 								subgraphs[tid].eend = graph.ebegin + end;
 
 							// access the edges in random order
+							// inner shuffle
 							random_shuffle(subgraphs[tid].ebegin, subgraphs[tid].eend);
 
 							// do not let finalize to save edges
