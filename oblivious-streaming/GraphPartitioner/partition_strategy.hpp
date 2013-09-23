@@ -463,8 +463,8 @@ namespace graphp {
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			for(size_t i = 0; i < nparts.size(); i++) {
 				// construct the subgraphs for partitioning
-				vector<basic_graph::part_t> thread_p(nthreads[i]);
-				foreach(basic_graph::part_t& p, thread_p) {
+				vector<size_t> thread_p(nthreads[i]);
+				foreach(size_t& p, thread_p) {
 					p = 0;
 				}
 				cout << "nedges: " << graph.edges.size() << endl;
@@ -477,7 +477,7 @@ namespace graphp {
 					e.placement = assignment;
 					thread_p[assignment]++;
 				}
-				foreach(basic_graph::part_t p, thread_p) {
+				foreach(size_t p, thread_p) {
 					cout << p << " ";
 				}
 				cout << endl;
