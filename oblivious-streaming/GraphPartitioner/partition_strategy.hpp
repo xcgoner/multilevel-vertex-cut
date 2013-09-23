@@ -467,7 +467,7 @@ namespace graphp {
 				foreach(size_t& p, thread_p) {
 					p = 0;
 				}
-				cout << "nedges: " << graph.edges.size() << endl;
+
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
 					basic_graph::edge_type& e = *itr;
 					// random assign
@@ -477,16 +477,12 @@ namespace graphp {
 					e.placement = assignment;
 					thread_p[assignment]++;
 				}
-				foreach(size_t p, thread_p) {
-					cout << p << " ";
-				}
-				cout << endl;
+
 				vector<size_t> pp(nthreads[i]);
 				pp[0] = 0;
 				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
 					pp[idx_p] = thread_p[idx_p - 1] + pp[idx_p - 1];
 				}
-				size_t counter = 0;
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
 					basic_graph::edge_type& e = *itr;
 					size_t t = e.placement;
@@ -498,15 +494,10 @@ namespace graphp {
 				pp[0] = 0;
 				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
 					pp[idx_p] = thread_p[idx_p - 1] + pp[idx_p - 1];
-					cout << pp[idx_p] << " ";
 				}
-				cout << endl;
 				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
 					thread_p[idx_p] = thread_p[idx_p] + thread_p[idx_p - 1];
-					cout << thread_p[idx_p] << " ";
 				}
-				cout << endl;
-
 
 				for(size_t j = 0; j < strategies.size(); j++) {
 					// select the strategy
@@ -578,7 +569,7 @@ namespace graphp {
 					graph.initialize(nparts[i]);
 
 					// do assignment in single thread
-					for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
+					for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
 						basic_graph::edge_type& e = *itr;
 						//assign_edge(graph, e, e.placement);
 
