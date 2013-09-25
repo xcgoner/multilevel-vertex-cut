@@ -468,36 +468,25 @@ namespace graphp {
 					p = 0;
 				}
 
-				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
-					basic_graph::edge_type& e = *itr;
-					// random assign
-					const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
-					basic_graph::part_t assignment;
-					assignment = edge_hashing(edge_pair, hashing_seed) % (nthreads[i]);
-					e.placement = assignment;
-					thread_p[assignment]++;
-				}
+				graph.edges_p.assign(graph.edges.begin(), graph.edges.end());
+				size_t blocksize = graph.nedges / nthreads[i];
 
 				vector<size_t> pp(nthreads[i]);
-				pp[0] = 0;
-				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
-					pp[idx_p] = thread_p[idx_p - 1] + pp[idx_p - 1];
+				#pragma omp parallel for
+				for(size_t tid = 0; tid < nthreads[i]; tid++) {
+					size_t begin = tid * blocksize;
+					size_t end = begin + blocksize;
+					if(tid == nthreads[i] - 1)
+						end = graph.nedges;
+
+					pp[tid] = begin;
+					thread_p[tid] = end;
+
+					random_shuffle(graph.edges_p.begin() + begin, graph.edges_p.begin() + end);
 				}
-				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
-					basic_graph::edge_type& e = *itr;
-					size_t t = e.placement;
-					graph.edges_p[pp[t]] = e;
-					pp[t]++;
-				}
+
 				graph.ebegin = graph.edges_p.begin();
 				graph.eend = graph.edges_p.end();
-				pp[0] = 0;
-				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
-					pp[idx_p] = thread_p[idx_p - 1] + pp[idx_p - 1];
-				}
-				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
-					thread_p[idx_p] = thread_p[idx_p] + thread_p[idx_p - 1];
-				}
 
 				for(size_t j = 0; j < strategies.size(); j++) {
 					// select the strategy
