@@ -461,7 +461,7 @@ namespace graphp {
 
 			omp_set_num_threads(NUM_THREADS);
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			const size_t file_block_size = 64 * 1024 * 1024 / 64;
+			const size_t file_block_size = 64 * 1024 * 1024 / 16;
 			for(size_t i = 0; i < nparts.size(); i++) {
 				// construct the subgraphs for partitioning
 				vector<size_t> thread_p(nthreads[i]);
@@ -474,7 +474,7 @@ namespace graphp {
 					basic_graph::part_t assignment;
 					//assignment = edge_counter % (nthreads[i]);
 					assignment = edgernd(gen) % (nthreads[i]);
-					for(size_t idx = 0; idx < file_block_size, itr != graph.edges.end(); idx++, itr++) {
+					for(size_t idx = 0; idx < file_block_size && itr != graph.edges.end(); idx++, itr++) {
 						basic_graph::edge_type& e = *itr;
 						// random assign
 						//const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
