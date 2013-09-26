@@ -28,7 +28,7 @@
 
 #include <omp.h>
 
-#define NUM_THREADS 4
+#define NUM_THREADS 6
 
 using namespace std;
 #ifdef __GNUC__
@@ -461,7 +461,7 @@ namespace graphp {
 
 			omp_set_num_threads(NUM_THREADS);
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			const size_t file_block_size = 64 * 1024 * 1024 / 8;
+			const size_t file_block_size = 64 * 1024 * 1024 / 64;
 			for(size_t i = 0; i < nparts.size(); i++) {
 				// construct the subgraphs for partitioning
 				vector<size_t> thread_p(nthreads[i]);
