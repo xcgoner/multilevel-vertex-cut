@@ -459,6 +459,8 @@ namespace graphp {
 			//	vmap[itr->first] = itr->second;
 			//}
 
+			srand(time(0));
+
 			omp_set_num_threads(NUM_THREADS);
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			const size_t file_block_size = 8;
