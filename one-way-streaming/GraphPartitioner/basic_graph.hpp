@@ -125,10 +125,13 @@ namespace graphp {
 
 		deque<edge_type> edges_storage;
 
+		// deprecated later ...
+		vertex_id_type current_source_vid;
+
 		//deque<edge_type>& edges = edges_storage;
 
 		// constructor
-		basic_graph() : nverts(0), nedges(0), max_vid(0), nparts(1) {
+		basic_graph() : nverts(0), nedges(0), max_vid(0), nparts(1), current_source_vid(-1) {
 		}
 		// do not assign 0 to nparts, something bad will occur ...
 		basic_graph(size_t nparts) : nverts(0), nedges(0), max_vid(0), nparts(nparts) {
@@ -147,8 +150,6 @@ namespace graphp {
 			}
 			return false;
 		}
-
-		vertex_id_type current_source_vid = -1;
 
 		void add_edge_to_storage(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
 			if(current_source_vid != source) 

@@ -80,16 +80,8 @@ int main(int argc, char* argv[])
 	}
 	
 	graph.finalize();
-	if(vm.count("nthreads") > 0) {
-		if(nthreads.size() != nparts.size()) {
-			cerr << "The length of paramater nthreads should be the same as that of nparts..." << endl;
-			return 0;
-		}
-		graphp::partition_strategy::run_partition(graph, nparts, nthreads, strategies);
-	}
-	else {
-		graphp::partition_strategy::run_partition(graph, nparts, strategies);
-	}
+
+	graphp::partition_strategy::run_partition(graph, nparts, strategies);
 
 #ifdef WIN32
 	system("Pause");
