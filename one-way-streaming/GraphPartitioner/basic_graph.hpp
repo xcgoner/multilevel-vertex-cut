@@ -148,7 +148,14 @@ namespace graphp {
 			return false;
 		}
 
+		vertex_id_type current_source_vid = -1;
+
 		void add_edge_to_storage(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
+			if(current_source_vid != source) 
+			{
+				current_source_vid = source;
+				cout << "Source vid: " << current_source_vid << endl;
+			}
 			edge_type e(source, target);
 			if(source > max_vid)
 				max_vid = source;
