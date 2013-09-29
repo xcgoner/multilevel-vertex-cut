@@ -442,10 +442,10 @@ namespace graphp {
 			cout << endl;
 			// report the table
 			foreach(const report_result& result, result_table) {
-				cout << result.nparts << " " 
-					<< result.vertex_cut_counter << " " 
-					<< result.replica_factor << " " 
-					<< result.imbalance << " " 
+				cout << result.nparts << "\t" 
+					<< result.vertex_cut_counter << "\t" 
+					<< result.replica_factor << "\t" 
+					<< result.imbalance << "\t" 
 					<< result.runtime 
 					<< endl;
 			}
