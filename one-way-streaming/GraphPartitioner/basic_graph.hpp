@@ -92,9 +92,13 @@ namespace graphp {
 			// use degree in streaming partitioning
 			size_t degree;
 
+			size_t edge_begin;
+			size_t edge_end;
+
 			boost::dynamic_bitset<> mirror_list;
 
-			vertex_type() { }
+			vertex_type() :
+			edge_begin(-1), edge_end(-1) { }
 
 			bool isFree() const {
 				return (mirror_list.size() == 0);
@@ -125,13 +129,10 @@ namespace graphp {
 
 		deque<edge_type> edges_storage;
 
-		// deprecated later ...
-		vertex_id_type current_source_vid;
-
 		//deque<edge_type>& edges = edges_storage;
 
 		// constructor
-		basic_graph() : nverts(0), nedges(0), max_vid(0), nparts(1), current_source_vid(-1) {
+		basic_graph() : nverts(0), nedges(0), max_vid(0), nparts(1) {
 		}
 		// do not assign 0 to nparts, something bad will occur ...
 		basic_graph(size_t nparts) : nverts(0), nedges(0), max_vid(0), nparts(nparts) {
@@ -152,11 +153,6 @@ namespace graphp {
 		}
 
 		void add_edge_to_storage(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
-			if(current_source_vid != source) 
-			{
-				current_source_vid = source;
-				cout << "Source vid: " << current_source_vid << endl;
-			}
 			edge_type e(source, target);
 			if(source > max_vid)
 				max_vid = source;
@@ -216,6 +212,7 @@ namespace graphp {
 				for(deque<edge_type>::iterator itr = edges_storage.begin(); itr != edges_storage.end(); ++itr) {
 					edges[edges_idx++] = (*itr);
 				}
+				// release the memory
 				edges_storage.clear();
 				// access the edges in random order
 				//srand(time(0));
@@ -244,39 +241,51 @@ namespace graphp {
 				verts[idx].mirror_list.resize(nparts);
 			}
 
-			size_t edgecount = 0;
-			if(saveEdges)
-			for(vector<edge_type>::iterator itr = edges.begin(); itr != edges.end(); ++itr) {
-				// add edge
-				//edges[edgecount] = itr;
-
-				// add vertex
-				// treat every single edge as an undirected one
-				//add_vertex(itr->source);
-				// not used in streaming partitioning
-				//verts[itr->source].nbr_list.push_back(itr->target);
-				//verts[itr->source].edge_list.push_back(edgecount);
-				//verts[itr->source].degree++;
-				// use degree in streaming partitioning
-				getVert(itr->source).degree++;
-				//add_vertex(itr->target);
-				// not used in streaming partitioning
-				//verts[itr->target].nbr_list.push_back(itr->source);
-				//verts[itr->target].edge_list.push_back(edgecount);
-				//verts[itr->target].degree++;
-				// use degree in streaming partitioning
-				getVert(itr->target).degree++;
-
-				edgecount++;
-				if(saveEdges)
-					if(ti.elapsed() > 5.0) {
-						cout << edgecount << " edges saved" << endl;
-						ti.restart();
+			if(saveEdges) {
+				size_t edgecount = 0;
+				size_t current_source_vid = -1;
+				for(size_t idx = 0; idx < edges.size(); idx++) {
+					const edge_type& e = edges[idx];
+					if(e.source != current_source_vid) {
+						if(current_source_vid != -1) {
+							getVert(edges[idx - 1].source).edge_end = idx;
+						}
+						if(getVert(e.source).edge_begin != -1) {
+							cerr << "The graph file is not in a edge-batch order !!!" << endl;
+							exit(0);
+						}
+						getVert(e.source).edge_begin = idx;
+						current_source_vid = e.source;
 					}
-			}
+					// add edge
+					//edges[edgecount] = itr;
 
-			// release the memory
-			//edges_storage.clear();
+					// add vertex
+					// treat every single edge as an undirected one
+					//add_vertex(itr->source);
+					// not used in streaming partitioning
+					//verts[itr->source].nbr_list.push_back(itr->target);
+					//verts[itr->source].edge_list.push_back(edgecount);
+					//verts[itr->source].degree++;
+					// use degree in streaming partitioning
+					getVert(e.source).degree++;
+					//add_vertex(itr->target);
+					// not used in streaming partitioning
+					//verts[itr->target].nbr_list.push_back(itr->source);
+					//verts[itr->target].edge_list.push_back(edgecount);
+					//verts[itr->target].degree++;
+					// use degree in streaming partitioning
+					getVert(e.target).degree++;
+
+					edgecount++;
+					if(saveEdges)
+						if(ti.elapsed() > 5.0) {
+							cout << edgecount << " edges saved" << endl;
+							ti.restart();
+						}
+				}
+				getVert(edges[edges.size() - 1].source).edge_end = edges.size();
+			}
 
 			cout << "Nodes: " << nverts << " Edges: " << nedges <<endl;
 			//memory_info::print_usage();

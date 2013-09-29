@@ -240,7 +240,7 @@ namespace graphp {
 			}
 		}
 
-		basic_graph::part_t edge_to_part_greedy(basic_graph& graph, 
+		basic_graph::part_t edge_to_part_powergraph(basic_graph& graph, 
 			const basic_graph::vertex_id_type source,
 			const basic_graph::vertex_id_type target,
 			const vector<size_t>& part_num_edges,
@@ -284,7 +284,7 @@ namespace graphp {
 				return best_part;
 		}
 
-		basic_graph::part_t edge_to_part_greedy(basic_graph& graph, 
+		basic_graph::part_t edge_to_part_powergraph(basic_graph& graph, 
 			const basic_graph::vertex_id_type source,
 			const basic_graph::vertex_id_type target,
 			const vector<basic_graph::part_t>& candidates,
@@ -330,20 +330,22 @@ namespace graphp {
 				return best_part;
 		}
 
-		void greedy_partition(basic_graph& graph, basic_graph::part_t nparts) {
+		void powergraph_partition(basic_graph& graph, basic_graph::part_t nparts) {
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 				// greedy assign
 				basic_graph::part_t assignment;
-				assignment = edge_to_part_greedy(graph, e.source, e.target, graph.parts_counter, false);
+				assignment = edge_to_part_powergraph(graph, e.source, e.target, graph.parts_counter, false);
 				assign_edge(graph, e, assignment);
 				//cout << e.eid << " " << e.source << " " << e.target << " " << e.weight << " " << e.placement << endl;
 			}
 		}
 
-		basic_graph::part_t edge_to_part_greedy2(basic_graph& graph, 
+		basic_graph::part_t edge_to_part_degree(basic_graph& graph, 
 			const basic_graph::vertex_id_type source,
 			const basic_graph::vertex_id_type target,
+			const size_t source_degree,
+			const size_t target_degree,
 			const vector<size_t>& part_num_edges,
 			bool usehash = false
 			) {
@@ -366,9 +368,9 @@ namespace graphp {
 				//double s = target_v.nbr_list.size() / sum + 1;
 				//double t = source_v.nbr_list.size() / sum + 1;
 				// use degree in streaming partitioning
-				double sum = source_v.degree + target_v.degree;
-				double s = target_v.degree / sum + 1;
-				double t = source_v.degree / sum + 1;
+				double sum = source_degree + target_degree;
+				double s = source_degree / sum + 1;
+				double t = target_degree / sum + 1;
 
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
@@ -395,12 +397,12 @@ namespace graphp {
 				return best_part;
 		}
 
-		void greedy_partition2(basic_graph& graph, basic_graph::part_t nparts) {
+		void degree_partition(basic_graph& graph, basic_graph::part_t nparts) {
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 				// greedy assign
 				basic_graph::part_t assignment;
-				assignment = edge_to_part_greedy2(graph, e.source, e.target, graph.parts_counter, false);
+				assignment = edge_to_part_degree(graph, e.source, e.target, graph.getVert(e.source).degree, graph.getVert(e.target).degree, graph.parts_counter, false);
 				assign_edge(graph, e, assignment);
 			}
 		}
@@ -413,10 +415,10 @@ namespace graphp {
 				string strategy = strategies[j];
 				if(strategy == "random")
 					partition_func = random_partition;
-				else if(strategy == "greedy")
-					partition_func = greedy_partition;
+				else if(strategy == "powergraph")
+					partition_func = powergraph_partition;
 				else if(strategy == "degree")
-					partition_func = greedy_partition2;
+					partition_func = degree_partition;
 
 				for(size_t i = 0; i < nparts.size(); i++) {
 					// initialize
