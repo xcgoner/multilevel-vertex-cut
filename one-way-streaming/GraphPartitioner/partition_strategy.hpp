@@ -452,8 +452,8 @@ namespace graphp {
 				//double t = source_v.nbr_list.size() / sum + 1;
 				// use degree in streaming partitioning
 				double sum = source_degree + target_degree;
-				double s = source_degree / sum + 1;
-				double t = target_degree / sum + 1;
+				double s = target_degree / sum + 1;
+				double t = source_degree / sum + 1;
 
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
