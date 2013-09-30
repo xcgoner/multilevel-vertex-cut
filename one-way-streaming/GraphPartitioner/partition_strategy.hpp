@@ -246,7 +246,6 @@ namespace graphp {
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr, ++idx)  {
 				basic_graph::edge_type& e = *itr;
 				// random assign
-				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
 				basic_graph::part_t assignment;
 				assignment = idx / C;
 				assign_edge(graph, e, assignment);
@@ -257,7 +256,7 @@ namespace graphp {
 		basic_graph::part_t edge_to_part_weighted(basic_graph& graph, 
 			const basic_graph::vertex_id_type source,
 			const basic_graph::vertex_id_type target,
-			const vector<size_t>& part_num_edges
+			const vector<size_t>& part_num_edges,
 			const size_t type
 			) {
 				const size_t nparts = part_num_edges.size();
@@ -275,8 +274,8 @@ namespace graphp {
 				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
 
 				for(size_t i = 0; i < nparts; ++i) {
-					size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
-					size_t td = target_v.mirror_list[i] + (usehash && (target % nparts == i));
+					size_t sd = source_v.mirror_list[i];
+					size_t td = target_v.mirror_list[i];
 					double weight;
 					if(type == 0) {
 						weight = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
@@ -287,7 +286,7 @@ namespace graphp {
 					else {
 						weight = 1 - exp(1.0 * part_num_edges[i] - maxedges);
 					}
-					part_score[i] = bal * ((sd > 0) + (td > 0));
+					part_score[i] = weight * ((sd > 0) + (td > 0));
 				}
 
 				maxscore = *max_element(part_score.begin(), part_score.end());
