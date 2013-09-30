@@ -240,6 +240,89 @@ namespace graphp {
 			}
 		}
 
+		void chunking_partition(basic_graph& graph, basic_graph::part_t nparts) {
+			const size_t C = 8;
+			size_t idx = 0;
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr, ++idx)  {
+				basic_graph::edge_type& e = *itr;
+				// random assign
+				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
+				basic_graph::part_t assignment;
+				assignment = idx / C;
+				assign_edge(graph, e, assignment);
+			}
+		}
+
+		// weighted / deterministic
+		basic_graph::part_t edge_to_part_weighted(basic_graph& graph, 
+			const basic_graph::vertex_id_type source,
+			const basic_graph::vertex_id_type target,
+			const vector<size_t>& part_num_edges
+			const size_t type
+			) {
+				const size_t nparts = part_num_edges.size();
+
+				const basic_graph::vertex_type& source_v = graph.getVert(source);
+				const basic_graph::vertex_type& target_v = graph.getVert(target);
+
+				// compute the score of each part
+				basic_graph::part_t best_part = -1;
+				double maxscore = 0.0;
+				double epsilon = 1.0;
+				vector<double> part_score(nparts);
+
+				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
+				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
+
+				for(size_t i = 0; i < nparts; ++i) {
+					size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
+					size_t td = target_v.mirror_list[i] + (usehash && (target % nparts == i));
+					double weight;
+					if(type == 0) {
+						weight = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+					}
+					else if(type == 1) {
+						weight = 1 - 1.0 * part_num_edges[i] / maxedges;
+					}
+					else {
+						weight = 1 - exp(1.0 * part_num_edges[i] - maxedges);
+					}
+					part_score[i] = bal * ((sd > 0) + (td > 0));
+				}
+
+				maxscore = *max_element(part_score.begin(), part_score.end());
+
+				vector<basic_graph::part_t> top_parts;
+				for(size_t i = 0; i < nparts; ++i) {
+					if(fabs(part_score[i] - maxscore) < 1e-5) {
+						top_parts.push_back(i);
+					}
+				}
+
+				// hash the edge to one of the best parts
+				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+				const edge_pair_type edge_pair(min(source, target),
+					max(source, target));
+				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
+
+				return best_part;
+		}// end of edge_to_part_weighted
+		void weighted_partition(basic_graph& graph, basic_graph::part_t nparts, size_t type = 0) {
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
+				// random assign
+				basic_graph::part_t assignment;
+				for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+					basic_graph::edge_type& e = *itr;
+					// greedy assign by specific type
+					basic_graph::part_t assignment;
+					assignment = edge_to_part_weighted(graph, e.source, e.target, graph.parts_counter, type);
+					assign_edge(graph, e, assignment);
+				}
+			}
+		}
+
+		// powergraph
 		basic_graph::part_t edge_to_part_powergraph(basic_graph& graph, 
 			const basic_graph::vertex_id_type source,
 			const basic_graph::vertex_id_type target,
