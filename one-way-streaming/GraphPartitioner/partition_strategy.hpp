@@ -285,7 +285,7 @@ namespace graphp {
 						weight = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
 					}
 					else if(type == 1) {
-						weight = 1 - 1.0 * part_num_edges[i] / maxedges;
+						weight = 1 - 1.0 * part_num_edges[i] / (epsilon + maxedges);
 					}
 					else {
 						weight = 1 - exp(1.0 * part_num_edges[i] - maxedges);
