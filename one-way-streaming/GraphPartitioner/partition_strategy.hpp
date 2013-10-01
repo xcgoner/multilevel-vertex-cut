@@ -251,7 +251,7 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 				// random assign
 				basic_graph::part_t assignment;
-				assignment = idx / C;
+				assignment = (idx / C) % nparts;
 				assign_edge(graph, e, assignment);
 			}
 		}
@@ -566,7 +566,7 @@ namespace graphp {
 					basic_graph::edge_type& e = graph.getEdge(eidx);
 					// assign edges
 					basic_graph::part_t assignment;
-					assignment = idx / C;
+					assignment = (idx / C) % nparts;
 					assign_edge(graph, e, assignment);
 					idx++;
 				}
