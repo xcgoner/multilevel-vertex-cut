@@ -313,14 +313,10 @@ namespace graphp {
 		void weighted_partition(basic_graph& graph, basic_graph::part_t nparts, size_t type = 0) {
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
-				// random assign
-				for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
-					basic_graph::edge_type& e = *itr;
-					// greedy assign by specific type
-					basic_graph::part_t assignment;
-					assignment = edge_to_part_weighted(graph, e.source, e.target, graph.parts_counter, type);
-					assign_edge(graph, e, assignment);
-				}
+				// greedy assign by specific type
+				basic_graph::part_t assignment;
+				assignment = edge_to_part_weighted(graph, e.source, e.target, graph.parts_counter, type);
+				assign_edge(graph, e, assignment);
 			}
 		}
 
