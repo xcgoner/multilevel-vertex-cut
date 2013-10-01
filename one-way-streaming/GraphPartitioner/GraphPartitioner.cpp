@@ -21,8 +21,9 @@ int main(int argc, char* argv[])
 		("file", po::value<string>(), "Set file path...")
 		("format", po::value<string>(), "Set file format...")
 		("nparts", po::value<string>(), "Set the number of partitions...")
-		("nthreads", po::value<string>(), "Set the number of threads...")
-		("strategy", po::value<string>(), "Set file partitioning strategy...")
+		("order", po::value<string>(), "Set the order of stream...")
+		("strategy", po::value<string>(), "Set the file partitioning strategy...")
+		("type", po::value<string>(), "Set the streaming type...")
 	;
 
 	po::variables_map vm;
@@ -48,15 +49,15 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	vector<size_t> nthreads;
-	if(vm.count("nthreads") > 0) {
-		nthreads.clear();
+	vector<string> orders;
+	if(vm.count("order") > 0) {
+		orders.clear();
 		typedef boost::tokenizer<boost::char_separator<char>> tokenizers;
 		boost::char_separator<char> sep(",");
-		tokenizers tok(vm["nthreads"].as<string>(), sep);
+		tokenizers tok(vm["order"].as<string>(), sep);
 		for(tokenizers::iterator beg=tok.begin(); beg!=tok.end(); ++beg){
 			//cout << *beg << endl;
-			nthreads.push_back(boost::lexical_cast<size_t>(*beg));
+			orders.push_back(*beg);
 		}
 	}
 
@@ -81,7 +82,7 @@ int main(int argc, char* argv[])
 	
 	graph.finalize();
 
-	graphp::partition_strategy::run_partition(graph, nparts, strategies);
+	graphp::partition_strategy::run_partition(graph, nparts, strategies, orders, vm["type"].as<string>());
 
 #ifdef WIN32
 	system("Pause");

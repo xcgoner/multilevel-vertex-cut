@@ -98,7 +98,7 @@ namespace graphp {
 			boost::dynamic_bitset<> mirror_list;
 
 			vertex_type() :
-			edge_begin(-1), edge_end(-1) { }
+			edge_begin(-1), edge_end(-1), degree(0) { }
 
 			bool isFree() const {
 				return (mirror_list.size() == 0);
@@ -122,6 +122,8 @@ namespace graphp {
 		typedef map<vertex_id_type, vertex_type> verts_map_type;
 		vector<vertex_type> verts;
 		boost::unordered_map<vertex_id_type, vertex_id_type> vid_to_lvid;
+
+		boost::dynamic_bitset<> vmap;
 
 		vector<edge_type> edges;
 		vector<edge_type>::iterator ebegin, eend;
@@ -188,6 +190,9 @@ namespace graphp {
 			clear_partition_counter();
 			clear_partition();
 			clear_mirrors();
+			foreach(vertex_type& v, verts) {
+				v.degree = 0;
+			}
 		}
 
 		vertex_type& getVert(vertex_id_type vid) {
@@ -228,7 +233,7 @@ namespace graphp {
 			// access the edges in random order
 			//random_shuffle(edges.begin(), edges.end());
 
-			boost::dynamic_bitset<> vmap(max_vid + 1);
+			vmap.resize(max_vid + 1);
 			for(vector<edge_type>::iterator itr = ebegin; itr != eend; ++itr) {
 				vmap[itr->source] = true;
 				vmap[itr->target] = true;
@@ -268,14 +273,16 @@ namespace graphp {
 					//verts[itr->source].edge_list.push_back(edgecount);
 					//verts[itr->source].degree++;
 					// use degree in streaming partitioning
-					getVert(e.source).degree++;
+					//deprecate in online setting: degree is not known ahead
+					//getVert(e.source).degree++;
 					//add_vertex(itr->target);
 					// not used in streaming partitioning
 					//verts[itr->target].nbr_list.push_back(itr->source);
 					//verts[itr->target].edge_list.push_back(edgecount);
 					//verts[itr->target].degree++;
 					// use degree in streaming partitioning
-					getVert(e.target).degree++;
+					//deprecate in online setting: degree is not known ahead
+					//getVert(e.target).degree++;
 
 					edgecount++;
 					if(saveEdges)
