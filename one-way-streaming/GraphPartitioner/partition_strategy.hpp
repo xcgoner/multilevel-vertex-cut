@@ -766,6 +766,7 @@ namespace graphp {
 
 				if(order == "random" && type == "edge") {
 					random_shuffle(graph.ebegin, graph.eend);
+					cout << "random shuffled ..." << endl;
 				}
 
 				for(size_t j = 0; j < strategies.size(); j++) {
