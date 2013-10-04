@@ -547,7 +547,10 @@ namespace graphp {
 					basic_graph::edge_type& e = graph.getEdge(eidx);
 					// assign edges
 					basic_graph::part_t assignment;
-					assignment = edgernd(gen) % (nparts);
+					typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+					const edge_pair_type edge_pair(min(e.source, e.target),
+						max(e.source, e.target));
+					assignment = edge_hashing(edge_pair) % (nparts);
 					assign_edge(graph, e, assignment);
 				}
 			}
@@ -764,7 +767,6 @@ namespace graphp {
 					vertex_reorder(graph, vertex_order, 1);
 				else if(order == "dfs" && type == "vertex")
 					vertex_reorder(graph, vertex_order, 2);
-				cout << vertex_order.size() << endl;
 
 				if(order == "random" && type == "edge") {
 					random_shuffle(graph.ebegin, graph.eend);
