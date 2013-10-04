@@ -547,10 +547,7 @@ namespace graphp {
 					basic_graph::edge_type& e = graph.getEdge(eidx);
 					// assign edges
 					basic_graph::part_t assignment;
-					typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-					const edge_pair_type edge_pair(min(e.source, e.target),
-						max(e.source, e.target));
-					assignment = edge_hashing(edge_pair) % (nparts);
+					assignment = edgernd(gen) % (nparts);
 					assign_edge(graph, e, assignment);
 				}
 			}
