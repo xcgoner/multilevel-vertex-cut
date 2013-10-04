@@ -757,12 +757,14 @@ namespace graphp {
 			//remember to clear the degree before each partitioning ...
 			for(size_t k = 0; k < orders.size(); k++) {
 				string order = orders[k];
-				if(order == "random" && type == "edge")
+				cout << order << endl;
+				if(order == "random" && type == "vertex")
 					vertex_reorder(graph, vertex_order, 0);
-				else if(order == "bfs")
+				else if(order == "bfs" && type == "vertex")
 					vertex_reorder(graph, vertex_order, 1);
-				else if(order == "dfs")
+				else if(order == "dfs" && type == "vertex")
 					vertex_reorder(graph, vertex_order, 2);
+				cout << vertex_order.size() << endl;
 
 				if(order == "random" && type == "edge") {
 					random_shuffle(graph.ebegin, graph.eend);
