@@ -377,8 +377,8 @@ namespace graphp {
 		basic_graph::part_t edge_to_part_degree(basic_graph& graph, 
 			const basic_graph::vertex_id_type source,
 			const basic_graph::vertex_id_type target,
-			size_t source_degree,
-			size_t target_degree,
+			const size_t source_degree,
+			const size_t target_degree,
 			const vector<size_t>& part_num_edges
 			) {
 				const size_t nparts = part_num_edges.size();
@@ -402,10 +402,10 @@ namespace graphp {
 				// use degree in streaming partitioning
 
 				// not to be zero
-				source_degree++; target_degree++;
-				double sum = source_degree + target_degree;
-				double s = target_degree / sum;
-				double t = source_degree / sum;
+				double e = 0.001;
+				double sum = source_degree + target_degree + e * 2;
+				double s = (target_degree + e) / sum;
+				double t = (source_degree + e) / sum;
 
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list[i];
