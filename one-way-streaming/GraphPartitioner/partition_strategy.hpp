@@ -404,8 +404,8 @@ namespace graphp {
 				// not to be zero
 				double e = 0.001;
 				double sum = source_degree + target_degree + e * 2;
-				double s = (target_degree + e) / sum + 0.5;
-				double t = (source_degree + e) / sum + 0.5;
+				double s = (target_degree + e) / sum + 1;
+				double t = (source_degree + e) / sum + 1;
 
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list[i];
