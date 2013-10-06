@@ -400,9 +400,10 @@ namespace graphp {
 				//double s = target_v.nbr_list.size() / sum + 1;
 				//double t = source_v.nbr_list.size() / sum + 1;
 				// use degree in streaming partitioning
+				source_degree++; target_degree++;
 				double sum = source_degree + target_degree;
-				double s = target_degree / sum + 1;
-				double t = source_degree / sum + 1;
+				double s = target_degree / sum;
+				double t = source_degree / sum;
 
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list[i];
