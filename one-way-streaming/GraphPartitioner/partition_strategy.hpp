@@ -572,14 +572,45 @@ namespace graphp {
 			}
 		}
 
+		basic_graph::part_t edge_to_part_balance(const vector<size_t>& part_num_edges) {
+				const size_t nparts = part_num_edges.size();
+
+				// compute the average of the parts
+				double average = accumulate(part_num_edges.begin(), part_num_edges.end(), 0) * 1.0 / nparts + 0.001;
+				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
+				double skewness = maxedges / average;
+
+				if(skewness > 1.2) {
+					size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
+
+					vector<basic_graph::part_t> top_parts;
+					for(size_t i = 0; i < nparts; ++i) {
+						if(abs((long)(part_num_edges[i] - minedges)) <= 1) {
+							top_parts.push_back(i);
+						}
+					}
+
+					// hash the edge to one of the parts with minimum edges
+					basic_graph::part_t best_part = top_parts[edgernd(gen) % top_parts.size()];
+
+					return best_part;
+				}
+				else 
+					return (nparts + 1);
+		}
+
 		void v_powergraph_partition(basic_graph& graph, basic_graph::part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
+			
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
 				basic_graph::vertex_type& v = graph.getVert(vid);
 				for(size_t eidx = v.edge_begin; eidx < v.edge_end; eidx++) {
 					basic_graph::edge_type& e = graph.getEdge(eidx);
 					// assign edges
+					// when imbalance factor is greater than 1, then use balanced assignment
 					basic_graph::part_t assignment;
-					assignment = edge_to_part_powergraph(graph, e.source, e.target, graph.parts_counter);
+					assignment = edge_to_part_balance(graph.parts_counter);
+					if(assignment == (nparts + 1))
+						assignment = edge_to_part_powergraph(graph, e.source, e.target, graph.parts_counter);
 					assign_edge(graph, e, assignment);
 				}
 			}
@@ -594,7 +625,9 @@ namespace graphp {
 					graph.getVert(e.target).degree++;
 					// assign edges
 					basic_graph::part_t assignment;
-					assignment = edge_to_part_degree(graph, e.source, e.target, graph.getVert(e.source).degree, graph.getVert(e.target).degree, graph.parts_counter);
+					assignment = edge_to_part_balance(graph.parts_counter);
+					if(assignment == (nparts + 1))
+						assignment = edge_to_part_degree(graph, e.source, e.target, graph.getVert(e.source).degree, graph.getVert(e.target).degree, graph.parts_counter);
 					assign_edge(graph, e, assignment);
 				}
 			}
