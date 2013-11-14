@@ -234,8 +234,8 @@ namespace graphp {
 				// random assign
 				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
 				part_t assignment;
-				//assignment = edge_hashing(edge_pair, hashing_seed) % (nparts);
-				assignment = edgernd(gen) % (nparts);
+				assignment = edge_hashing(edge_pair, hashing_seed) % (nparts);
+				//assignment = edgernd(gen) % (nparts);
 				assign_edge(graph, e, assignment);
 			}
 		}
@@ -280,6 +280,7 @@ namespace graphp {
 				const edge_pair_type edge_pair(min(source, target),
 					max(source, target));
 				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
+				//best_part = top_parts[edgernd(gen) % (top_parts.size())];
 
 				return best_part;
 		}
@@ -326,6 +327,7 @@ namespace graphp {
 				const edge_pair_type edge_pair(min(source, target),
 					max(source, target));
 				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
+				//best_part = top_parts[edgernd(gen) % (top_parts.size())];
 
 				return best_part;
 		}
@@ -391,6 +393,64 @@ namespace graphp {
 				const edge_pair_type edge_pair(min(source, target),
 					max(source, target));
 				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
+				//best_part = top_parts[edgernd(gen) % (top_parts.size())];
+
+				return best_part;
+		}
+
+		part_t edge_to_part_greedy2(basic_graph& graph, 
+			const basic_graph::vertex_id_type source,
+			const basic_graph::vertex_id_type target,
+			const vector<part_t>& candidates,
+			const vector<size_t>& part_num_edges,
+			bool usehash = false
+			) {
+				const size_t nparts = part_num_edges.size();
+
+				const basic_graph::vertex_type& source_v = graph.getVert(source);
+				const basic_graph::vertex_type& target_v = graph.getVert(target);
+
+				// compute the score of each part
+				part_t best_part = -1;
+				double maxscore = 0.0;
+				double epsilon = 1.0;
+				vector<double> part_score(candidates.size());
+				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
+				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
+
+				// greedy for degree
+				// nbr_list is not used in streaming partitioning
+				//double sum = source_v.nbr_list.size() + target_v.nbr_list.size();
+				//double s = target_v.nbr_list.size() / sum + 1;
+				//double t = source_v.nbr_list.size() / sum + 1;
+				// use degree in streaming partitioning
+				double sum = source_v.degree + target_v.degree;
+				double s = target_v.degree / sum + 1;
+				double t = source_v.degree / sum + 1;
+
+				for(size_t j = 0; j < candidates.size(); ++j) {
+					part_t i = candidates[j];
+					size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
+					size_t td = target_v.mirror_list[i] + (usehash && (target % nparts == i));
+					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+					part_score[i] = bal + ((sd > 0) * s + (td > 0) * t);
+				}
+
+				maxscore = *max_element(part_score.begin(), part_score.end());
+
+				vector<part_t> top_parts;
+				for(size_t j = 0; j < candidates.size(); ++j) {
+					if(fabs(part_score[j] - maxscore) < 1e-5) {
+						top_parts.push_back(candidates[j]);
+					}
+				}
+
+				// hash the edge to one of the best parts
+				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+				const edge_pair_type edge_pair(min(source, target),
+					max(source, target));
+				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
+				//best_part = top_parts[edgernd(gen) % (top_parts.size())];
 
 				return best_part;
 		}
@@ -463,7 +523,7 @@ namespace graphp {
 
 			omp_set_num_threads(NUM_THREADS);
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			const size_t file_block_size = 16 * 1024 * 1024 / 512;
+			const size_t file_block_size = 4 * 1024 * 1024 / 512;
 			for(size_t i = 0; i < nparts.size(); i++) {
 				// construct the subgraphs for partitioning
 				vector<size_t> thread_p(nthreads[i]);
