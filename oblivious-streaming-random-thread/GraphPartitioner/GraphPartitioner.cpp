@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 	vector<size_t> nthreads;
 	if(vm.count("nthreads") > 0) {
 		nthreads.clear();
-		typedef boost::tokenizer<boost::char_separator<char>> tokenizers;
+		typedef boost::tokenizer< boost::char_separator<char> > tokenizers;
 		boost::char_separator<char> sep(",");
 		tokenizers tok(vm["nthreads"].as<string>(), sep);
 		for(tokenizers::iterator beg=tok.begin(); beg!=tok.end(); ++beg){
