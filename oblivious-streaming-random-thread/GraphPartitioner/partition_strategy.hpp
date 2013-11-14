@@ -475,8 +475,8 @@ namespace graphp {
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end();)  {
 					part_t assignment;
 					//assignment = edge_counter % (nthreads[i]);
-					//assignment = edgernd(gen) % (nthreads[i]);
-					assignment = rand() % (nthreads[i]);
+					assignment = edgernd(gen) % (nthreads[i]);
+					//assignment = rand() % (nthreads[i]);
 					for(size_t idx = 0; idx < file_block_size && itr != graph.edges.end(); idx++, itr++) {
 						basic_graph::edge_type& e = *itr;
 						// random assign
