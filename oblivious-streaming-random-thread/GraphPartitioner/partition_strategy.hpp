@@ -234,8 +234,8 @@ namespace graphp {
 				// random assign
 				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
 				part_t assignment;
-				assignment = edge_hashing(edge_pair, hashing_seed) % (nparts);
-				//assignment = edgernd(gen) % (nparts)
+				//assignment = edge_hashing(edge_pair, hashing_seed) % (nparts);
+				assignment = edgernd(gen) % (nparts)
 				assign_edge(graph, e, assignment);
 			}
 		}
