@@ -463,7 +463,7 @@ namespace graphp {
 
 			omp_set_num_threads(NUM_THREADS);
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			const size_t file_block_size = 256;
+			const size_t file_block_size = 128;
 			for(size_t i = 0; i < nparts.size(); i++) {
 				// construct the subgraphs for partitioning
 				vector<size_t> thread_p(nthreads[i]);
@@ -509,9 +509,9 @@ namespace graphp {
 				}
 
 				// random inner shuffle
-				//for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
-				//	random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
-				//}
+				for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
+					random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
+				}
 
 				for(size_t j = 0; j < strategies.size(); j++) {
 					// select the strategy
