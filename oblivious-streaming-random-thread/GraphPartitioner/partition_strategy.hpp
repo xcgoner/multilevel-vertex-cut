@@ -51,7 +51,7 @@ namespace graphp {
 			return state;
 		  }
 
-		static basic_graph::part_t edge_hashing (const pair<vertex_id_type, vertex_id_type>& e, const uint32_t seed = 5) {
+		static part_t edge_hashing (const pair<vertex_id_type, vertex_id_type>& e, const uint32_t seed = 5) {
 			// a bunch of random numbers
 			#if (__SIZEOF_PTRDIFF_T__ == 8)
 			static const size_t a[8] = {0x6306AA9DFC13C8E7,
@@ -82,7 +82,7 @@ namespace graphp {
 		boost::random::mt19937 gen;
 		boost::random::uniform_int_distribution<> edgernd;
 
-		void assign_edge(basic_graph& graph, edge_id_type eid, basic_graph::part_t assignment) {
+		void assign_edge(basic_graph& graph, edge_id_type eid, part_t assignment) {
 			// assign edge
 			basic_graph::edge_type& e = graph.getEdge(eid);
 			e.placement = assignment;
@@ -94,7 +94,7 @@ namespace graphp {
 			source.mirror_list[assignment] = true;
 			target.mirror_list[assignment] = true;
 		}
-		void assign_edge(basic_graph& graph, basic_graph::edge_type& e, basic_graph::part_t assignment) {
+		void assign_edge(basic_graph& graph, basic_graph::edge_type& e, part_t assignment) {
 			// assign edge
 			e.placement = assignment;
 			graph.parts_counter[assignment]++;
@@ -106,7 +106,7 @@ namespace graphp {
 			target.mirror_list[assignment] = true;
 		}
 
-		void report_performance(const basic_graph& graph, basic_graph::part_t nparts) {
+		void report_performance(const basic_graph& graph, part_t nparts) {
 			// count the vertex-cut
 			size_t vertex_cut_counter = 0;
 
@@ -154,7 +154,7 @@ namespace graphp {
 			double imbalance;
 			double runtime;
 		};
-		void report_performance(const basic_graph& graph, basic_graph::part_t nparts, report_result& result) {
+		void report_performance(const basic_graph& graph, part_t nparts, report_result& result) {
 			// count the vertex-cut
 			size_t vertex_cut_counter = 0;
 
@@ -199,7 +199,7 @@ namespace graphp {
 				<< result.imbalance << endl;
 
 		} // end of report performance
-		void report_performance(const basic_graph& graph, basic_graph::part_t nparts, size_t vertex_cut_counter, report_result& result) {
+		void report_performance(const basic_graph& graph, part_t nparts, size_t vertex_cut_counter, report_result& result) {
 			// report
 			size_t max_parts = 0;
 			for(size_t i = 0; i < nparts; i++) {
@@ -227,20 +227,20 @@ namespace graphp {
 
 		} // end of report performance for the total vertex-cut is already summed up
 
-		void random_partition(basic_graph& graph, basic_graph::part_t nparts) {
+		void random_partition(basic_graph& graph, part_t nparts) {
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 				// random assign
 				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
-				basic_graph::part_t assignment;
+				part_t assignment;
 				assignment = edge_hashing(edge_pair, hashing_seed) % (nparts);
 				//assignment = edgernd(gen) % (nparts)
 				assign_edge(graph, e, assignment);
 			}
 		}
 
-		basic_graph::part_t edge_to_part_greedy(basic_graph& graph, 
+		part_t edge_to_part_greedy(basic_graph& graph, 
 			const basic_graph::vertex_id_type source,
 			const basic_graph::vertex_id_type target,
 			const vector<size_t>& part_num_edges,
@@ -252,7 +252,7 @@ namespace graphp {
 				const basic_graph::vertex_type& target_v = graph.getVert(target);
 
 				// compute the score of each part
-				basic_graph::part_t best_part = -1;
+				part_t best_part = -1;
 				double maxscore = 0.0;
 				double epsilon = 1.0;
 				vector<double> part_score(nparts);
@@ -268,7 +268,7 @@ namespace graphp {
 
 				maxscore = *max_element(part_score.begin(), part_score.end());
 
-				vector<basic_graph::part_t> top_parts;
+				vector<part_t> top_parts;
 				for(size_t i = 0; i < nparts; ++i) {
 					if(fabs(part_score[i] - maxscore) < 1e-5) {
 						top_parts.push_back(i);
@@ -284,10 +284,10 @@ namespace graphp {
 				return best_part;
 		}
 
-		basic_graph::part_t edge_to_part_greedy(basic_graph& graph, 
+		part_t edge_to_part_greedy(basic_graph& graph, 
 			const basic_graph::vertex_id_type source,
 			const basic_graph::vertex_id_type target,
-			const vector<basic_graph::part_t>& candidates,
+			const vector<part_t>& candidates,
 			const vector<size_t>& part_num_edges,
 			bool usehash = false
 			) {
@@ -297,7 +297,7 @@ namespace graphp {
 				const basic_graph::vertex_type& target_v = graph.getVert(target);
 
 				// compute the score of each part
-				basic_graph::part_t best_part = -1;
+				part_t best_part = -1;
 				double maxscore = 0.0;
 				double epsilon = 1.0;
 				vector<double> part_score(candidates.size());
@@ -305,7 +305,7 @@ namespace graphp {
 				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
 
 				for(size_t j = 0; j < candidates.size(); ++j) {
-					basic_graph::part_t i = candidates[j];
+					part_t i = candidates[j];
 					size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
 					size_t td = target_v.mirror_list[i] + (usehash && (target % nparts == i));
 					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
@@ -314,7 +314,7 @@ namespace graphp {
 
 				maxscore = *max_element(part_score.begin(), part_score.end());
 
-				vector<basic_graph::part_t> top_parts;
+				vector<part_t> top_parts;
 				for (size_t j = 0; j < candidates.size(); ++j) {
 					if(fabs(part_score[j] - maxscore) < 1e-5) {
 						top_parts.push_back(candidates[j]);
@@ -330,18 +330,18 @@ namespace graphp {
 				return best_part;
 		}
 
-		void greedy_partition(basic_graph& graph, basic_graph::part_t nparts) {
+		void greedy_partition(basic_graph& graph, part_t nparts) {
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 				// greedy assign
-				basic_graph::part_t assignment;
+				part_t assignment;
 				assignment = edge_to_part_greedy(graph, e.source, e.target, graph.parts_counter, false);
 				assign_edge(graph, e, assignment);
 				//cout << e.eid << " " << e.source << " " << e.target << " " << e.weight << " " << e.placement << endl;
 			}
 		}
 
-		basic_graph::part_t edge_to_part_greedy2(basic_graph& graph, 
+		part_t edge_to_part_greedy2(basic_graph& graph, 
 			const basic_graph::vertex_id_type source,
 			const basic_graph::vertex_id_type target,
 			const vector<size_t>& part_num_edges,
@@ -353,7 +353,7 @@ namespace graphp {
 				const basic_graph::vertex_type& target_v = graph.getVert(target);
 
 				// compute the score of each part
-				basic_graph::part_t best_part = -1;
+				part_t best_part = -1;
 				double maxscore = 0.0;
 				double epsilon = 1.0;
 				vector<double> part_score(nparts);
@@ -379,7 +379,7 @@ namespace graphp {
 
 				maxscore = *max_element(part_score.begin(), part_score.end());
 
-				vector<basic_graph::part_t> top_parts;
+				vector<part_t> top_parts;
 				for(size_t i = 0; i < nparts; ++i) {
 					if(fabs(part_score[i] - maxscore) < 1e-5) {
 						top_parts.push_back(i);
@@ -395,21 +395,21 @@ namespace graphp {
 				return best_part;
 		}
 
-		void greedy_partition2(basic_graph& graph, basic_graph::part_t nparts) {
+		void greedy_partition2(basic_graph& graph, part_t nparts) {
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 				// greedy assign
-				basic_graph::part_t assignment;
+				part_t assignment;
 				assignment = edge_to_part_greedy2(graph, e.source, e.target, graph.parts_counter, false);
 				assign_edge(graph, e, assignment);
 			}
 		}
 
-		void run_partition(basic_graph& graph, vector<basic_graph::part_t>& nparts, vector<string>& strategies) {
+		void run_partition(basic_graph& graph, vector<part_t>& nparts, vector<string>& strategies) {
 			vector<report_result> result_table(strategies.size() * nparts.size());
 			for(size_t j = 0; j < strategies.size(); j++) {
 				// select the strategy
-				void (*partition_func)(basic_graph& graph, basic_graph::part_t nparts);
+				void (*partition_func)(basic_graph& graph, part_t nparts);
 				string strategy = strategies[j];
 				if(strategy == "random")
 					partition_func = random_partition;
@@ -449,7 +449,7 @@ namespace graphp {
 			}
 		} // run partition in one thread
 
-		void run_partition(basic_graph& graph, vector<basic_graph::part_t>& nparts, vector<size_t>& nthreads, vector<string>& strategies) {
+		void run_partition(basic_graph& graph, vector<part_t>& nparts, vector<size_t>& nthreads, vector<string>& strategies) {
 			cout << endl;
 
 			vector<report_result> result_table(strategies.size() * nparts.size());
@@ -463,7 +463,7 @@ namespace graphp {
 
 			omp_set_num_threads(NUM_THREADS);
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			const size_t file_block_size = 128;
+			const size_t file_block_size = 64 * 1024 * 1024 / 512;
 			for(size_t i = 0; i < nparts.size(); i++) {
 				// construct the subgraphs for partitioning
 				vector<size_t> thread_p(nthreads[i]);
@@ -473,7 +473,7 @@ namespace graphp {
 
 				size_t edge_counter = 0;
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end();)  {
-					basic_graph::part_t assignment;
+					part_t assignment;
 					//assignment = edge_counter % (nthreads[i]);
 					//assignment = edgernd(gen) % (nthreads[i]);
 					assignment = rand() % (nthreads[i]);
@@ -509,13 +509,13 @@ namespace graphp {
 				}
 
 				// random inner shuffle
-				for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
-					random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
-				}
+				//for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
+				//	random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
+				//}
 
 				for(size_t j = 0; j < strategies.size(); j++) {
 					// select the strategy
-					void (*partition_func)(basic_graph& graph, basic_graph::part_t nparts);
+					void (*partition_func)(basic_graph& graph, part_t nparts);
 					string strategy = strategies[j];
 					if(strategy == "random")
 						partition_func = random_partition;

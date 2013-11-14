@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-	vector<graphp::basic_graph::part_t> nparts;
+	vector<graphp::part_t> nparts;
 	nparts.push_back(2);
 	if(vm.count("nparts") > 0) {
 		nparts.clear();

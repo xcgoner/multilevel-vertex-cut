@@ -26,6 +26,8 @@ namespace graphp {
   /// Identifier type of a vertex which is globally consistent. Guaranteed to be integral
   typedef uint32_t vertex_id_type;
   typedef uint32_t edge_id_type;
+
+  typedef unsigned short part_t;
   
   /**
    * \brief The set of edges that are traversed during gather and scatter

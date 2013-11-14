@@ -53,5 +53,11 @@
     <ClInclude Include="patoh.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="generate_pds.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="sharding_constraint.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
