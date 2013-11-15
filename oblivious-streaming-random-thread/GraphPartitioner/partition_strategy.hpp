@@ -588,9 +588,9 @@ namespace graphp {
 				}
 
 				// random inner shuffle
-				for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
-					random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
-				}
+				//for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
+				//	random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
+				//}
 
 				for(size_t j = 0; j < strategies.size(); j++) {
 					// select the strategy
