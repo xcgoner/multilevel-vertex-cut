@@ -52,7 +52,12 @@ namespace graphp {
 			return state;
 		  }
 
-		static part_t edge_hashing (const pair<vertex_id_type, vertex_id_type>& e, const uint32_t seed = 5) {
+		/** \brief Returns the hashed value of a vertex. */
+		inline static part_t hash_vertex (const vertex_id_type vid) { 
+			return mix(vid);
+		}
+
+		inline static part_t hash_edge (const pair<vertex_id_type, vertex_id_type>& e, const uint32_t seed = 5) {
 			// a bunch of random numbers
 			#if (__SIZEOF_PTRDIFF_T__ == 8)
 			static const size_t a[8] = {0x6306AA9DFC13C8E7,
@@ -235,22 +240,24 @@ namespace graphp {
 				// random assign
 				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
 				part_t assignment;
-				assignment = edge_hashing(edge_pair, hashing_seed) % (nparts);
+				assignment = hash_edge(edge_pair, hashing_seed) % (nparts);
 				//assignment = edgernd(gen) % (nparts);
 				assign_edge(graph, e, assignment);
 			}
 		}
 
-		void random_partition_constrained(basic_graph& graph, part_t nparts, const std::string& method) {
+		void random_partition_constrained(basic_graph& graph, part_t nparts/*, const std::string& method*/) {
 			sharding_constraint* constraint;
-			constraint = new sharding_constraint(nparts, method);
+			constraint = new sharding_constraint(nparts, /*method*/ "grid");
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 				// random assign
 				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
 				part_t assignment;
-				assignment = edge_hashing(edge_pair, hashing_seed) % (nparts);
+				const vector<part_t>& candidates = constraint->get_joint_neighbors(hash_vertex(e.source) % nparts,
+					hash_vertex(e.target) % nparts);
+				assignment = candidates[hash_edge(edge_pair) % (candidates.size())];
 				//assignment = edgernd(gen) % (nparts);
 				assign_edge(graph, e, assignment);
 			}
@@ -296,7 +303,7 @@ namespace graphp {
 				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 				const edge_pair_type edge_pair(min(source, target),
 					max(source, target));
-				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
+				best_part = top_parts[hash_edge(edge_pair) % top_parts.size()];
 				//best_part = top_parts[edgernd(gen) % (top_parts.size())];
 
 				return best_part;
@@ -343,7 +350,7 @@ namespace graphp {
 				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 				const edge_pair_type edge_pair(min(source, target),
 					max(source, target));
-				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
+				best_part = top_parts[hash_edge(edge_pair) % top_parts.size()];
 				//best_part = top_parts[edgernd(gen) % (top_parts.size())];
 
 				return best_part;
@@ -409,7 +416,7 @@ namespace graphp {
 				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 				const edge_pair_type edge_pair(min(source, target),
 					max(source, target));
-				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
+				best_part = top_parts[hash_edge(edge_pair) % top_parts.size()];
 				//best_part = top_parts[edgernd(gen) % (top_parts.size())];
 
 				return best_part;
@@ -466,7 +473,7 @@ namespace graphp {
 				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 				const edge_pair_type edge_pair(min(source, target),
 					max(source, target));
-				best_part = top_parts[edge_hashing(edge_pair) % top_parts.size()];
+				best_part = top_parts[hash_edge(edge_pair) % top_parts.size()];
 				//best_part = top_parts[edgernd(gen) % (top_parts.size())];
 
 				return best_part;
@@ -636,6 +643,8 @@ namespace graphp {
 					string strategy = strategies[j];
 					if(strategy == "random")
 						partition_func = random_partition;
+					else if(strategy == "randomc")
+						partition_func = random_partition_constrained;
 					else if(strategy == "greedy")
 						partition_func = greedy_partition;
 					else if(strategy == "degree")
