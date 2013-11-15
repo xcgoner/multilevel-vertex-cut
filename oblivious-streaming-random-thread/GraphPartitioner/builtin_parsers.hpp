@@ -151,6 +151,35 @@ namespace graphp {
     } // end of adj parser
 #endif
 
+	template <typename Graph>
+	bool adjc_parser(Graph& graph, const string& srcfilename,
+		const string& line) {
+			// If the line is empty simply skip it
+			if(line.empty()) return true;
+			// We use the boost spirit parser which requires (too) many separate
+			// namespaces so to make things clear we shorten them here.
+			namespace qi = boost::spirit::qi;
+			namespace ascii = boost::spirit::ascii;
+			namespace phoenix = boost::phoenix;
+			vertex_id_type source(-1);
+			vector<vertex_id_type> targets;
+			const bool success = qi::phrase_parse
+				(line.begin(), line.end(),       
+				//  Begin grammar
+				(
+				qi::ulong_[phoenix::ref(source) = qi::_1] >> -qi::char_(":") >>
+				*(qi::ulong_[phoenix::push_back(phoenix::ref(targets), qi::_1)] % -qi::char_(","))
+				)
+				,
+				//  End grammar
+				ascii::space); 
+			for(size_t i = 0; i < targets.size(); ++i) {
+				if(source != targets[i]) graph.add_edge_to_storage(source, targets[i]);
+				//cout << source << "," << targets[i] << endl;
+			}
+			return true;
+	} // end of adj parser
+
     template <typename Graph>
     struct tsv_writer{
       typedef typename Graph::vertex_type vertex_type;

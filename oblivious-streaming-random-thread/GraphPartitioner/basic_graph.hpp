@@ -295,6 +295,9 @@ namespace graphp {
 			} else if (format == "adj") {
 				line_parser = builtin_parsers::adj_parser<basic_graph>;
 				load_graph(path, line_parser);
+			} else if (format == "adjc") {
+				line_parser = builtin_parsers::adjc_parser<basic_graph>;
+				load_graph(path, line_parser);
 			} else if (format == "tsv") {
 				line_parser = builtin_parsers::tsv_parser<basic_graph>;
 				load_graph(path, line_parser);
