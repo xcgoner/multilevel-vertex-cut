@@ -54,14 +54,14 @@
 namespace graphp {
   class sharding_constraint {
     size_t nshards;
-    std::vector<std::vector<procid_t> > constraint_graph;
+    std::vector<std::vector<part_t> > constraint_graph;
 
-    std::vector<std::vector<std::vector<procid_t> > > joint_nbr_cache;
+    std::vector<std::vector<std::vector<part_t> > > joint_nbr_cache;
    public:
     /// Test if the provided num_shards can be used for grid construction: 
     //    n == nrow*ncol  && (abs(nrow-ncol) <= 2)
     static bool is_grid_compatible(size_t num_shards, int& nrow, int& ncol) {
-      double approx_sqrt = sqrt(num_shards);
+      double approx_sqrt = sqrt(num_shards*1.0);
       nrow = floor(approx_sqrt);
       for (ncol = nrow; ncol <= nrow + 2; ++ncol) {
         if (ncol * nrow == (int)num_shards) {
@@ -72,7 +72,7 @@ namespace graphp {
     }
 
     static bool is_pds_compatible(size_t num_shards, int& p) {
-      p = floor(sqrt(num_shards-1));
+      p = floor(sqrt(num_shards*1.0-1));
       return (p>0 && ((p*p+p+1) == (int)num_shards));
     }
 
@@ -99,17 +99,17 @@ namespace graphp {
       }
     }
 
-    bool get_neighbors (procid_t shard, std::vector<procid_t>& neighbors) {
+    bool get_neighbors (part_t shard, std::vector<part_t>& neighbors) {
       //ASSERT_LT(shard, nshards);
       neighbors.clear();
-      std::vector<procid_t>& ls = constraint_graph[shard];
+      std::vector<part_t>& ls = constraint_graph[shard];
       for (size_t i = 0; i < ls.size(); ++i)
         neighbors.push_back(ls[i]);
       return true;
     }
 
     
-    const std::vector<procid_t>& get_joint_neighbors (procid_t shardi, procid_t shardj) {
+    const std::vector<part_t>& get_joint_neighbors (part_t shardi, part_t shardj) {
       return joint_nbr_cache[shardi][shardj];
     }
 
@@ -121,7 +121,7 @@ namespace graphp {
       };
 
       for (size_t i = 0; i < nshards; i++) {
-        std::vector<procid_t> adjlist;
+        std::vector<part_t> adjlist;
         // add self
         adjlist.push_back(i);
 
@@ -153,7 +153,7 @@ namespace graphp {
         results = pds_generator.get_pds(p);
       }
       for (size_t i = 0; i < nshards; i++) {
-        std::vector<procid_t> adjlist;
+        std::vector<part_t> adjlist;
         for (size_t j = 0; j < results.size(); j++) {
           adjlist.push_back( (results[j] + i) % nshards);
         }
@@ -163,7 +163,7 @@ namespace graphp {
     }
 
 
-    bool compute_neighbors(procid_t shardi, procid_t shardj, std::vector<procid_t>& neighbors) {
+    bool compute_neighbors(part_t shardi, part_t shardj, std::vector<part_t>& neighbors) {
       //ASSERT_EQ(neighbors.size(), 0);
       //ASSERT_LT(shardi, nshards);
       //ASSERT_LT(shardj, nshards);
@@ -172,8 +172,8 @@ namespace graphp {
       //   return true;
       // }
 
-      std::vector<procid_t>& ls1 = constraint_graph[shardi];
-      std::vector<procid_t>& ls2 = constraint_graph[shardj];
+      std::vector<part_t>& ls1 = constraint_graph[shardi];
+      std::vector<part_t>& ls2 = constraint_graph[shardj];
       neighbors.clear();
       size_t i = 0;
       size_t j = 0;

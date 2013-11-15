@@ -25,6 +25,7 @@
 #include <boost/timer.hpp>
 #include "basic_graph.hpp"
 #include "util.hpp"
+//#include "sharding_constraint.hpp"
 
 #include <omp.h>
 
@@ -239,6 +240,20 @@ namespace graphp {
 				assign_edge(graph, e, assignment);
 			}
 		}
+
+		//void random_partition_constrained(basic_graph& graph, part_t nparts) {
+		//	sharding_constraint* constraint;
+		//	typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+		//	for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+		//		basic_graph::edge_type& e = *itr;
+		//		// random assign
+		//		const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
+		//		part_t assignment;
+		//		assignment = edge_hashing(edge_pair, hashing_seed) % (nparts);
+		//		//assignment = edgernd(gen) % (nparts);
+		//		assign_edge(graph, e, assignment);
+		//	}
+		//}
 
 		part_t edge_to_part_greedy(basic_graph& graph, 
 			const basic_graph::vertex_id_type source,
@@ -523,7 +538,7 @@ namespace graphp {
 
 			omp_set_num_threads(NUM_THREADS);
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			const size_t file_block_size = 4 * 1024 * 1024 / 512;
+			const size_t file_block_size = 4;
 			for(size_t i = 0; i < nparts.size(); i++) {
 				// construct the subgraphs for partitioning
 				vector<size_t> thread_p(nthreads[i]);
@@ -535,13 +550,13 @@ namespace graphp {
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end();)  {
 					part_t assignment;
 					//assignment = edge_counter % (nthreads[i]);
-					//assignment = edgernd(gen) % (nthreads[i]);
+					assignment = edgernd(gen) % (nthreads[i]);
 					//assignment = rand() % (nthreads[i]);
 					for(size_t idx = 0; idx < file_block_size && itr != graph.edges.end(); idx++, itr++) {
 						basic_graph::edge_type& e = *itr;
 						// random assign
 						//const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
-						assignment = edgernd(gen) % (nthreads[i]);
+						//assignment = edgernd(gen) % (nthreads[i]);
 						e.placement = assignment;
 						thread_p[assignment]++;
 						edge_counter++;
@@ -570,9 +585,9 @@ namespace graphp {
 				}
 
 				// random inner shuffle
-				//for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
-				//	random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
-				//}
+				for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
+					random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
+				}
 
 				for(size_t j = 0; j < strategies.size(); j++) {
 					// select the strategy
