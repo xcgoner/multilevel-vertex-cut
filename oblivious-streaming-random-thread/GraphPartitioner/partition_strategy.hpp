@@ -367,6 +367,23 @@ namespace graphp {
 			}
 		}
 
+		void greedy_partition_constrainted(basic_graph& graph, part_t nparts) {
+			sharding_constraint* constraint;
+			boost::hash<vertex_id_type> hashvid;
+			constraint = new sharding_constraint(nparts, "grid"); 
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
+				// greedy assign
+				part_t assignment;
+				const vector<part_t>& candidates = 
+					constraint->get_joint_neighbors(hashvid(e.source) % nparts, hashvid(e.target) % nparts);
+				assignment = edge_to_part_greedy(graph, e.source, e.target, candidates, graph.parts_counter, false);
+				assign_edge(graph, e, assignment);
+				//cout << e.eid << " " << e.source << " " << e.target << " " << e.weight << " " << e.placement << endl;
+			}
+			delete constraint;
+		}
+
 		part_t edge_to_part_greedy2(basic_graph& graph, 
 			const basic_graph::vertex_id_type source,
 			const basic_graph::vertex_id_type target,
@@ -489,6 +506,22 @@ namespace graphp {
 			}
 		}
 
+		void greedy_partition2_constrainted(basic_graph& graph, part_t nparts) {
+			sharding_constraint* constraint;
+			boost::hash<vertex_id_type> hashvid;
+			constraint = new sharding_constraint(nparts, "grid"); 
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
+				// greedy assign
+				part_t assignment;
+				const vector<part_t>& candidates = 
+					constraint->get_joint_neighbors(hashvid(e.source) % nparts, hashvid(e.target) % nparts);
+				assignment = edge_to_part_greedy2(graph, e.source, e.target, candidates, graph.parts_counter, false);
+				assign_edge(graph, e, assignment);
+			}
+			delete constraint;
+		}
+
 		void run_partition(basic_graph& graph, vector<part_t>& nparts, vector<string>& strategies) {
 			vector<report_result> result_table(strategies.size() * nparts.size());
 			for(size_t j = 0; j < strategies.size(); j++) {
@@ -548,7 +581,7 @@ namespace graphp {
 			omp_set_num_threads(NUM_THREADS);
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			cout << "nedges: " << graph.nedges << endl;
-			const size_t file_block_size = 34 * graph.nedges / 5100000;
+			const size_t file_block_size = 36 * graph.nedges / 5100000;
 			//const size_t file_block_size = 2;
 			for(size_t i = 0; i < nparts.size(); i++) {
 				// construct the subgraphs for partitioning
@@ -647,8 +680,12 @@ namespace graphp {
 						partition_func = random_partition_constrained;
 					else if(strategy == "greedy")
 						partition_func = greedy_partition;
+					else if(strategy == "greedyc")
+						partition_func = greedy_partition_constrainted;
 					else if(strategy == "degree")
 						partition_func = greedy_partition2;
+					else if(strategy == "degreec")
+						partition_func = greedy_partition2_constrainted;
 
 					vector<basic_graph> subgraphs(nthreads[i]);
 
