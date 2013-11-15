@@ -565,7 +565,6 @@ namespace graphp {
 						//const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
 						//assignment = edgernd(gen) % (nthreads[i]);
 						e.placement = assignment;
-						cout<< e.source << "," << e.target<<endl;
 						thread_p[assignment]++;
 						edge_counter++;
 					}
