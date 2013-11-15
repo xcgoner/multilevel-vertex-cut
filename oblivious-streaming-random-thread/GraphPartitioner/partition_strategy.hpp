@@ -534,13 +534,14 @@ namespace graphp {
 				size_t edge_counter = 0;
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end();)  {
 					part_t assignment;
-					assignment = edge_counter % (nthreads[i]);
+					//assignment = edge_counter % (nthreads[i]);
 					//assignment = edgernd(gen) % (nthreads[i]);
 					//assignment = rand() % (nthreads[i]);
 					for(size_t idx = 0; idx < file_block_size && itr != graph.edges.end(); idx++, itr++) {
 						basic_graph::edge_type& e = *itr;
 						// random assign
 						//const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
+						assignment = edgernd(gen) % (nthreads[i]);
 						e.placement = assignment;
 						thread_p[assignment]++;
 						edge_counter++;
@@ -569,9 +570,9 @@ namespace graphp {
 				}
 
 				// random inner shuffle
-				for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
-					random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
-				}
+				//for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
+				//	random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
+				//}
 
 				for(size_t j = 0; j < strategies.size(); j++) {
 					// select the strategy
