@@ -25,7 +25,7 @@
 #include <boost/timer.hpp>
 #include "basic_graph.hpp"
 #include "util.hpp"
-//#include "sharding_constraint.hpp"
+#include "sharding_constraint.hpp"
 
 #include <omp.h>
 
@@ -241,19 +241,21 @@ namespace graphp {
 			}
 		}
 
-		//void random_partition_constrained(basic_graph& graph, part_t nparts) {
-		//	sharding_constraint* constraint;
-		//	typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-		//	for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
-		//		basic_graph::edge_type& e = *itr;
-		//		// random assign
-		//		const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
-		//		part_t assignment;
-		//		assignment = edge_hashing(edge_pair, hashing_seed) % (nparts);
-		//		//assignment = edgernd(gen) % (nparts);
-		//		assign_edge(graph, e, assignment);
-		//	}
-		//}
+		void random_partition_constrained(basic_graph& graph, part_t nparts, const std::string& method) {
+			sharding_constraint* constraint;
+			constraint = new sharding_constraint(nparts, method);
+			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
+				// random assign
+				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
+				part_t assignment;
+				assignment = edge_hashing(edge_pair, hashing_seed) % (nparts);
+				//assignment = edgernd(gen) % (nparts);
+				assign_edge(graph, e, assignment);
+			}
+			delete constraint;
+		}
 
 		part_t edge_to_part_greedy(basic_graph& graph, 
 			const basic_graph::vertex_id_type source,
@@ -538,7 +540,7 @@ namespace graphp {
 
 			omp_set_num_threads(NUM_THREADS);
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			const size_t file_block_size = 6;
+			const size_t file_block_size = 16;
 			for(size_t i = 0; i < nparts.size(); i++) {
 				// construct the subgraphs for partitioning
 				vector<size_t> thread_p(nthreads[i]);
