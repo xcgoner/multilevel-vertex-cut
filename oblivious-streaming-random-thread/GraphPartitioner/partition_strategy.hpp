@@ -541,7 +541,7 @@ namespace graphp {
 			omp_set_num_threads(NUM_THREADS);
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			cout << "nedges: " << graph.nedges << endl;
-			const size_t file_block_size = 24 /** graph.nedges / 5100000*/;
+			const size_t file_block_size = 32 /** graph.nedges / 5100000*/;
 			//const size_t file_block_size = 2;
 			for(size_t i = 0; i < nparts.size(); i++) {
 				// construct the subgraphs for partitioning
