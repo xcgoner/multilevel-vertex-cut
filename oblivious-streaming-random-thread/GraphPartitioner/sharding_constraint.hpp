@@ -182,8 +182,12 @@ namespace graphp {
           neighbors.push_back(ls1[i]);
           ++i; ++j;
         } else if (ls1[i] < ls2[j]) {
+		// modified
+			neighbors.push_back(ls1[i]);
           ++i;
         } else {
+		// modified
+			neighbors.push_back(ls1[j]);
           ++j;
         }
       }
