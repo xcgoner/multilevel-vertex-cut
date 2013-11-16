@@ -112,6 +112,8 @@ namespace graphp {
 			target.mirror_list[assignment] = true;
 		}
 
+		size_t nedges, nverts;
+
 		void report_performance(const basic_graph& graph, part_t nparts) {
 			// count the vertex-cut
 			size_t vertex_cut_counter = 0;
@@ -526,7 +528,7 @@ namespace graphp {
 			sharding_constraint* constraint;
 			boost::hash<vertex_id_type> hashvid;
 			constraint = new sharding_constraint(nparts, "grid"); 
-			size_t threshold = graph.nedges * 4 / graph.nverts;
+			size_t threshold = nedges * 4 / nverts;
 			cout << "threshold: " << threshold << endl;
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
@@ -563,8 +565,6 @@ namespace graphp {
 					partition_func = greedy_partition2;
 				else if(strategy == "degreec")
 					partition_func = greedy_partition2_constrainted;
-				else if(strategy == "degreec1")
-					partition_func = greedy_partition2_constrainted1;
 
 				for(size_t i = 0; i < nparts.size(); i++) {
 					// initialize
@@ -606,6 +606,10 @@ namespace graphp {
 			//for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = graph.vid_to_lvid.begin(); itr != graph.vid_to_lvid.end(); ++itr) {
 			//	vmap[itr->first] = itr->second;
 			//}
+
+			// for degreec1
+			nedges = graph.nedges;
+			nverts = graph.nverts;
 
 			srand(time(0));
 
