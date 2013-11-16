@@ -539,6 +539,33 @@ namespace graphp {
 			delete constraint;
 		}
 
+		void greedy_partition2_constrainted1(basic_graph& graph, part_t nparts) {
+			sharding_constraint* constraint;
+			boost::hash<vertex_id_type> hashvid;
+			constraint = new sharding_constraint(nparts, "grid"); 
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
+				// greedy assign
+
+				part_t assignment1, assignment2;
+				// assign first
+				assignment1 = edge_to_part_greedy2(graph, e.source, e.target, graph.parts_counter, false);
+				// assign second
+				const vector<part_t>& candidates = 
+					constraint->get_joint_neighbors(hashvid(e.source) % nparts, hashvid(e.target) % nparts);
+				assignment2 = edge_to_part_greedy2(graph, e.source, e.target, candidates, graph.parts_counter, false);
+				const basic_graph::vertex_type& source_v = graph.getVert(e.source);
+				const basic_graph::vertex_type& target_v = graph.getVert(e.target);
+				size_t score1 = (size_t)(source_v.mirror_list[assignment1]) + (size_t)(target_v.mirror_list[assignment1]);
+				size_t score2 = (size_t)(source_v.mirror_list[assignment2]) + (size_t)(target_v.mirror_list[assignment2]);
+				if(score1 > score2)
+					assign_edge(graph, e, assignment1);
+				else
+					assign_edge(graph, e, assignment2);
+			}
+			delete constraint;
+		}
+
 		void run_partition(basic_graph& graph, vector<part_t>& nparts, vector<string>& strategies) {
 			vector<report_result> result_table(strategies.size() * nparts.size());
 			for(size_t j = 0; j < strategies.size(); j++) {
@@ -557,6 +584,8 @@ namespace graphp {
 					partition_func = greedy_partition2;
 				else if(strategy == "degreec")
 					partition_func = greedy_partition2_constrainted;
+				else if(strategy == "degreec1")
+					partition_func = greedy_partition2_constrainted1;
 
 				for(size_t i = 0; i < nparts.size(); i++) {
 					// initialize
