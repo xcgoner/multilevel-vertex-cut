@@ -541,7 +541,8 @@ namespace graphp {
 						constraint->get_joint_neighbors(hashvid(e.source) % nparts, hashvid(e.target) % nparts);
 					assignment = edge_to_part_greedy2(graph, e.source, e.target, candidates, graph.parts_counter, false);
 				}
-				assignment = edge_to_part_greedy2(graph, e.source, e.target, graph.parts_counter, false);
+				else
+					assignment = edge_to_part_greedy2(graph, e.source, e.target, graph.parts_counter, false);
 				assign_edge(graph, e, assignment);
 			}
 			delete constraint;
