@@ -536,7 +536,7 @@ namespace graphp {
 				const basic_graph::vertex_type& source_v = graph.getVert(e.source);
 				const basic_graph::vertex_type& target_v = graph.getVert(e.target);
 				part_t assignment;
-				if(source_v.degree < threshold && source_v.degree < threshold) {
+				if(!(source_v.degree < threshold && source_v.degree < threshold)) {
 					const vector<part_t>& candidates = 
 						constraint->get_joint_neighbors(hashvid(e.source) % nparts, hashvid(e.target) % nparts);
 					assignment = edge_to_part_greedy2(graph, e.source, e.target, candidates, graph.parts_counter, false);
