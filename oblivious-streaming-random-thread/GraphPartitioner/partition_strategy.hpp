@@ -518,7 +518,7 @@ namespace graphp {
 				assignment = edge_to_part_greedy2(graph, e.source, e.target, graph.parts_counter, false);
 				const basic_graph::vertex_type& source_v = graph.getVert(e.source);
 				const basic_graph::vertex_type& target_v = graph.getVert(e.target);
-				if(!(source_v.mirror_list[assignment] && target_v.mirror_list[assignment])) {
+				if(!(source_v.mirror_list[assignment] || target_v.mirror_list[assignment])) {
 					const vector<part_t>& candidates = 
 						constraint->get_joint_neighbors(hashvid(e.source) % nparts, hashvid(e.target) % nparts);
 					assignment = edge_to_part_greedy2(graph, e.source, e.target, candidates, graph.parts_counter, false);
