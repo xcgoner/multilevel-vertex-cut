@@ -509,7 +509,7 @@ namespace graphp {
 		void greedy_partition2_constrainted(basic_graph& graph, part_t nparts) {
 			sharding_constraint* constraint;
 			boost::hash<vertex_id_type> hashvid;
-			constraint = new sharding_constraint(nparts, "pds"); 
+			constraint = new sharding_constraint(nparts, "grid"); 
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 				// greedy assign
@@ -525,7 +525,7 @@ namespace graphp {
 		void greedy_partition2_constrainted1(basic_graph& graph, part_t nparts) {
 			sharding_constraint* constraint;
 			boost::hash<vertex_id_type> hashvid;
-			constraint = new sharding_constraint(nparts, "pds"); 
+			constraint = new sharding_constraint(nparts, "grid"); 
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 				// greedy assign
