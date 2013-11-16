@@ -177,22 +177,16 @@ namespace graphp {
       neighbors.clear();
       size_t i = 0;
       size_t j = 0;
-      //while (i < ls1.size() && j < ls2.size()) {
-      //  if (ls1[i] == ls2[j]) {
-      //    neighbors.push_back(ls1[i]);
-      //    ++i; ++j;
-      //  } else if (ls1[i] < ls2[j]) {
-      //    ++i;
-      //  } else {
-      //    ++j;
-      //  }
-      //}
-
-	  // modified
-	  part_t minshard = ls1[0] < ls2[0] ? ls1[0] : ls2[0];
-	  part_t maxshard = ls1[ls1.size()-1] > ls2[ls2.size()-1] ? ls1[ls1.size()-1] : ls2[ls2.size()-1];
-	  for(; minshard <= maxshard; minshard++)
-		  neighbors.push_back(minshard);
+      while (i < ls1.size() && j < ls2.size()) {
+        if (ls1[i] == ls2[j]) {
+          neighbors.push_back(ls1[i]);
+          ++i; ++j;
+        } else if (ls1[i] < ls2[j]) {
+          ++i;
+        } else {
+          ++j;
+        }
+      }
 
       return true;
     }
