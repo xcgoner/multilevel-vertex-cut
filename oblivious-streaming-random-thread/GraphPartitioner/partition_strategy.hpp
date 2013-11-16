@@ -513,21 +513,28 @@ namespace graphp {
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 				// greedy assign
-				part_t assignment1, assignment2;
-				// assign first
-				assignment1 = edge_to_part_greedy2(graph, e.source, e.target, graph.parts_counter, false);
-				// assign second
+
+				//part_t assignment1, assignment2;
+				//// assign first
+				//assignment1 = edge_to_part_greedy2(graph, e.source, e.target, graph.parts_counter, false);
+				//// assign second
+				//const vector<part_t>& candidates = 
+				//	constraint->get_joint_neighbors(hashvid(e.source) % nparts, hashvid(e.target) % nparts);
+				//assignment2 = edge_to_part_greedy2(graph, e.source, e.target, candidates, graph.parts_counter, false);
+				//const basic_graph::vertex_type& source_v = graph.getVert(e.source);
+				//const basic_graph::vertex_type& target_v = graph.getVert(e.target);
+				//size_t score1 = (size_t)(source_v.mirror_list[assignment1]) + (size_t)(target_v.mirror_list[assignment1]);
+				//size_t score2 = (size_t)(source_v.mirror_list[assignment2]) + (size_t)(target_v.mirror_list[assignment2]);
+				//if(score1 > score2)
+				//	assign_edge(graph, e, assignment1);
+				//else
+				//	assign_edge(graph, e, assignment2);
+
+				part_t assignment;
 				const vector<part_t>& candidates = 
 					constraint->get_joint_neighbors(hashvid(e.source) % nparts, hashvid(e.target) % nparts);
-				assignment2 = edge_to_part_greedy2(graph, e.source, e.target, candidates, graph.parts_counter, false);
-				const basic_graph::vertex_type& source_v = graph.getVert(e.source);
-				const basic_graph::vertex_type& target_v = graph.getVert(e.target);
-				size_t score1 = (size_t)(source_v.mirror_list[assignment1]) + (size_t)(target_v.mirror_list[assignment1]);
-				size_t score2 = (size_t)(source_v.mirror_list[assignment2]) + (size_t)(target_v.mirror_list[assignment2]);
-				if(score1 > score2)
-					assign_edge(graph, e, assignment1);
-				else
-					assign_edge(graph, e, assignment2);
+				assignment = edge_to_part_greedy2(graph, e.source, e.target, candidates, graph.parts_counter, false);
+				assign_edge(graph, e, assignment);
 			}
 			delete constraint;
 		}
@@ -540,10 +547,16 @@ namespace graphp {
 				string strategy = strategies[j];
 				if(strategy == "random")
 					partition_func = random_partition;
+				else if(strategy == "randomc")
+					partition_func = random_partition_constrained;
 				else if(strategy == "greedy")
 					partition_func = greedy_partition;
+				else if(strategy == "greedyc")
+					partition_func = greedy_partition_constrainted;
 				else if(strategy == "degree")
 					partition_func = greedy_partition2;
+				else if(strategy == "degreec")
+					partition_func = greedy_partition2_constrainted;
 
 				for(size_t i = 0; i < nparts.size(); i++) {
 					// initialize
