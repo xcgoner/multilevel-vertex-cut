@@ -721,6 +721,8 @@ namespace graphp {
 						partition_func = greedy_partition2;
 					else if(strategy == "degreec")
 						partition_func = greedy_partition2_constrainted;
+					else if(strategy == "degreec1")
+						partition_func = greedy_partition2_constrainted1;
 
 					vector<basic_graph> subgraphs(nthreads[i]);
 
