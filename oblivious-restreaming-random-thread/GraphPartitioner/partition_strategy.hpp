@@ -529,19 +529,18 @@ namespace graphp {
 			boost::hash<vertex_id_type> hashvid;
 			constraint = new sharding_constraint(nparts, "grid"); 
 			size_t threshold = nedges * 4 / nverts;
-			cout << "threshold: " << threshold << endl;
+			//cout << "threshold: " << threshold << endl;
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 				// greedy assign
 				const basic_graph::vertex_type& source_v = graph.getVert(e.source);
 				const basic_graph::vertex_type& target_v = graph.getVert(e.target);
 				part_t assignment;
-				if(source_v.degree > threshold || target_v.degree < threshold) {
+				if(source_v.degree > threshold || target_v.degree > threshold) {
 					// ignore the low degree
 					assignment = edge_to_part_greedy2(graph, e.source, e.target, graph.parts_counter, false);
+					assign_edge(graph, e, assignment);
 				}
-					
-				assign_edge(graph, e, assignment);
 			}
 			delete constraint;
 		}
@@ -595,6 +594,29 @@ namespace graphp {
 					<< endl;
 			}
 		} // run partition in one thread
+
+		void pre_partition(basic_graph& graph, part_t nparts) {
+			sharding_constraint* constraint;
+			constraint = new sharding_constraint(nparts, "grid");
+			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+			size_t threshold = nedges * 4 / nverts;
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
+				const basic_graph::vertex_type& source_v = graph.getVert(e.source);
+				const basic_graph::vertex_type& target_v = graph.getVert(e.target);
+				if(source_v.degree > threshold || target_v.degree > threshold) 
+					continue;
+				// random assign
+				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
+				part_t assignment;
+				const vector<part_t>& candidates = constraint->get_joint_neighbors(hash_vertex(e.source) % nparts,
+					hash_vertex(e.target) % nparts);
+				assignment = candidates[hash_edge(edge_pair) % (candidates.size())];
+				//assignment = edgernd(gen) % (nparts);
+				assign_edge(graph, e, assignment);
+			}
+			delete constraint;
+		}
 
 		void run_partition(basic_graph& graph, vector<part_t>& nparts, vector<size_t>& nthreads, vector<string>& strategies) {
 			cout << endl;
@@ -723,6 +745,9 @@ namespace graphp {
 					else if(strategy == "degreec1")
 						partition_func = greedy_partition2_constrainted1;
 
+					// pre partitioning
+					pre_partition(graph, nparts[i]);
+
 					vector<basic_graph> subgraphs(nthreads[i]);
 
 					cout << strategy << endl;
@@ -754,8 +779,14 @@ namespace graphp {
 							subgraphs[tid].max_vid = graph.max_vid;
 							subgraphs[tid].finalize(false);
 							subgraphs[tid].initialize(nparts[i]);
+
+							// initialize for re-partitioning
+							for(size_t pci = 0; pci < graph.parts_counter.size(); pci++)
+								subgraphs[tid].parts_counter[pci] = graph.parts_counter[pci];
+
 							for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = subgraphs[tid].vid_to_lvid.begin(); itr != subgraphs[tid].vid_to_lvid.end(); ++itr) {
 								subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
+								subgraphs[tid].getVert(itr->first).mirror_list = graph.getVert(itr->first).mirror_list;
 							}
 							partition_func(subgraphs[tid], nparts[i]);
 
