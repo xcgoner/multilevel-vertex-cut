@@ -746,7 +746,10 @@ namespace graphp {
 						partition_func = greedy_partition2_constrainted1;
 
 					// pre partitioning
+					cout << "pre-partitioning..." << endl;
+					graph.initialize(nparts[i]);
 					pre_partition(graph, nparts[i]);
+					cout << "pre-partitioning finished..." << endl;
 
 					vector<basic_graph> subgraphs(nthreads[i]);
 
