@@ -112,7 +112,7 @@ namespace graphp {
 			target.mirror_list[assignment] = true;
 		}
 
-		size_t nedges, nverts;
+		size_t threshold;
 
 		void report_performance(const basic_graph& graph, part_t nparts) {
 			// count the vertex-cut
@@ -528,7 +528,6 @@ namespace graphp {
 			sharding_constraint* constraint;
 			boost::hash<vertex_id_type> hashvid;
 			constraint = new sharding_constraint(nparts, "grid"); 
-			size_t threshold = nedges * 4 / nverts;
 			//cout << "threshold: " << threshold << endl;
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
@@ -599,7 +598,6 @@ namespace graphp {
 			sharding_constraint* constraint;
 			constraint = new sharding_constraint(nparts, "grid");
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			size_t threshold = nedges * 4 / nverts;
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 				const basic_graph::vertex_type& source_v = graph.getVert(e.source);
@@ -629,8 +627,7 @@ namespace graphp {
 			//}
 
 			// for degreec1
-			nedges = graph.nedges;
-			nverts = graph.nverts;
+			threshold = graph.nedges * 4 / graph.nverts;
 
 			srand(time(0));
 
