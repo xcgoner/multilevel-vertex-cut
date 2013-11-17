@@ -627,7 +627,7 @@ namespace graphp {
 			//}
 
 			// for degreec1
-			threshold = graph.nedges * 8 / graph.nverts;
+			threshold = graph.nedges * 10 / graph.nverts;
 
 			srand(time(0));
 
