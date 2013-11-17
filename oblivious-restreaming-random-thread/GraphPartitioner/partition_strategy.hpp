@@ -823,7 +823,7 @@ namespace graphp {
 		void run_partition(basic_graph& graph, vector<part_t>& nparts, vector<size_t>& nthreads, vector<string>& prestrategies, vector<string>& strategies) {
 			cout << endl;
 
-			vector<report_result> result_table(strategies.size() * nparts.size());
+			vector<report_result> result_table(prestrategies.size() * strategies.size() * nparts.size());
 
 			//vector<basic_graph::vertex_id_type> vmap(graph.max_vid + 1);
 			//for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = graph.vid_to_lvid.begin(); itr != graph.vid_to_lvid.end(); ++itr) {
@@ -1051,10 +1051,10 @@ namespace graphp {
 					//		graph.parts_counter[pid] += subgraphs[tid].parts_counter[pid];
 					//	}
 					//}
-
-					report_performance(graph, nparts[i], result_table[j * nparts.size() + i]);
+					
+					report_performance(graph, nparts[i], result_table[i*prestrategies.size()*strategies.size() + pres*strategies.size() + j]);
 					//report_performance(graph, nparts[i], vertex_cut_counter, result_table[j * nparts.size() + i]);
-					result_table[j * nparts.size() + i].runtime = runtime;
+					result_table[i*prestrategies.size()*strategies.size() + pres*strategies.size() + j].runtime = runtime;
 				}
 			}
 
