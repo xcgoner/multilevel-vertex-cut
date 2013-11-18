@@ -976,7 +976,7 @@ namespace graphp {
 					
 					report_performance(graph, nparts[i], result_table[i*prestrategies.size()*strategies.size() + pres*strategies.size() + j]);
 					//report_performance(graph, nparts[i], vertex_cut_counter, result_table[j * nparts.size() + i]);
-					result_table[i*prestrategies.size()*strategies.size() + pres*strategies.size() + j].runtime = runtime;
+					result_table[i*prestrategies.size()*strategies.size() + pres*strategies.size() + j].runtime = 0;
 				}
 			}
 			cout << endl;
