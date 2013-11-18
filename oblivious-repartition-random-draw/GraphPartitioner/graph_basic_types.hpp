@@ -27,7 +27,7 @@ namespace graphp {
   typedef uint32_t vertex_id_type;
   typedef uint32_t edge_id_type;
 
-  typedef size_t part_t;
+  typedef short part_t;
   
   /**
    * \brief The set of edges that are traversed during gather and scatter
