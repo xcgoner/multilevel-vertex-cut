@@ -979,7 +979,6 @@ namespace graphp {
 					result_table[i*prestrategies.size()*strategies.size() + pres*strategies.size() + j].runtime = runtime;
 				}
 			}
-			math.
 			cout << endl;
 			// report the table
 			foreach(const report_result& result, result_table) {
