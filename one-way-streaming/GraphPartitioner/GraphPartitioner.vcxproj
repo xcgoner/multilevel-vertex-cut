@@ -89,10 +89,12 @@
     <ClInclude Include="basic_graph.hpp" />
     <ClInclude Include="builtin_parsers.hpp" />
     <ClInclude Include="fs_util.hpp" />
+    <ClInclude Include="generate_pds.hpp" />
     <ClInclude Include="graph_basic_types.hpp" />
     <ClInclude Include="memory_info.hpp" />
     <ClInclude Include="partition_strategy.hpp" />
     <ClInclude Include="patoh.h" />
+    <ClInclude Include="sharding_constraint.hpp" />
     <ClInclude Include="util.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -66,8 +66,6 @@ namespace graphp {
 		typedef graphp::vertex_id_type vertex_id_type;
 		typedef graphp::edge_id_type edge_id_type;
 
-		typedef unsigned short part_t;
-
 		// list of vertices
 		typedef vector<vertex_id_type> vertex_list_type;
 
