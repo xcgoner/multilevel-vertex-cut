@@ -70,6 +70,8 @@ namespace graphp {
     };
     //nondet_generator global_nondet_rng;
 
+	static generator g;
+
 	generator& get_source() {
 		return g;
 	}
