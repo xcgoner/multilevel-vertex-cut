@@ -189,7 +189,7 @@ namespace graphp {
  * a timer object and it will print the number of seconds elapsed
  * since ti.start() was called.
  */
-std::ostream&  operator<<(std::ostream& out, const graphlab::timer& t);
+std::ostream&  operator<<(std::ostream& out, const graphp::timer& t);
 
 
 #endif

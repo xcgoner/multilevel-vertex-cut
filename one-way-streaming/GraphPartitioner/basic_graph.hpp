@@ -425,8 +425,8 @@ namespace graphp {
 							while (source == target_index) {
 								target_index = (target_index + HASH_OFFSET)  % nverts;
 							}
-							if(in_degree) add_edge(target_index, source);
-							else add_edge(source, target_index);
+							if(in_degree) this->add_edge_to_storage(target_index, source);
+							else this->add_edge_to_storage(source, target_index);
 						}
 						++addedvtx;
 						if (addedvtx % 10000000 == 0) {
