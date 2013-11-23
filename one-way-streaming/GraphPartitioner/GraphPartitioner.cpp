@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
 
 	if(vm.count("powerlaw") > 0) {
 		// true for in-degree
-		graph.load_synthetic_powerlaw(vm["powerlaw"].as<size_t>(), true, vm["alpha"].as<double>(), 100000000);
+		graph.load_synthetic_powerlaw(vm["powerlaw"].as<size_t>(), false, vm["alpha"].as<double>(), 100000000);
 	}
 	else if(vm.count("file") > 0 && vm.count("format") > 0) {
 		graph.load_format(vm["file"].as<string>(), vm["format"].as<string>());
