@@ -236,46 +236,6 @@ namespace graphp {
                                 uniform<Double>(0,1)) - cdf.begin();
         
       } // end of multinomial_cdf
-
-
-      /** 
-       * Construct a random permutation
-       */ 
-      template<typename T>
-      inline std::vector<T> permutation(const size_t nelems) { 
-        std::vector<T> perm(nelems);
-        for(T i = 0; i < nelems; ++i) perm[i] = i;
-        shuffle(perm);
-        return perm;
-      } // end of construct a permutation
-      
-      /** 
-       * Shuffle a standard vector
-       */ 
-      template<typename T>
-      void shuffle(std::vector<T>& vec) { shuffle(vec.begin(), vec.end()); }
-
-      /** 
-       * Shuffle a range using the begin and end iterators
-       */ 
-      template<typename Iterator>
-      void shuffle(Iterator begin, Iterator end) {
-        shuffle_functor functor(*this);
-        std::random_shuffle(begin, end, functor);
-      } // end of shuffle
-
-    private:
-      //////////////////////////////////////////////////////
-      /// Data members
-      struct shuffle_functor {
-        generator& gen;
-        inline shuffle_functor(generator& gen) : gen(gen) { }
-        inline std::ptrdiff_t operator()(std::ptrdiff_t end) {
-          return distributions::uniform<ptrdiff_t>::
-            sample(gen.real_rng, gen.fast_discrete_rng, 0, end-1);
-        }
-      };
-
       
       //! The real random number generator
       real_rng_type real_rng;
@@ -285,20 +245,6 @@ namespace graphp {
       fast_discrete_rng_type fast_discrete_rng;
       //! lock used to access local members  
     }; // end of class generator
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     /**
      * \ingroup random
