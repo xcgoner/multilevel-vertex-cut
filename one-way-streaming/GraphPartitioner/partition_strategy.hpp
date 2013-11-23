@@ -585,6 +585,22 @@ namespace graphp {
 			}
 		}
 
+		void v_random_partition_constrainted(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
+			foreach(basic_graph::vertex_id_type vid, vertex_order) {
+				basic_graph::vertex_type& v = graph.getVert(vid);
+				for(size_t eidx = v.edge_begin; eidx < v.edge_end; eidx++) {
+					basic_graph::edge_type& e = graph.getEdge(eidx);
+					// assign edges
+					const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
+					part_t assignment;
+					const vector<part_t>& candidates = constraint->get_joint_neighbors(hash_vertex(e.source) % nparts,
+						hash_vertex(e.target) % nparts);
+					assignment = candidates[hash_edge(edge_pair) % (candidates.size())];
+					assign_edge(graph, e, assignment);
+				}
+			}
+		}
+
 		void v_chunking_partition(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
 			const size_t C = 16;
 			size_t idx = 0;
@@ -888,6 +904,8 @@ namespace graphp {
 						string strategy = strategies[j];
 						if(strategy == "random")
 							partition_func = v_random_partition;
+						else if(strategy == "grid")
+							partition_func = v_random_partition_constrained;
 						if(strategy == "chunking")
 							partition_func = v_chunking_partition;
 						else if(strategy == "powergraph")
