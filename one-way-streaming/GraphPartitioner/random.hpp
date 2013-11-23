@@ -275,7 +275,10 @@ namespace graphp {
      * \ingroup random
      * Get the local generator
      */
-    generator& get_source();
+	generator g;
+    generator& get_source() {
+		return g;
+	}
 
     /**
      * \ingroup random
