@@ -843,7 +843,9 @@ namespace graphp {
 						string strategy = strategies[j];
 						if(strategy == "random")
 							partition_func = random_partition;
-						if(strategy == "chunking")
+						else if(strategy == "chunking")
+							partition_func = random_partition_constrained;
+						else if(strategy == "chunking")
 							partition_func = chunking_partition;
 						else if(strategy == "powergraph")
 							partition_func = powergraph_partition;
