@@ -378,36 +378,6 @@ namespace graphp {
       return get_source().multinomial_cdf(cdf);
     }
 
-
-
-    /** 
-     * \ingroup random
-     * Construct a random permutation
-     */ 
-    template<typename T>
-    inline std::vector<T> permutation(const size_t nelems) { 
-      return get_source().permutation<T>(nelems); 
-    }
-
-
-    /** 
-     * \ingroup random
-     * Shuffle a standard vector
-     */ 
-    template<typename T>
-    inline void shuffle(std::vector<T>& vec) { 
-      get_source().shuffle(vec); 
-    }
-   
-    /** 
-     * \ingroup random
-     * Shuffle a range using the begin and end iterators
-     */ 
-    template<typename Iterator>
-    inline void shuffle(Iterator begin, Iterator end) {
-      get_source().shuffle(begin, end);
-    }
-
     /**
      * Converts a discrete PDF into a CDF
      */
