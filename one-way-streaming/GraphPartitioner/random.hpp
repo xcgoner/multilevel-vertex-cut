@@ -21,8 +21,8 @@
  */
 
 
-#ifndef GRAPHLAB_RANDOM_HPP
-#define GRAPHLAB_RANDOM_HPP
+#ifndef GRAPH_PARTITIONER_RANDOM_HPP
+#define GRAPH_PARTITIONER_RANDOM_HPP
 
 #include <cstdlib>
 #include <stdint.h>
@@ -120,7 +120,7 @@ namespace graphp {
 
       //! Seed the generator using the current time in microseconds
       inline void time_seed() {
-        seed( graphlab::timer::usec_of_day() );
+        seed( graphp::timer::usec_of_day() );
       }
 
       //! Seed the random number generator based on a number
@@ -210,14 +210,11 @@ namespace graphp {
        */
       template<typename Double>
       size_t multinomial(const std::vector<Double>& prb) {
-        ASSERT_GT(prb.size(),0);
         if (prb.size() == 1) { return 0; }
         Double sum(0);
         for(size_t i = 0; i < prb.size(); ++i) {
-          ASSERT_GE(prb[i], 0); // Each entry must be P[i] >= 0
           sum += prb[i];
         }
-        ASSERT_GT(sum, 0); // Normalizer must be positive
         // actually draw the random number
         const Double rnd(uniform<Double>(0,1));
         size_t ind = 0;
@@ -473,7 +470,7 @@ namespace graphp {
 
     
   }; // end of random 
-}; // end of graphlab
+}; // end of graphp
 
 
 #endif

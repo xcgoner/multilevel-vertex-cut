@@ -21,8 +21,8 @@
  */
 
 
-#ifndef GRAPH_PARTITIONER__TIMER_HPP
-#define GRAPH_PARTITIONER__TIMER_HPP
+#ifndef GRAPH_PARTITIONER_TIMER_HPP
+#define GRAPH_PARTITIONER_TIMER_HPP
 
 #include <sys/time.h>
 #include <stdio.h>

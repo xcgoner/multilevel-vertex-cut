@@ -113,7 +113,7 @@ unsigned long long estimate_ticks_per_second() {
   if (rtdsc_ticks_per_sec == 0) {
       if (rtdsc_ticks_per_sec == 0) {
       unsigned long long tstart = rdtsc();
-      graphlab::timer::sleep(1);
+      graphp::timer::sleep(1);
       unsigned long long tend = rdtsc();
       rtdsc_ticks_per_sec = tend - tstart;
       }
