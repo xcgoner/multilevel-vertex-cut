@@ -84,6 +84,8 @@
     <ClCompile Include="fs_util.cpp" />
     <ClCompile Include="GraphPartitioner.cpp" />
     <ClCompile Include="memory_info.cpp" />
+    <ClCompile Include="random.cpp" />
+    <ClCompile Include="timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="basic_graph.hpp" />
@@ -94,7 +96,9 @@
     <ClInclude Include="memory_info.hpp" />
     <ClInclude Include="partition_strategy.hpp" />
     <ClInclude Include="patoh.h" />
+    <ClInclude Include="random.hpp" />
     <ClInclude Include="sharding_constraint.hpp" />
+    <ClInclude Include="timer.hpp" />
     <ClInclude Include="util.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

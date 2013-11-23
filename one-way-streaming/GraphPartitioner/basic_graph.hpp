@@ -31,6 +31,7 @@
 #include "builtin_parsers.hpp"
 #include "graph_basic_types.hpp"
 #include "util.hpp"
+#include "random.hpp"
 #include "fs_util.hpp"
 #include "memory_info.hpp"
 #include <boost/program_options.hpp>
@@ -402,6 +403,37 @@ namespace graphp {
 				}
 				return true;
 		} // end of load from stream
+
+		void load_synthetic_powerlaw(size_t nverts, bool in_degree = false,
+			double alpha = 2.1, size_t truncate = (size_t)(-1)) {
+				vector<double> prob(min(nverts, truncate), 0);
+				cerr << "constructing pdf" << std::endl;
+				for(size_t i = 0; i < prob.size(); ++i)
+					prob[i] = pow(double(i+1), -alpha);
+				cerr << "constructing cdf" << std::endl;
+				random::pdf2cdf(prob);
+				cerr << "Building graph" << std::endl;
+				size_t target_index = 0;
+				size_t addedvtx = 0;
+
+				// A large prime number
+				const size_t HASH_OFFSET = 2654435761;
+				for(size_t source = 0; source < nverts; source ++) {
+						const size_t out_degree = random::multinomial_cdf(prob) + 1;
+						for(size_t i = 0; i < out_degree; ++i) {
+							target_index = (target_index + HASH_OFFSET)  % nverts;
+							while (source == target_index) {
+								target_index = (target_index + HASH_OFFSET)  % nverts;
+							}
+							if(in_degree) add_edge(target_index, source);
+							else add_edge(source, target_index);
+						}
+						++addedvtx;
+						if (addedvtx % 10000000 == 0) {
+							cerr << addedvtx << " inserted\n";
+						}
+				}
+		} // end of load random powerlaw
 
 	}; // class graph_type
 } // namespace graphp
