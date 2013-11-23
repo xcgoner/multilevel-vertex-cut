@@ -586,6 +586,9 @@ namespace graphp {
 		}
 
 		void v_random_partition_constrainted(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
+			sharding_constraint* constraint;
+			constraint = new sharding_constraint(nparts, "grid");
+			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
 				basic_graph::vertex_type& v = graph.getVert(vid);
 				for(size_t eidx = v.edge_begin; eidx < v.edge_end; eidx++) {
@@ -905,7 +908,7 @@ namespace graphp {
 						if(strategy == "random")
 							partition_func = v_random_partition;
 						else if(strategy == "grid")
-							partition_func = v_random_partition_constrained;
+							partition_func = v_random_partition_constrainted;
 						if(strategy == "chunking")
 							partition_func = v_chunking_partition;
 						else if(strategy == "powergraph")
