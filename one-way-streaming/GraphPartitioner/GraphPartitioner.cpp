@@ -24,8 +24,8 @@ int main(int argc, char* argv[])
 		("order", po::value<string>(), "Set the order of stream...")
 		("strategy", po::value<string>(), "Set the file partitioning strategy...")
 		("type", po::value<string>(), "Set the streaming type...")
-		("powerlaw", po::value<string>(), "Generate a synthetic powerlaw graph...")
-		("alpha", po::value<string>(), "Set the paramater of powerlaw...")
+		("powerlaw", po::value<size_t>(), "Generate a synthetic powerlaw graph...")
+		("alpha", po::value<double>(), "Set the paramater of powerlaw...")
 	;
 
 	po::variables_map vm;
