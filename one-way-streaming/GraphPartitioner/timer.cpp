@@ -27,7 +27,7 @@
 
 #include "timer.hpp"
 
-std::ostream&  operator<<(std::ostream& out, const graphlab::timer& t) {
+std::ostream&  operator<<(std::ostream& out, const graphp::timer& t) {
   return out << t.current_time();
 } 
 
