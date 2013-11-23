@@ -70,6 +70,10 @@ namespace graphp {
     };
     //nondet_generator global_nondet_rng;
 
+	generator& get_source() {
+		return g;
+	}
+
     void pdf2cdf(std::vector<double>& pdf) {
       double Z = 0;
       for(size_t i = 0; i < pdf.size(); ++i) Z += pdf[i];
