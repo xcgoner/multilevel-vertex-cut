@@ -17,7 +17,7 @@ set(Boost_LIBRARIES
   ${BOOST_LIBS_DIR}/libboost_iostreams.a 
   ${BOOST_LIBS_DIR}/libboost_date_time.a)
 
-SET(SRC_LIST GraphPartitioner.cpp partition_strategy.hpp basic_graph.hpp builtin_parsers.hpp fs_util.cpp sharding_constraint.hpp graph_basic_types.hpp memory_info.cpp util.hpp generate_pds.hpp)
+SET(SRC_LIST GraphPartitioner.cpp partition_strategy.hpp basic_graph.hpp builtin_parsers.hpp fs_util.cpp sharding_constraint.hpp graph_basic_types.hpp memory_info.cpp util.hpp generate_pds.hpp random.cpp random.hpp timer.cpp timer.hpp)
 #SET(SRC_LIST GraphPartitioner.cpp basic_graph.hpp builtin_parsers.hpp graph_basic_types.hpp)
 ADD_EXECUTABLE(demo ${SRC_LIST})
 include_directories(/home/xcgoner/usr/include .)

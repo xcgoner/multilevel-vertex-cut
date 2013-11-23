@@ -35,7 +35,7 @@
 #include <boost/random.hpp>
 #include "timer.hpp"
 
-namespace graphlab {
+namespace graphp {
 
   /**
    * \ingroup random
