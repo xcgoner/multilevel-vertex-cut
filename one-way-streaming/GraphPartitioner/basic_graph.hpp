@@ -160,6 +160,7 @@ namespace graphp {
 		void add_edge_to_storage(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
 			edge_type e(source, target);
 			if(isReverse) {
+				//
 				e.source = target;
 				e.target = source;
 			}
