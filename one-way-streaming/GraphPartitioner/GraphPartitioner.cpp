@@ -27,6 +27,7 @@ int main(int argc, char* argv[])
 		("powerlaw", po::value<size_t>(), "Generate a synthetic powerlaw graph...")
 		("alpha", po::value<double>(), "Set the paramater of powerlaw...")
 		("indegree", po::value<string>(), "Set the paramater of powerlaw...")
+		("reverse", po::value<string>(), "Set the paramater of powerlaw...")
 	;
 
 	po::variables_map vm;
@@ -81,6 +82,8 @@ int main(int argc, char* argv[])
 
 	if(vm.count("indegree") > 0 && vm["indegree"].as<string>() == "true")
 		graph.isInDegree = true;
+	if(vm.count("reverse") > 0 && vm["reverse"].as<string>() == "true")
+		graph.isReverse = true;
 
 	if(vm.count("powerlaw") > 0) {
 		// true for in-degree

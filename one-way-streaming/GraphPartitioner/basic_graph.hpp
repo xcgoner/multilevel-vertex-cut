@@ -134,8 +134,10 @@ namespace graphp {
 
 		bool isInDegree;
 
+		bool isReverse;
+
 		// constructor
-		basic_graph() : nverts(0), nedges(0), max_vid(0), nparts(1),isInDegree(false) {
+		basic_graph() : nverts(0), nedges(0), max_vid(0), nparts(1), isInDegree(false), isReverse(false) {
 		}
 		// do not assign 0 to nparts, something bad will occur ...
 		basic_graph(size_t nparts) : nverts(0), nedges(0), max_vid(0), nparts(nparts) {
@@ -157,6 +159,10 @@ namespace graphp {
 
 		void add_edge_to_storage(const vertex_id_type& source, const vertex_id_type& target, const size_t& weight = 1, const part_t& placement = -1) {
 			edge_type e(source, target);
+			if(isReverse) {
+				e.source = target;
+				e.target = source;
+			}
 			if(source > max_vid)
 				max_vid = source;
 			if(target > max_vid)
