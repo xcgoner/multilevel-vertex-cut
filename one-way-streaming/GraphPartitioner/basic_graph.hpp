@@ -318,6 +318,12 @@ namespace graphp {
 			if (format == "snap") {
 				line_parser = builtin_parsers::snap_parser<basic_graph>;
 				load_graph(path, line_parser);
+			} else if (format == "snapr") {
+				line_parser = builtin_parsers::snapr_parser<basic_graph>;
+				load_graph(path, line_parser);
+			} else if (format == "adjc") {
+				line_parser = builtin_parsers::adjc_parser<basic_graph>;
+				load_graph(path, line_parser);
 			} else if (format == "adj") {
 				line_parser = builtin_parsers::adj_parser<basic_graph>;
 				load_graph(path, line_parser);
