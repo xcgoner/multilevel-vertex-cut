@@ -667,10 +667,12 @@ namespace graphp {
 		void v_degree_partition(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
 				basic_graph::vertex_type& v = graph.getVert(vid);
-				v.degree += (v.edge_end - v.edge_begin);
+				if(!graph.isInDegree)
+					v.degree += (v.edge_end - v.edge_begin);
 				for(size_t eidx = v.edge_begin; eidx < v.edge_end; eidx++) {
 					basic_graph::edge_type& e = graph.getEdge(eidx);
-					graph.getVert(e.target).degree++;
+					if(graph.isInDegree)
+						graph.getVert(e.target).degree++;
 					// assign edges
 					part_t assignment;
 					assignment = edge_to_part_balance(graph.parts_counter);
