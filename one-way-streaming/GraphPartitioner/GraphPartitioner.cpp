@@ -26,6 +26,7 @@ int main(int argc, char* argv[])
 		("type", po::value<string>(), "Set the streaming type...")
 		("powerlaw", po::value<size_t>(), "Generate a synthetic powerlaw graph...")
 		("alpha", po::value<double>(), "Set the paramater of powerlaw...")
+		("indegree", po::value<string>(), "Set the paramater of powerlaw...")
 	;
 
 	po::variables_map vm;
@@ -78,9 +79,12 @@ int main(int argc, char* argv[])
 
 	graphp::basic_graph graph;
 
+	if(vm.count("indegree") > 0 && vm["indegree"].as<string>() == "true")
+		graph.isInDegree = true;
+
 	if(vm.count("powerlaw") > 0) {
 		// true for in-degree
-		graph.load_synthetic_powerlaw(vm["powerlaw"].as<size_t>(), false, vm["alpha"].as<double>(), 100000000);
+		graph.load_synthetic_powerlaw(vm["powerlaw"].as<size_t>(), true, vm["alpha"].as<double>(), 100000000);
 	}
 	else if(vm.count("file") > 0 && vm.count("format") > 0) {
 		graph.load_format(vm["file"].as<string>(), vm["format"].as<string>());

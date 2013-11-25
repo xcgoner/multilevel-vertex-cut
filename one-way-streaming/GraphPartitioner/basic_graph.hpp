@@ -132,8 +132,10 @@ namespace graphp {
 
 		//deque<edge_type>& edges = edges_storage;
 
+		bool isInDegree;
+
 		// constructor
-		basic_graph() : nverts(0), nedges(0), max_vid(0), nparts(1) {
+		basic_graph() : nverts(0), nedges(0), max_vid(0), nparts(1),isInDegree(false) {
 		}
 		// do not assign 0 to nparts, something bad will occur ...
 		basic_graph(size_t nparts) : nverts(0), nedges(0), max_vid(0), nparts(nparts) {
@@ -210,13 +212,46 @@ namespace graphp {
 
 			boost::timer ti;
 
+			vmap.resize(max_vid + 1);
+			for(deque<edge_type>::iterator itr = edges_storage.begin(); itr != edges_storage.end(); ++itr) {
+				vmap[itr->source] = true;
+				vmap[itr->target] = true;
+			}
+			nverts = vmap.count();
+			verts.resize(nverts);
+			for(size_t vid = vmap.find_first(), idx = 0; vid != vmap.npos; vid = vmap.find_next(vid), idx++) {
+				vid_to_lvid.insert(pair<vertex_id_type, vertex_id_type>(vid, idx));
+				verts[idx].degree = 0;
+				verts[idx].mirror_list.resize(nparts);
+			}
+
 			if(saveEdges) {
 				edges.resize(edges_storage.size());
 				size_t edges_idx = 0;
-				for(deque<edge_type>::iterator itr = edges_storage.begin(); itr != edges_storage.end(); ++itr) {
-					edges[edges_idx++] = (*itr);
-					//cout << itr->source << ", " << itr->target << endl;
+
+				if(isInDegree) {
+					// rearrange for synthetic in-degree powerlaw ...
+					cerr << "Extra process for in-degree powerlaw graphs ..." << endl;
+					vector< vector<size_t> > pos(nverts);
+					size_t eidx = 0;
+					for(deque<edge_type>::iterator itr = edges_storage.begin(); itr != edges_storage.end(); ++itr) {
+						pos[vid_to_lvid[itr->source]].push_back(eidx);
+						eidx++;
+					}
+					for(size_t i = 0; i < pos.size(); i++) {
+						vector<size_t>& pos_ele = pos[i];
+						for(size_t j = 0; j < pos_ele.size(); j++) {
+							edges[edges_idx++] = edges_storage[pos_ele[j]];
+						}
+					}
 				}
+				else {
+					for(deque<edge_type>::iterator itr = edges_storage.begin(); itr != edges_storage.end(); ++itr) {
+						edges[edges_idx++] = (*itr);
+						//cout << itr->source << ", " << itr->target << endl;
+					}
+				}
+
 				// release the memory
 				edges_storage.clear();
 				// access the edges in random order
@@ -232,19 +267,6 @@ namespace graphp {
 
 			// access the edges in random order
 			//random_shuffle(edges.begin(), edges.end());
-
-			vmap.resize(max_vid + 1);
-			for(vector<edge_type>::iterator itr = ebegin; itr != eend; ++itr) {
-				vmap[itr->source] = true;
-				vmap[itr->target] = true;
-			}
-			nverts = vmap.count();
-			verts.resize(nverts);
-			for(size_t vid = vmap.find_first(), idx = 0; vid != vmap.npos; vid = vmap.find_next(vid), idx++) {
-				vid_to_lvid.insert(pair<vertex_id_type, vertex_id_type>(vid, idx));
-				verts[idx].degree = 0;
-				verts[idx].mirror_list.resize(nparts);
-			}
 
 			if(saveEdges) {
 				size_t edgecount = 0;
