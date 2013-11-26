@@ -136,8 +136,10 @@ namespace graphp {
 
 		bool isReverse;
 
+		bool rearrange;
+
 		// constructor
-		basic_graph() : nverts(0), nedges(0), max_vid(0), nparts(1), isInDegree(false), isReverse(false) {
+		basic_graph() : nverts(0), nedges(0), max_vid(0), nparts(1), isInDegree(false), isReverse(false), rearrange(false) {
 		}
 		// do not assign 0 to nparts, something bad will occur ...
 		basic_graph(size_t nparts) : nverts(0), nedges(0), max_vid(0), nparts(nparts) {
@@ -236,7 +238,7 @@ namespace graphp {
 				edges.resize(edges_storage.size());
 				size_t edges_idx = 0;
 
-				if(isInDegree) {
+				if(rearrange) {
 					// rearrange for synthetic in-degree powerlaw ...
 					cerr << "Extra process for in-degree powerlaw graphs ..." << endl;
 					vector< vector<size_t> > pos(nverts);

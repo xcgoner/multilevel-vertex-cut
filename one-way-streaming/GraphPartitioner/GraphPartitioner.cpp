@@ -28,6 +28,7 @@ int main(int argc, char* argv[])
 		("alpha", po::value<double>(), "Set the paramater of powerlaw...")
 		("indegree", po::value<string>(), "Set the paramater of powerlaw...")
 		("reverse", po::value<string>(), "Set the paramater of powerlaw...")
+		("rearrange", po::value<string>(), "Rearrange the edges by their source...")
 	;
 
 	po::variables_map vm;
@@ -84,6 +85,8 @@ int main(int argc, char* argv[])
 		graph.isInDegree = true;
 	if(vm.count("reverse") > 0 && vm["reverse"].as<string>() == "true")
 		graph.isReverse = true;
+	if(vm.count("rearrange") > 0 && vm["rearrange"].as<string>() == "true")
+		graph.rearrange = true;
 
 	if(vm.count("powerlaw") > 0) {
 		// true for in-degree
