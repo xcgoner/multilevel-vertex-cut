@@ -631,6 +631,10 @@ namespace graphp {
 
 		void run_prepartition(basic_graph& graph, part_t nparts, size_t nthreads, string strategy) {
 
+			foreach(basic_graph::vertex_type& v, graph.verts) {
+				v.degree = v.out_degree;
+			}
+
 			omp_set_num_threads(NUM_THREADS);
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			const size_t file_block_size = 36 * graph.nedges / 5100000;
@@ -795,6 +799,10 @@ namespace graphp {
 			// assign back to the origin graph
 			graph.initialize(nparts);
 
+			foreach(basic_graph::vertex_type& v, graph.verts) {
+				v.degree = v.in_degree;
+			}
+
 			// do assignment in single thread
 			// note: use edges_p
 			for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
@@ -832,7 +840,7 @@ namespace graphp {
 			//}
 
 			// for degreec1
-			threshold = graph.nedges * 8 / graph.nverts;
+			threshold = graph.nedges * 4 / graph.nverts;
 
 			srand(time(0));
 
@@ -949,30 +957,88 @@ namespace graphp {
 					// pre partitioning by multithread
 					run_prepartition(graph, nparts[i], nthreads[i], prestrategies[pres]);
 
+					vector<basic_graph> subgraphs(nthreads[i]);
 
-					// do assignment in single thread
-					partition_func(graph, nparts[i], false);
+					cout << strategy << endl;
+					size_t nt = NUM_THREADS;
+					cout << "using " << nt << " threads..." << endl;
 
-					// do assignment in multi-threads
-					//vector<size_t> vertex_cut_counters(nthreads[i]);
+					// initialize each subgraph
+					for(size_t ptid = 0; ptid <= nthreads[i] / nt; ptid++) {
+						size_t tbegin = nt * ptid;
+						size_t tend = nt * (ptid + 1);
+						if(tbegin >= nthreads[i])
+							break;
+						if(tend >= nthreads[i])
+							tend = nthreads[i];
+						cout << "threads " << tbegin << " to " << tend - 1 << endl;
+						size_t tl = tend - tbegin;
+#pragma omp parallel for
+						for(size_t tt = 0; tt < tl; tt++) {
+							size_t tid = tbegin + tt;
+							size_t begin = pp[tid];
+							size_t end = thread_p[tid];
+							if(tid == nthreads[i] - 1)
+								end = graph.nedges;
+							subgraphs[tid].ebegin = graph.ebegin + begin;
+							subgraphs[tid].eend = graph.ebegin + end;
+
+							// do not let finalize to save edges
+							subgraphs[tid].nparts = nparts[i];
+							subgraphs[tid].max_vid = graph.max_vid;
+							subgraphs[tid].finalize(false);
+							subgraphs[tid].initialize(nparts[i]);
+
+							// initialize for re-partitioning
+							for(size_t pci = 0; pci < graph.parts_counter.size(); pci++)
+								subgraphs[tid].parts_counter[pci] = graph.parts_counter[pci];
+
+							for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = subgraphs[tid].vid_to_lvid.begin(); itr != subgraphs[tid].vid_to_lvid.end(); ++itr) {
+								subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
+								subgraphs[tid].getVert(itr->first).mirror_list = graph.getVert(itr->first).mirror_list;
+							}
+							// re-partitioning
+							partition_func(subgraphs[tid], nparts[i], false);
+
+							// clear memory
+							vector<basic_graph::vertex_type>().swap(subgraphs[tid].verts);
+							boost::unordered_map<basic_graph::vertex_id_type, basic_graph::vertex_id_type>().swap(subgraphs[tid].vid_to_lvid);
+						}
+					}
+
+					//boost::timer ti;
+					double runtime = 0;
+					//runtime = omp_get_wtime();
+
 					//#pragma omp parallel for
 					//for(size_t tid = 0; tid < nthreads[i]; tid++) {
-					//	vertex_cut_counters[tid] = 0;
-					//	foreach(basic_graph::vertex_type& v, subgraphs[tid].verts) {
-					//		if(v.mirror_list.count() > 0)
-					//			vertex_cut_counters[tid] += (v.mirror_list.count() - 1);
-					//	}
+					//	partition_func(subgraphs[tid], nparts[i]);
 					//}
-					//size_t vertex_cut_counter = 0;
-					//for(size_t tid = 0; tid < nthreads[i]; tid++)
-					//	vertex_cut_counter += vertex_cut_counters[tid];
-					//omp_set_num_threads(nparts[i]);
-					//#pragma omp parallel for
-					//for(size_t pid = 0; pid < nparts[i]; pid++) {
-					//	for(size_t tid = 0; tid < nthreads[i]; tid++) {
-					//		graph.parts_counter[pid] += subgraphs[tid].parts_counter[pid];
-					//	}
-					//}
+
+					//runtime = ti.elapsed();
+					//runtime = omp_get_wtime() - runtime;
+					//cout << "Time elapsed: " << runtime << endl;
+
+					// assign back to the origin graph
+					graph.initialize(nparts[i]);
+
+					// do assignment in single thread
+					// note: use edges_p
+					for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
+						basic_graph::edge_type& e = *itr;
+						//assign_edge(graph, e, e.placement);
+
+						// assign edge
+						graph.parts_counter[e.placement]++;
+
+						// assign vertex
+						//basic_graph::vertex_type& source = graph.verts[vmap[e.source]];
+						//basic_graph::vertex_type& target = graph.verts[vmap[e.target]];
+						basic_graph::vertex_type& source = graph.getVert(e.source);
+						basic_graph::vertex_type& target = graph.getVert(e.target);
+						source.mirror_list[e.placement] = true;
+						target.mirror_list[e.placement] = true;
+					}
 					
 					report_performance(graph, nparts[i], result_table[i*prestrategies.size()*strategies.size() + pres*strategies.size() + j]);
 					//report_performance(graph, nparts[i], vertex_cut_counter, result_table[j * nparts.size() + i]);

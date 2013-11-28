@@ -89,6 +89,8 @@ namespace graphp {
 
 			// use degree in streaming partitioning
 			size_t degree;
+			size_t in_degree;
+			size_t out_degree;
 
 			boost::dynamic_bitset<> mirror_list;
 
@@ -231,6 +233,8 @@ namespace graphp {
 			for(size_t vid = vmap.find_first(), idx = 0; vid != vmap.npos; vid = vmap.find_next(vid), idx++) {
 				vid_to_lvid.insert(pair<vertex_id_type, vertex_id_type>(vid, idx));
 				verts[idx].degree = 0;
+				verts[idx].in_degree = 0;
+				verts[idx].out_degree = 0;
 				verts[idx].mirror_list.resize(nparts);
 			}
 
@@ -249,6 +253,7 @@ namespace graphp {
 				//verts[itr->source].degree++;
 				// use degree in streaming partitioning
 				getVert(itr->source).degree++;
+				getVert(itr->source).out_degree++;
 				//add_vertex(itr->target);
 				// not used in streaming partitioning
 				//verts[itr->target].nbr_list.push_back(itr->source);
@@ -256,6 +261,7 @@ namespace graphp {
 				//verts[itr->target].degree++;
 				// use degree in streaming partitioning
 				getVert(itr->target).degree++;
+				getVert(itr->source).in_degree++;
 
 				edgecount++;
 				if(saveEdges)
