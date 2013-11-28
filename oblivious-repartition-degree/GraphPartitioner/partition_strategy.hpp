@@ -592,7 +592,7 @@ namespace graphp {
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
 					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-					part_score[i] = bal + (sd > 0);
+					part_score[i] = bal + (sd > 0) * 2;
 				}
 
 				maxscore = *max_element(part_score.begin(), part_score.end());
