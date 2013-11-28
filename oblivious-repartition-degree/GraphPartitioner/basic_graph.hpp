@@ -267,7 +267,7 @@ namespace graphp {
 				//verts[itr->target].degree++;
 				// use degree in streaming partitioning
 				getVert(itr->target).degree++;
-				getVert(itr->source).in_degree++;
+				getVert(itr->target).in_degree++;
 
 				edgecount++;
 				if(saveEdges)
