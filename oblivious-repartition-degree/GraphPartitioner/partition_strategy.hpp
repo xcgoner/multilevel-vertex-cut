@@ -243,8 +243,10 @@ namespace graphp {
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 
-				// filter pre and re -streaming
-				if(isPre && isHigh(e) || !isPre && !isHigh(e))
+				//// filter pre and re -streaming
+				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
+				//	continue;
+				if(!isPre && !isHigh(e))
 					continue;
 
 				// random assign
@@ -263,8 +265,10 @@ namespace graphp {
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 
-				// filter pre and re -streaming
-				if(isPre && isHigh(e) || !isPre && !isHigh(e))
+				//// filter pre and re -streaming
+				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
+				//	continue;
+				if(!isPre && !isHigh(e))
 					continue;
 
 				// random assign
@@ -375,8 +379,10 @@ namespace graphp {
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 
-				// filter pre and re -streaming
-				if(isPre && isHigh(e) || !isPre && !isHigh(e))
+				//// filter pre and re -streaming
+				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
+				//	continue;
+				if(!isPre && !isHigh(e))
 					continue;
 
 				// greedy assign
@@ -394,8 +400,10 @@ namespace graphp {
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 
-				// filter pre and re -streaming
-				if(isPre && isHigh(e) || !isPre && !isHigh(e))
+				//// filter pre and re -streaming
+				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
+				//	continue;
+				if(!isPre && !isHigh(e))
 					continue;
 
 				// greedy assign
@@ -525,8 +533,10 @@ namespace graphp {
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 
-				// filter pre and re -streaming
-				if(isPre && isHigh(e) || !isPre && !isHigh(e))
+				//// filter pre and re -streaming
+				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
+				//	continue;
+				if(!isPre && !isHigh(e))
 					continue;
 
 				// greedy assign
@@ -543,8 +553,10 @@ namespace graphp {
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 
-				// filter pre and re -streaming
-				if(isPre && isHigh(e) || !isPre && !isHigh(e))
+				//// filter pre and re -streaming
+				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
+				//	continue;
+				if(!isPre && !isHigh(e))
 					continue;
 
 				// greedy assign
@@ -555,6 +567,67 @@ namespace graphp {
 				assign_edge(graph, e, assignment);
 			}
 			delete constraint;
+		}
+
+		part_t edge_to_part_indegree(basic_graph& graph, 
+			const basic_graph::vertex_id_type source,
+			const basic_graph::vertex_id_type target,
+			const vector<size_t>& part_num_edges,
+			bool usehash = false
+			) {
+				const size_t nparts = part_num_edges.size();
+
+				const basic_graph::vertex_type& source_v = graph.getVert(source);
+				const basic_graph::vertex_type& target_v = graph.getVert(target);
+
+				// compute the score of each part
+				part_t best_part = -1;
+				double maxscore = 0.0;
+				double epsilon = 1.0;
+				vector<double> part_score(nparts);
+				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
+				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
+
+				// greedy for degree
+				for(size_t i = 0; i < nparts; ++i) {
+					size_t sd = source_v.mirror_list[i] + (usehash && (source % nparts == i));
+					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+					part_score[i] = bal + (sd > 0);
+				}
+
+				maxscore = *max_element(part_score.begin(), part_score.end());
+
+				vector<part_t> top_parts;
+				for(size_t i = 0; i < nparts; ++i) {
+					if(fabs(part_score[i] - maxscore) < 1e-5) {
+						top_parts.push_back(i);
+					}
+				}
+
+				// hash the edge to one of the best parts
+				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+				const edge_pair_type edge_pair(min(source, target),
+					max(source, target));
+				best_part = top_parts[hash_edge(edge_pair) % top_parts.size()];
+				//best_part = top_parts[edgernd(gen) % (top_parts.size())];
+
+				return best_part;
+		}
+		void indegree_partition(basic_graph& graph, part_t nparts, bool isPre) {
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
+
+				//// filter pre and re -streaming
+				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
+				//	continue;
+				if(!isPre && !isHigh(e))
+					continue;
+
+				// greedy assign
+				part_t assignment;
+				assignment = edge_to_part_indegree(graph, e.source, e.target, graph.parts_counter, false);
+				assign_edge(graph, e, assignment);
+			}
 		}
 
 		// deprecated for a while ...
@@ -953,6 +1026,8 @@ namespace graphp {
 						partition_func = greedy_partition2;
 					else if(strategy == "degreec")
 						partition_func = greedy_partition2_constrainted;
+					else if(strategy == "indegree")
+						partition_func = indegree_partition;
 
 					// pre partitioning by multithread
 					run_prepartition(graph, nparts[i], nthreads[i], prestrategies[pres]);

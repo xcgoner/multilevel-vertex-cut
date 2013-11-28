@@ -24,6 +24,7 @@ int main(int argc, char* argv[])
 		("nthreads", po::value<string>(), "Set the number of threads...")
 		("strategy", po::value<string>(), "Set file partitioning strategy...")
 		("prestrategy", po::value<string>(), "Set file pre-partitioning strategy...")
+		("reverse", po::value<string>(), "Set the paramater of powerlaw...")
 	;
 
 	po::variables_map vm;
@@ -88,6 +89,9 @@ int main(int argc, char* argv[])
 	}
 
 	graphp::basic_graph graph;
+
+	if(vm.count("reverse") > 0 && vm["reverse"].as<string>() == "true")
+		graph.isReverse = true;
 
 	if(vm.count("file") > 0 && vm.count("format") > 0) {
 		graph.load_format(vm["file"].as<string>(), vm["format"].as<string>());
