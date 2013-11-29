@@ -236,7 +236,7 @@ namespace graphp {
 
 		} // end of report performance for the total vertex-cut is already summed up
 
-		#define isHigh(e) (graph.getVert(e.target).degree > threshold)
+		#define isHigh(e) (graph.getVert(e.target).degree > threshold || graph.getVert(e.target).degree > threshold)
 
 		void random_partition(basic_graph& graph, part_t nparts, bool isPre) {
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
@@ -244,10 +244,10 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 
 				//// filter pre and re -streaming
-				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
-				//	continue;
-				if(!isPre && !isHigh(e))
+				if(isPre && isHigh(e) || !isPre && !isHigh(e))
 					continue;
+				//if(!isPre && !isHigh(e))
+				//	continue;
 
 				// random assign
 				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
@@ -266,10 +266,10 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 
 				//// filter pre and re -streaming
-				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
-				//	continue;
-				if(!isPre && !isHigh(e))
+				if(isPre && isHigh(e) || !isPre && !isHigh(e))
 					continue;
+				//if(!isPre && !isHigh(e))
+				//	continue;
 
 				// random assign
 				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
@@ -380,10 +380,10 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 
 				//// filter pre and re -streaming
-				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
-				//	continue;
-				if(!isPre && !isHigh(e))
+				if(isPre && isHigh(e) || !isPre && !isHigh(e))
 					continue;
+				//if(!isPre && !isHigh(e))
+				//	continue;
 
 				// greedy assign
 				part_t assignment;
@@ -401,10 +401,10 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 
 				//// filter pre and re -streaming
-				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
-				//	continue;
-				if(!isPre && !isHigh(e))
+				if(isPre && isHigh(e) || !isPre && !isHigh(e))
 					continue;
+				//if(!isPre && !isHigh(e))
+				//	continue;
 
 				// greedy assign
 				part_t assignment;
@@ -534,10 +534,10 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 
 				//// filter pre and re -streaming
-				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
-				//	continue;
-				if(!isPre && !isHigh(e))
+				if(isPre && isHigh(e) || !isPre && !isHigh(e))
 					continue;
+				//if(!isPre && !isHigh(e))
+				//	continue;
 
 				// greedy assign
 				part_t assignment;
@@ -554,10 +554,10 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 
 				//// filter pre and re -streaming
-				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
-				//	continue;
-				if(!isPre && !isHigh(e))
+				if(isPre && isHigh(e) || !isPre && !isHigh(e))
 					continue;
+				//if(!isPre && !isHigh(e))
+				//	continue;
 
 				// greedy assign
 				part_t assignment;
@@ -618,88 +618,16 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 
 				//// filter pre and re -streaming
-				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
-				//	continue;
-				if(!isPre && !isHigh(e))
+				if(isPre && isHigh(e) || !isPre && !isHigh(e))
 					continue;
+				//if(!isPre && !isHigh(e))
+				//	continue;
 
 				// greedy assign
 				part_t assignment;
 				assignment = edge_to_part_indegree(graph, e.source, e.target, graph.parts_counter, false);
 				assign_edge(graph, e, assignment);
 			}
-		}
-
-		// deprecated for a while ...
-		//void run_partition(basic_graph& graph, vector<part_t>& nparts, vector<string>& strategies) {
-		//	vector<report_result> result_table(strategies.size() * nparts.size());
-		//	for(size_t j = 0; j < strategies.size(); j++) {
-		//		// select the strategy
-		//		void (*partition_func)(basic_graph& graph, part_t nparts);
-		//		string strategy = strategies[j];
-		//		if(strategy == "random")
-		//			partition_func = random_partition;
-		//		else if(strategy == "randomc")
-		//			partition_func = random_partition_constrained;
-		//		else if(strategy == "greedy")
-		//			partition_func = greedy_partition;
-		//		else if(strategy == "greedyc")
-		//			partition_func = greedy_partition_constrainted;
-		//		else if(strategy == "degree")
-		//			partition_func = greedy_partition2;
-		//		else if(strategy == "degreec")
-		//			partition_func = greedy_partition2_constrainted;
-
-		//		for(size_t i = 0; i < nparts.size(); i++) {
-		//			// initialize
-		//			graph.initialize(nparts[i]);
-
-		//			cout << endl << strategy << endl;
-
-		//			boost::timer ti;
-		//			double runtime;
-
-		//			partition_func(graph, nparts[i]);
-
-		//			runtime = ti.elapsed();
-		//			cout << "Time elapsed: " << runtime << endl;
-
-		//			report_performance(graph, nparts[i], result_table[j * nparts.size() + i]);
-		//			result_table[j * nparts.size() + i].runtime = runtime;
-		//		}
-		//	}
-
-		//	cout << endl;
-		//	// report the table
-		//	foreach(const report_result& result, result_table) {
-		//		cout << result.nparts << " " 
-		//			<< result.vertex_cut_counter << " " 
-		//			<< result.replica_factor << " " 
-		//			<< result.imbalance << " " 
-		//			<< result.runtime 
-		//			<< endl;
-		//	}
-		//} // run partition in one thread
-
-
-		void pre_partition(basic_graph& graph, part_t nparts) {
-			sharding_constraint* constraint;
-			constraint = new sharding_constraint(nparts, "grid");
-			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
-				basic_graph::edge_type& e = *itr;
-				if(graph.getVert(e.source).degree > threshold || graph.getVert(e.target).degree > threshold) 
-					continue;
-				// random assign
-				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
-				part_t assignment;
-				const vector<part_t>& candidates = constraint->get_joint_neighbors(hash_vertex(e.source) % nparts,
-					hash_vertex(e.target) % nparts);
-				assignment = candidates[hash_edge(edge_pair) % (candidates.size())];
-				//assignment = edgernd(gen) % (nparts);
-				assign_edge(graph, e, assignment);
-			}
-			delete constraint;
 		}
 
 		void run_prepartition(basic_graph& graph, part_t nparts, size_t nthreads, string strategy) {
@@ -710,8 +638,6 @@ namespace graphp {
 
 			omp_set_num_threads(NUM_THREADS);
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			const size_t file_block_size = 36 * graph.nedges / 5100000;
-			//const size_t file_block_size = 2;
 
 			// construct the subgraphs for partitioning
 			vector<size_t> thread_p(nthreads);
@@ -720,70 +646,28 @@ namespace graphp {
 			}
 
 			size_t edge_counter = 0;
-			// random chunk
-			vector<size_t> eindex;
-			for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end();)  {
+			for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
+				basic_graph::edge_type& e = *itr;
+				// random assign
+				//const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
 				part_t assignment;
-				//assignment = edge_counter % (nthreads[i]);
-				assignment = edgernd(gen) % (nthreads);
-				//assignment = rand() % (nthreads[i]);
-				eindex.push_back(edge_counter);
-				for(size_t idx = 0; idx < file_block_size && itr != graph.edges.end(); idx++, itr++) {
-					basic_graph::edge_type& e = *itr;
-					// random assign
-					//const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
-					//assignment = edgernd(gen) % (nthreads[i]);
-					e.placement = assignment;
-					thread_p[assignment]++;
-					edge_counter++;
-				}
+				assignment = edge_counter % (nthreads);
+				e.placement = assignment;
+				thread_p[assignment]++;
+				edge_counter++;
 			}
-			// push the end
-			eindex.push_back(edge_counter);
-
-			// warning
-			if(edge_counter != graph.nedges)
-				cerr << "edge_counter != graph.nedges" << endl;
-
-			// shuffle the chunks
-			vector<size_t> idx_eindex;
-			for(size_t idx = 0; idx < eindex.size(); idx++) {
-				idx_eindex.push_back(idx);
-			}
-			random_shuffle(idx_eindex.begin(), idx_eindex.end());
 
 			vector<size_t> pp(nthreads);
 			pp[0] = 0;
 			for(size_t idx_p = 1; idx_p < nthreads; idx_p++) {
 				pp[idx_p] = thread_p[idx_p - 1] + pp[idx_p - 1];
 			}
-
-			// place the chunks
-			// alternative0
-			edge_counter = 0;
-			foreach(size_t ei, idx_eindex) {
-				if(ei == eindex.size() - 1)
-					continue;
-				for(size_t idx = eindex[ei]; idx < eindex[ei+1]; idx++) {
-					basic_graph::edge_type& e = graph.edges[idx];
-					size_t t = e.placement;
-					graph.edges_p[pp[t]] = e;
-					pp[t]++;
-					edge_counter++;
-				}
+			for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
+				basic_graph::edge_type& e = *itr;
+				size_t t = e.placement;
+				graph.edges_p[pp[t]] = e;
+				pp[t]++;
 			}
-			// warning
-			if(edge_counter != graph.nedges)
-				cerr << "edge_counter != graph.nedges" << endl;
-			// alternative1
-			//for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
-			//	basic_graph::edge_type& e = *itr;
-			//	size_t t = e.placement;
-			//	graph.edges_p[pp[t]] = e;
-			//	pp[t]++;
-			//}
-
-
 			graph.ebegin = graph.edges_p.begin();
 			graph.eend = graph.edges_p.end();
 			pp[0] = 0;
