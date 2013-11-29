@@ -766,12 +766,8 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 				//assign_edge(graph, e, e.placement);
 
-				// filter pre
-				if(isHigh(e))
-					continue;
-
 				// assign edge
-				graph.parts_counter[e.placement]++;
+				//graph.parts_counter[e.placement]++;
 
 				// assign vertex
 				//basic_graph::vertex_type& source = graph.verts[vmap[e.source]];
@@ -779,6 +775,9 @@ namespace graphp {
 				basic_graph::vertex_type& source = graph.getVert(e.source);
 				basic_graph::vertex_type& target = graph.getVert(e.target);
 				source.mirror_list[e.placement] = true;
+				// filter pre
+				if(isHigh(e))
+					continue;
 				target.mirror_list[e.placement] = true;
 			}
 
