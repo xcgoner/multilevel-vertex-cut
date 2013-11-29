@@ -280,10 +280,12 @@ namespace graphp {
 			// release the memory
 			//edges_storage.clear();
 
-			cout << "Nodes: " << nverts << " Edges: " << nedges <<endl;
-			//memory_info::print_usage();
+			if(saveEdges) {
+				cout << "Nodes: " << nverts << " Edges: " << nedges <<endl;
+				//memory_info::print_usage();
 
-			cout << "finalized" << endl;
+				cout << "finalized" << endl;
+			}
 		}
 
 		//// some utilities

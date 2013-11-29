@@ -633,7 +633,7 @@ namespace graphp {
 		void run_prepartition(basic_graph& graph, part_t nparts, size_t nthreads, string strategy) {
 
 			foreach(basic_graph::vertex_type& v, graph.verts) {
-				v.degree = v.in_degree;
+				v.degree = v.out_degree;
 			}
 
 			omp_set_num_threads(NUM_THREADS);
@@ -756,15 +756,19 @@ namespace graphp {
 			// assign back to the origin graph
 			graph.initialize(nparts);
 
-			//foreach(basic_graph::vertex_type& v, graph.verts) {
-			//	v.degree = v.in_degree;
-			//}
+			foreach(basic_graph::vertex_type& v, graph.verts) {
+				v.degree = v.in_degree;
+			}
 
 			// do assignment in single thread
 			// note: use edges_p
 			for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
 				basic_graph::edge_type& e = *itr;
 				//assign_edge(graph, e, e.placement);
+
+				// filter pre
+				if(isHigh(e))
+					continue;
 
 				// assign edge
 				//graph.parts_counter[e.placement]++;
@@ -775,9 +779,6 @@ namespace graphp {
 				basic_graph::vertex_type& source = graph.getVert(e.source);
 				basic_graph::vertex_type& target = graph.getVert(e.target);
 				source.mirror_list[e.placement] = true;
-				// filter pre
-				if(isHigh(e))
-					continue;
 				target.mirror_list[e.placement] = true;
 			}
 
@@ -814,42 +815,6 @@ namespace graphp {
 				}
 
 				size_t edge_counter = 0;
-				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
-					basic_graph::edge_type& e = *itr;
-					// random assign
-					//const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
-					part_t assignment;
-					assignment = edge_counter % (nthreads[i]);
-					e.placement = assignment;
-					thread_p[assignment]++;
-					edge_counter++;
-				}
-
-				vector<size_t> pp(nthreads[i]);
-				pp[0] = 0;
-				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
-					pp[idx_p] = thread_p[idx_p - 1] + pp[idx_p - 1];
-				}
-				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
-					basic_graph::edge_type& e = *itr;
-					size_t t = e.placement;
-					graph.edges_p[pp[t]] = e;
-					pp[t]++;
-				}
-				graph.ebegin = graph.edges_p.begin();
-				graph.eend = graph.edges_p.end();
-				pp[0] = 0;
-				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
-					pp[idx_p] = thread_p[idx_p - 1] + pp[idx_p - 1];
-				}
-				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
-					thread_p[idx_p] = thread_p[idx_p] + thread_p[idx_p - 1];
-				}
-
-				// random inner shuffle
-				//for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
-				//	random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
-				//}
 
 				for(size_t pres = 0; pres < prestrategies.size(); pres++)
 				for(size_t j = 0; j < strategies.size(); j++) {
@@ -873,6 +838,39 @@ namespace graphp {
 
 					// pre partitioning by multithread
 					run_prepartition(graph, nparts[i], nthreads[i], prestrategies[pres]);
+
+					//construct the subgraphs
+					for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
+						basic_graph::edge_type& e = *itr;
+						// random assign
+						//const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
+						part_t assignment;
+						assignment = hash_vertex(e.target) % nparts[i];
+						e.placement = assignment;
+						thread_p[assignment]++;
+						edge_counter++;
+					}
+
+					vector<size_t> pp(nthreads[i]);
+					pp[0] = 0;
+					for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
+						pp[idx_p] = thread_p[idx_p - 1] + pp[idx_p - 1];
+					}
+					for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
+						basic_graph::edge_type& e = *itr;
+						size_t t = e.placement;
+						graph.edges_p[pp[t]] = e;
+						pp[t]++;
+					}
+					graph.ebegin = graph.edges_p.begin();
+					graph.eend = graph.edges_p.end();
+					pp[0] = 0;
+					for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
+						pp[idx_p] = thread_p[idx_p - 1] + pp[idx_p - 1];
+					}
+					for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
+						thread_p[idx_p] = thread_p[idx_p] + thread_p[idx_p - 1];
+					}
 
 					vector<basic_graph> subgraphs(nthreads[i]);
 
