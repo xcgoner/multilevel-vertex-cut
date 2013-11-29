@@ -236,7 +236,7 @@ namespace graphp {
 
 		} // end of report performance for the total vertex-cut is already summed up
 
-		#define isHigh(e) (graph.getVert(e.source).degree > threshold || graph.getVert(e.target).degree > threshold)
+		#define isHigh(e) (/*graph.getVert(e.source).degree > threshold || */graph.getVert(e.target).degree > threshold)
 
 		void random_partition(basic_graph& graph, part_t nparts, bool isPre) {
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
@@ -633,7 +633,7 @@ namespace graphp {
 		void run_prepartition(basic_graph& graph, part_t nparts, size_t nthreads, string strategy) {
 
 			foreach(basic_graph::vertex_type& v, graph.verts) {
-				v.degree = v.out_degree;
+				v.degree = v.in_degree;
 			}
 
 			omp_set_num_threads(NUM_THREADS);
