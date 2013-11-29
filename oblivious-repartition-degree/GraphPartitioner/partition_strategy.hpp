@@ -244,10 +244,10 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 
 				//// filter pre and re -streaming
-				if(isPre && isHigh(e) || !isPre && !isHigh(e))
-					continue;
-				//if(!isPre && !isHigh(e))
+				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
 				//	continue;
+				if(!isPre && !isHigh(e))
+					continue;
 
 				// random assign
 				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
@@ -266,10 +266,10 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 
 				//// filter pre and re -streaming
-				if(isPre && isHigh(e) || !isPre && !isHigh(e))
-					continue;
-				//if(!isPre && !isHigh(e))
+				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
 				//	continue;
+				if(!isPre && !isHigh(e))
+					continue;
 
 				// random assign
 				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
@@ -380,10 +380,10 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 
 				//// filter pre and re -streaming
-				if(isPre && isHigh(e) || !isPre && !isHigh(e))
-					continue;
-				//if(!isPre && !isHigh(e))
+				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
 				//	continue;
+				if(!isPre && !isHigh(e))
+					continue;
 
 				// greedy assign
 				part_t assignment;
@@ -401,10 +401,10 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 
 				//// filter pre and re -streaming
-				if(isPre && isHigh(e) || !isPre && !isHigh(e))
-					continue;
-				//if(!isPre && !isHigh(e))
+				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
 				//	continue;
+				if(!isPre && !isHigh(e))
+					continue;
 
 				// greedy assign
 				part_t assignment;
@@ -534,10 +534,10 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 
 				//// filter pre and re -streaming
-				if(isPre && isHigh(e) || !isPre && !isHigh(e))
-					continue;
-				//if(!isPre && !isHigh(e))
+				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
 				//	continue;
+				if(!isPre && !isHigh(e))
+					continue;
 
 				// greedy assign
 				part_t assignment;
@@ -554,10 +554,10 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 
 				//// filter pre and re -streaming
-				if(isPre && isHigh(e) || !isPre && !isHigh(e))
-					continue;
-				//if(!isPre && !isHigh(e))
+				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
 				//	continue;
+				if(!isPre && !isHigh(e))
+					continue;
 
 				// greedy assign
 				part_t assignment;
@@ -618,10 +618,10 @@ namespace graphp {
 				basic_graph::edge_type& e = *itr;
 
 				//// filter pre and re -streaming
-				if(isPre && isHigh(e) || !isPre && !isHigh(e))
-					continue;
-				//if(!isPre && !isHigh(e))
+				//if(isPre && isHigh(e) || !isPre && !isHigh(e))
 				//	continue;
+				if(!isPre && !isHigh(e))
+					continue;
 
 				// greedy assign
 				part_t assignment;
