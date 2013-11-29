@@ -763,23 +763,9 @@ namespace graphp {
 
 			//boost::timer ti;
 			double runtime = 0;
-			//runtime = omp_get_wtime();
-
-			//#pragma omp parallel for
-			//for(size_t tid = 0; tid < nthreads[i]; tid++) {
-			//	partition_func(subgraphs[tid], nparts[i]);
-			//}
-
-			//runtime = ti.elapsed();
-			//runtime = omp_get_wtime() - runtime;
-			//cout << "Time elapsed: " << runtime << endl;
 
 			// assign back to the origin graph
 			graph.initialize(nparts);
-
-			foreach(basic_graph::vertex_type& v, graph.verts) {
-				v.degree = v.in_degree;
-			}
 
 			// do assignment in single thread
 			// note: use edges_p
@@ -933,7 +919,7 @@ namespace graphp {
 								subgraphs[tid].getVert(itr->first).mirror_list = graph.getVert(itr->first).mirror_list;
 							}
 							// re-partitioning
-							partition_func(subgraphs[tid], nparts[i], false);
+							partition_func(subgraphs[tid], nparts[i], true);
 
 							// clear memory
 							vector<basic_graph::vertex_type>().swap(subgraphs[tid].verts);
