@@ -808,13 +808,6 @@ namespace graphp {
 			//const size_t file_block_size = 2;
 			random_shuffle(graph.edges.begin(), graph.edges.end());
 			for(size_t i = 0; i < nparts.size(); i++) {
-				// construct the subgraphs for partitioning
-				vector<size_t> thread_p(nthreads[i]);
-				foreach(size_t& p, thread_p) {
-					p = 0;
-				}
-
-				size_t edge_counter = 0;
 
 				for(size_t pres = 0; pres < prestrategies.size(); pres++)
 				for(size_t j = 0; j < strategies.size(); j++) {
@@ -839,7 +832,13 @@ namespace graphp {
 					// pre partitioning by multithread
 					run_prepartition(graph, nparts[i], nthreads[i], prestrategies[pres]);
 
-					//construct the subgraphs
+					// construct the subgraphs for partitioning
+					vector<size_t> thread_p(nthreads[i]);
+					foreach(size_t& p, thread_p) {
+						p = 0;
+					}
+
+					size_t edge_counter = 0;
 					for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
 						basic_graph::edge_type& e = *itr;
 						// random assign
