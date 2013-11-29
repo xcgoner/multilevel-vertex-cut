@@ -646,18 +646,12 @@ namespace graphp {
 			}
 
 			size_t edge_counter = 0;
-			sharding_constraint* constraint;
-			boost::hash<vertex_id_type> hashvid;
-			constraint = new sharding_constraint(nparts, "grid"); 
 			for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
 				basic_graph::edge_type& e = *itr;
 				// random assign
 				//const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
-				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
 				part_t assignment;
-				const vector<part_t>& candidates = constraint->get_joint_neighbors(hash_vertex(e.source) % nparts,
-					hash_vertex(e.target) % nparts);
-				assignment = candidates[hash_edge(edge_pair) % (candidates.size())];
+				assignment = hash_vertex(e.source);
 				e.placement = assignment;
 				thread_p[assignment]++;
 				edge_counter++;
