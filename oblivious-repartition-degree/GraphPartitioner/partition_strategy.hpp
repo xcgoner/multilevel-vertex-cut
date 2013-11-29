@@ -646,12 +646,18 @@ namespace graphp {
 			}
 
 			size_t edge_counter = 0;
+			sharding_constraint* constraint;
+			boost::hash<vertex_id_type> hashvid;
+			constraint = new sharding_constraint(nparts, "grid"); 
 			for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
 				basic_graph::edge_type& e = *itr;
 				// random assign
 				//const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
+				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
 				part_t assignment;
-				assignment = edge_counter % (nthreads);
+				const vector<part_t>& candidates = constraint->get_joint_neighbors(hash_vertex(e.source) % nparts,
+					hash_vertex(e.target) % nparts);
+				assignment = candidates[hash_edge(edge_pair) % (candidates.size())];
 				e.placement = assignment;
 				thread_p[assignment]++;
 				edge_counter++;
@@ -700,7 +706,7 @@ namespace graphp {
 
 			cout << strategy << endl;
 			size_t nt = NUM_THREADS;
-			cout << "using " << nt << " threads..." << endl;
+			//cout << "using " << nt << " threads..." << endl;
 
 			// initialize each subgraph
 			for(size_t ptid = 0; ptid <= nthreads / nt; ptid++) {
@@ -710,7 +716,7 @@ namespace graphp {
 					break;
 				if(tend >= nthreads)
 					tend = nthreads;
-				cout << "threads " << tbegin << " to " << tend - 1 << endl;
+				//cout << "threads " << tbegin << " to " << tend - 1 << endl;
 				size_t tl = tend - tbegin;
 #pragma omp parallel for
 				for(size_t tt = 0; tt < tl; tt++) {
@@ -879,7 +885,7 @@ namespace graphp {
 
 					cout << strategy << endl;
 					size_t nt = NUM_THREADS;
-					cout << "using " << nt << " threads..." << endl;
+					//cout << "using " << nt << " threads..." << endl;
 
 					// initialize each subgraph
 					for(size_t ptid = 0; ptid <= nthreads[i] / nt; ptid++) {
@@ -889,7 +895,7 @@ namespace graphp {
 							break;
 						if(tend >= nthreads[i])
 							tend = nthreads[i];
-						cout << "threads " << tbegin << " to " << tend - 1 << endl;
+						//cout << "threads " << tbegin << " to " << tend - 1 << endl;
 						size_t tl = tend - tbegin;
 #pragma omp parallel for
 						for(size_t tt = 0; tt < tl; tt++) {
