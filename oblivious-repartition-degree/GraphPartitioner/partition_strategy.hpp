@@ -920,7 +920,7 @@ namespace graphp {
 			omp_set_num_threads(NUM_THREADS);
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			cout << "nedges: " << graph.nedges << endl;
-			const size_t file_block_size = 36 * graph.nedges / 5100000;
+
 			//const size_t file_block_size = 2;
 			for(size_t i = 0; i < nparts.size(); i++) {
 				// construct the subgraphs for partitioning
@@ -930,70 +930,28 @@ namespace graphp {
 				}
 
 				size_t edge_counter = 0;
-				// random chunk
-				vector<size_t> eindex;
-				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end();)  {
-					part_t assignment;
-					//assignment = edge_counter % (nthreads[i]);
-					assignment = edgernd(gen) % (nthreads[i]);
-					//assignment = rand() % (nthreads[i]);
-					eindex.push_back(edge_counter);
-					for(size_t idx = 0; idx < file_block_size && itr != graph.edges.end(); idx++, itr++) {
-						basic_graph::edge_type& e = *itr;
-						// random assign
-						//const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
-						//assignment = edgernd(gen) % (nthreads[i]);
-						e.placement = assignment;
-						thread_p[assignment]++;
-						edge_counter++;
-					}
+				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
+					basic_graph::edge_type& e = *itr;
+					// random assign
+					//const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
+					basic_graph::part_t assignment;
+					assignment = edge_counter % (nthreads[i]);
+					e.placement = assignment;
+					thread_p[assignment]++;
+					edge_counter++;
 				}
-				// push the end
-				eindex.push_back(edge_counter);
-
-				// warning
-				if(edge_counter != graph.nedges)
-					cerr << "edge_counter != graph.nedges" << endl;
-
-				// shuffle the chunks
-				vector<size_t> idx_eindex;
-				for(size_t idx = 0; idx < eindex.size(); idx++) {
-					idx_eindex.push_back(idx);
-				}
-				random_shuffle(idx_eindex.begin(), idx_eindex.end());
 
 				vector<size_t> pp(nthreads[i]);
 				pp[0] = 0;
 				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
 					pp[idx_p] = thread_p[idx_p - 1] + pp[idx_p - 1];
 				}
-
-				// place the chunks
-				// alternative0
-				edge_counter = 0;
-				foreach(size_t ei, idx_eindex) {
-					if(ei == eindex.size() - 1)
-						continue;
-					for(size_t idx = eindex[ei]; idx < eindex[ei+1]; idx++) {
-						basic_graph::edge_type& e = graph.edges[idx];
-						size_t t = e.placement;
-						graph.edges_p[pp[t]] = e;
-						pp[t]++;
-						edge_counter++;
-					}
+				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
+					basic_graph::edge_type& e = *itr;
+					size_t t = e.placement;
+					graph.edges_p[pp[t]] = e;
+					pp[t]++;
 				}
-				// warning
-				if(edge_counter != graph.nedges)
-					cerr << "edge_counter != graph.nedges" << endl;
-				// alternative1
-				//for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
-				//	basic_graph::edge_type& e = *itr;
-				//	size_t t = e.placement;
-				//	graph.edges_p[pp[t]] = e;
-				//	pp[t]++;
-				//}
-
-
 				graph.ebegin = graph.edges_p.begin();
 				graph.eend = graph.edges_p.end();
 				pp[0] = 0;
@@ -1005,9 +963,9 @@ namespace graphp {
 				}
 
 				// random inner shuffle
-				//for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
-				//	random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
-				//}
+				for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
+					random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
+				}
 
 				for(size_t pres = 0; pres < prestrategies.size(); pres++)
 				for(size_t j = 0; j < strategies.size(); j++) {
