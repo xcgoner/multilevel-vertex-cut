@@ -934,7 +934,7 @@ namespace graphp {
 					basic_graph::edge_type& e = *itr;
 					// random assign
 					//const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
-					basic_graph::part_t assignment;
+					part_t assignment;
 					assignment = edge_counter % (nthreads[i]);
 					e.placement = assignment;
 					thread_p[assignment]++;
