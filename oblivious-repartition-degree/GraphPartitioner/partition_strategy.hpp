@@ -632,9 +632,9 @@ namespace graphp {
 
 		void run_prepartition(basic_graph& graph, part_t nparts, size_t nthreads, string strategy) {
 
-			foreach(basic_graph::vertex_type& v, graph.verts) {
-				v.degree = v.out_degree;
-			}
+			//foreach(basic_graph::vertex_type& v, graph.verts) {
+			//	v.degree = v.out_degree;
+			//}
 
 			omp_set_num_threads(NUM_THREADS);
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
@@ -756,9 +756,9 @@ namespace graphp {
 			// assign back to the origin graph
 			graph.initialize(nparts);
 
-			foreach(basic_graph::vertex_type& v, graph.verts) {
-				v.degree = v.in_degree;
-			}
+			//foreach(basic_graph::vertex_type& v, graph.verts) {
+			//	v.degree = v.in_degree;
+			//}
 
 			// do assignment in single thread
 			// note: use edges_p
