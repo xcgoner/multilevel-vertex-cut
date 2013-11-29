@@ -651,7 +651,7 @@ namespace graphp {
 				// random assign
 				//const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
 				part_t assignment;
-				assignment = hash_vertex(e.source);
+				assignment = hash_vertex(e.source) % nparts;
 				e.placement = assignment;
 				thread_p[assignment]++;
 				edge_counter++;
