@@ -201,7 +201,8 @@ namespace graphp {
 		}
 
 		void finalize(bool saveEdges = true) {
-			cout << "finalizing..." << endl;
+			if(saveEdges)
+				cout << "finalizing..." << endl;
 
 			//edges.reserve(edges_storage.size() + 1);
 			//verts.resize(max_vid + 1);
