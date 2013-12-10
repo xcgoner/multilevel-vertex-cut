@@ -175,7 +175,7 @@ namespace graphp {
 			edges_storage.push_back(e);
 			nedges++;
 
-			cout << e.source << ", " << e.target << endl;
+			//cout << e.source << ", " << e.target << endl;
 		}
 
 		void clear_partition_counter() {
