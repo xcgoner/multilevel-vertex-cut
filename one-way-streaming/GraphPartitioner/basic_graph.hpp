@@ -476,8 +476,8 @@ namespace graphp {
 				// powerlaw distribution for indegree
 				vector<double> indegree_dist(nverts);
 				for(size_t i = 0; i < indegree_dist.size(); ++i)
-					indegree_dist[i] = pow(double(i+1), 1-alpha);
-				std::random_shuffle(indegree_dist.begin(), indegree_dist.end());
+					indegree_dist[i] = random::multinomial_cdf(prob) + 1;
+				//std::random_shuffle(indegree_dist.begin(), indegree_dist.end());
 				//random::pdf2cdf(indegree_dist);
 				random::pdf2normalization(indegree_dist);
 
