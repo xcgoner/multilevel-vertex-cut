@@ -1,8 +1,6 @@
 // GraphPartitioner.cpp : �������̨Ӧ�ó������ڵ�?
 //
 
-#define DEBUG true
-
 #include <iostream>
 #include "basic_graph.hpp"
 #include "partition_strategy.hpp"
