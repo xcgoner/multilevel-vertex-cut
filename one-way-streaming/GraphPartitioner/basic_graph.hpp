@@ -53,7 +53,7 @@ using namespace std;
 using namespace __gnu_cxx; 
 #endif
 
-//#define DEBUG true
+#define DEBUG true
 
 namespace graphp {
 
@@ -478,26 +478,38 @@ namespace graphp {
 				for(size_t i = 0; i < indegree_dist.size(); ++i)
 					indegree_dist[i] = pow(double(i+1), -alpha);
 				std::random_shuffle(indegree_dist.begin(), indegree_dist.end());
-				random::pdf2cdf(indegree_dist);
+				//random::pdf2cdf(indegree_dist);
+				random::pdf2normalization(indegree_dist);
 
 				for(size_t source = 0; source < nverts; source ++) {
-						const size_t out_degree = random::multinomial_cdf(prob) + 1;
-						boost::dynamic_bitset<> vchecker(nverts);
-						vchecker.clear();
-						vchecker[source] = true;
-						for(size_t i = 0; i < out_degree; ++i) {
-							target_index = random::multinomial_cdf(indegree_dist);
-							while (vchecker[target_index]) {
-								target_index = random::multinomial_cdf(indegree_dist);
-							}
-							vchecker[target_index] = true;
-							if(in_degree) this->add_edge_to_storage(target_index, source);
-							else this->add_edge_to_storage(source, target_index);
+					//const size_t out_degree = random::multinomial_cdf(prob) + 1;
+					//boost::dynamic_bitset<> vchecker(nverts);
+					//vchecker.clear();
+					//vchecker[source] = true;
+					//for(size_t i = 0; i < out_degree; ++i) {
+					//	target_index = random::multinomial_cdf(indegree_dist);
+					//	while (vchecker[target_index]) {
+					//		target_index = random::multinomial_cdf(indegree_dist);
+					//	}
+					//	vchecker[target_index] = true;
+					//	if(in_degree) this->add_edge_to_storage(target_index, source);
+					//	else this->add_edge_to_storage(source, target_index);
+					//}
+						
+					const size_t out_degree = random::multinomial_cdf(prob) + 1;
+					for(size_t target = 0; target < nverts; target++) {
+						double pr = out_degree * indegree_dist[target];
+						pr = pr > 1 ? 1 : pr;
+						if(pr > random::uniform<double>(0, 1)) {
+							if(in_degree) this->add_edge_to_storage(target, source);
+								else this->add_edge_to_storage(source, target);
 						}
-						++addedvtx;
-						if (addedvtx % 10000000 == 0) {
-							cerr << addedvtx << " inserted\n";
-						}
+					}
+
+					++addedvtx;
+					if (addedvtx % 10000000 == 0) {
+						cerr << addedvtx << " inserted\n";
+					}
 				}
 		} // end of load random powerlaw
 
