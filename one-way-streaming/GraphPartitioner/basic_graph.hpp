@@ -501,7 +501,6 @@ namespace graphp {
 						if(source == target)
 							continue;
 						double pr = out_degree * indegree_dist[target];
-						pr = pr > 1 ? 1 : pr;
 						if(pr > random::uniform<double>(0, 1)) {
 							if(in_degree) this->add_edge_to_storage(target, source);
 								else this->add_edge_to_storage(source, target);
@@ -509,7 +508,7 @@ namespace graphp {
 					}
 
 					++addedvtx;
-					if (addedvtx % 100000 == 0) {
+					if (addedvtx % 1000 == 0) {
 						cerr << addedvtx << " inserted\n";
 					}
 				}
