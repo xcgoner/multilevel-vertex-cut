@@ -562,7 +562,7 @@ namespace graphp {
 					size_t sd = source_v.mirror_list[i];
 					size_t td = target_v.mirror_list[i];
 					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-					part_score[i] = bal + ((sd > 0) * s + (td > 0) * t) * 2;
+					part_score[i] = bal + ((sd > 0) * s + (td > 0) * t) * 4;
 				}
 
 				random::pdf2cdf(part_score);
