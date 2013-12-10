@@ -462,7 +462,7 @@ namespace graphp {
 				vector<double> prob(min(nverts, truncate), 0);
 				cerr << "constructing pdf" << std::endl;
 				for(size_t i = 0; i < prob.size(); ++i)
-					prob[i] = pow(double(i+1), -2.2);
+					prob[i] = pow(double(i+1), -3.2);
 				cerr << "constructing cdf" << std::endl;
 				random::pdf2cdf(prob);
 				cerr << "Building graph" << std::endl;
