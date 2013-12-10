@@ -175,7 +175,7 @@ namespace graphp {
 			edges_storage.push_back(e);
 			nedges++;
 
-			cout << e.source << ", " << e.target << endl;
+			//cout << e.source << ", " << e.target << endl;
 		}
 
 		void clear_partition_counter() {
@@ -284,6 +284,9 @@ namespace graphp {
 				size_t current_source_vid = -1;
 				for(size_t idx = 0; idx < edges.size(); idx++) {
 					const edge_type& e = edges[idx];
+
+					cout << e.source << ", " << e.target << endl;
+
 					if(e.source != current_source_vid) {
 						if(current_source_vid != -1) {
 							getVert(edges[idx - 1].source).edge_end = idx;
