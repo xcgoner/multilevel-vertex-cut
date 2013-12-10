@@ -53,7 +53,7 @@ using namespace std;
 using namespace __gnu_cxx; 
 #endif
 
-#define DEBUG true
+//#define DEBUG true
 
 namespace graphp {
 
