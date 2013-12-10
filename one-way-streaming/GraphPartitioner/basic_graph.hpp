@@ -473,6 +473,45 @@ namespace graphp {
 				}
 		} // end of load random powerlaw
 
+		void load_synthetic_powerlaw1(size_t nverts, bool in_degree = false,
+			double alpha = 2.1, size_t truncate = (size_t)(-1)) {
+				vector<double> prob(min(nverts, truncate), 0);
+				cerr << "constructing pdf" << std::endl;
+				for(size_t i = 0; i < prob.size(); ++i)
+					prob[i] = pow(double(i+1), -alpha);
+				cerr << "constructing cdf" << std::endl;
+				random::pdf2cdf(prob);
+				cerr << "Building graph" << std::endl;
+				size_t target_index = 0;
+				size_t addedvtx = 0;
+
+				// powerlaw distribution for indegree
+				vector<double> indegree_dist(nverts);
+				for(size_t i = 0; i < indegree_dist.size(); ++i)
+					indegree_dist[i] = pow(double(i+1), -alpha);
+				std::random_shuffle(indegree_dist.begin(), indegree_dist.end());
+				random::pdf2cdf(indegree_dist);
+
+				// A large prime number
+				const size_t HASH_OFFSET = 2654435761;
+				for(size_t source = 0; source < nverts; source ++) {
+						const size_t out_degree = random::multinomial_cdf(prob) + 1;
+						for(size_t i = 0; i < out_degree; ++i) {
+							target_index = random::multinomial_cdf(indegree_dist);
+							while (source == target_index) {
+								target_index = random::multinomial_cdf(indegree_dist);
+							}
+							if(in_degree) this->add_edge_to_storage(target_index, source);
+							else this->add_edge_to_storage(source, target_index);
+							cout << source << ", " << target_index << endl;
+						}
+						++addedvtx;
+						if (addedvtx % 10000000 == 0) {
+							cerr << addedvtx << " inserted\n";
+						}
+				}
+		} // end of load random powerlaw
+
 	}; // class graph_type
 } // namespace graphp
 
