@@ -459,7 +459,7 @@ namespace graphp {
 				vector<double> prob(min(nverts, truncate), 0);
 				cerr << "constructing pdf" << std::endl;
 				for(size_t i = 0; i < prob.size(); ++i)
-					prob[i] = pow(double(i+1), -alpha);
+					prob[i] = pow(double(i+1), -2.2);
 				cerr << "constructing cdf" << std::endl;
 				random::pdf2cdf(prob);
 				cerr << "Building graph" << std::endl;
@@ -469,7 +469,7 @@ namespace graphp {
 				// powerlaw distribution for indegree
 				vector<double> indegree_dist(nverts);
 				for(size_t i = 0; i < indegree_dist.size(); ++i)
-					indegree_dist[i] = pow(double(i+1), -2.2);
+					indegree_dist[i] = pow(double(i+1), -alpha);
 				std::random_shuffle(indegree_dist.begin(), indegree_dist.end());
 				random::pdf2cdf(indegree_dist);
 
