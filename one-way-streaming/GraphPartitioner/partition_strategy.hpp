@@ -182,9 +182,9 @@ namespace graphp {
 			}
 
 			#ifdef DEBUG
-				//foreach(const basic_graph::edge_type& e, graph.edges) {
-				//	cout << e.source << ", " << e.target << ": " << e.placement << endl;
-				//}
+				foreach(const basic_graph::edge_type& e, graph.edges) {
+					cout << e.source << ", " << e.target << ": " << e.placement << endl;
+				}
 			#endif
 
 			// report
