@@ -509,7 +509,7 @@ namespace graphp {
 					}
 
 					++addedvtx;
-					if (addedvtx % 10000000 == 0) {
+					if (addedvtx % 100000 == 0) {
 						cerr << addedvtx << " inserted\n";
 					}
 				}
