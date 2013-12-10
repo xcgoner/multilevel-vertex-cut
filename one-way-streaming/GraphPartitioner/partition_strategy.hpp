@@ -508,6 +508,8 @@ namespace graphp {
 
 				random::pdf2cdf(part_score);
 				best_part = random::multinomial_cdf(part_score);
+				if(best_part >= nparts)
+					best_part = edgernd(gen) % (nparts);
 
 				return best_part;
 		}
@@ -565,6 +567,8 @@ namespace graphp {
 
 				random::pdf2cdf(part_score);
 				best_part = random::multinomial_cdf(part_score);
+				if(best_part >= nparts)
+					best_part = edgernd(gen) % (nparts);
 
 				return best_part;
 		}
