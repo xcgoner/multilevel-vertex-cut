@@ -490,6 +490,7 @@ namespace graphp {
 							while (vchecker[target_index]) {
 								target_index = random::multinomial_cdf(indegree_dist);
 							}
+							vchecker[target_index] = true;
 							if(in_degree) this->add_edge_to_storage(target_index, source);
 							else this->add_edge_to_storage(source, target_index);
 						}
