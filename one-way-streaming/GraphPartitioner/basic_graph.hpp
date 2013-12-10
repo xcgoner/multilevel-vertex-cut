@@ -174,6 +174,8 @@ namespace graphp {
 				e.placement = placement;
 			edges_storage.push_back(e);
 			nedges++;
+
+			cout << e.source << ", " << e.target << endl;
 		}
 
 		void clear_partition_counter() {
@@ -293,27 +295,6 @@ namespace graphp {
 						getVert(e.source).edge_begin = idx;
 						current_source_vid = e.source;
 					}
-					// add edge
-					//edges[edgecount] = itr;
-
-					// add vertex
-					// treat every single edge as an undirected one
-					//add_vertex(itr->source);
-					// not used in streaming partitioning
-					//verts[itr->source].nbr_list.push_back(itr->target);
-					//verts[itr->source].edge_list.push_back(edgecount);
-					//verts[itr->source].degree++;
-					// use degree in streaming partitioning
-					//deprecate in online setting: degree is not known ahead
-					//getVert(e.source).degree++;
-					//add_vertex(itr->target);
-					// not used in streaming partitioning
-					//verts[itr->target].nbr_list.push_back(itr->source);
-					//verts[itr->target].edge_list.push_back(edgecount);
-					//verts[itr->target].degree++;
-					// use degree in streaming partitioning
-					//deprecate in online setting: degree is not known ahead
-					//getVert(e.target).degree++;
 
 					edgecount++;
 					if(saveEdges)
@@ -488,7 +469,7 @@ namespace graphp {
 				// powerlaw distribution for indegree
 				vector<double> indegree_dist(nverts);
 				for(size_t i = 0; i < indegree_dist.size(); ++i)
-					indegree_dist[i] = pow(double(i+1), -alpha);
+					indegree_dist[i] = pow(double(random::multinomial_cdf(prob)+1), -alpha);
 				std::random_shuffle(indegree_dist.begin(), indegree_dist.end());
 				random::pdf2cdf(indegree_dist);
 
@@ -503,7 +484,6 @@ namespace graphp {
 							}
 							if(in_degree) this->add_edge_to_storage(target_index, source);
 							else this->add_edge_to_storage(source, target_index);
-							cout << source << ", " << target_index << endl;
 						}
 						++addedvtx;
 						if (addedvtx % 10000000 == 0) {
