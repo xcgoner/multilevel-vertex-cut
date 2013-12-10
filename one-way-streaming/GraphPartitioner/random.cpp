@@ -83,6 +83,13 @@ namespace graphp {
         pdf[i] = pdf[i]/Z + ((i>0)? pdf[i-1] : 0);
     } // end of pdf2cdf
 
+	void pdf2normalization(std::vector<double>& pdf) {
+		double Z = 0;
+		for(size_t i = 0; i < pdf.size(); ++i) Z += pdf[i];
+		for(size_t i = 0; i < pdf.size(); ++i)
+			pdf[i] = pdf[i]/Z;
+	} // end of pdf2normalization
+
 
 
   

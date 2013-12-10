@@ -476,19 +476,17 @@ namespace graphp {
 				for(size_t i = 0; i < indegree_dist.size(); ++i)
 					indegree_dist[i] = pow(double(i+1), 1-alpha);
 				std::random_shuffle(indegree_dist.begin(), indegree_dist.end());
-				random::pdf2cdf(indegree_dist);
+				random::pdf2normalization(indegree_dist);
 
-				// A large prime number
-				const size_t HASH_OFFSET = 2654435761;
-				for(size_t source = 0; source < nverts; source ++) {
-						const size_t out_degree = random::multinomial_cdf(prob) + 1;
-						for(size_t i = 0; i < out_degree; ++i) {
-							target_index = random::multinomial_cdf(indegree_dist);
-							while (source == target_index) {
-								target_index = random::multinomial_cdf(indegree_dist);
+				for(size_t source = 0; source < nverts; source++) {
+						const double out_degree_factor = (random::multinomial_cdf(prob) + 1)*1.0/nverts;
+						for(size_t target = 0; target < nverts; target++) {
+							if(target == source)
+								continue;
+							if(indegree_dist[target] * out_degree_factor > random::uniform<double>(0,1)) {
+								if(in_degree) this->add_edge_to_storage(target, source);
+								else this->add_edge_to_storage(source, target);
 							}
-							if(in_degree) this->add_edge_to_storage(target_index, source);
-							else this->add_edge_to_storage(source, target_index);
 						}
 						++addedvtx;
 						if (addedvtx % 10000000 == 0) {

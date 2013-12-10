@@ -383,7 +383,10 @@ namespace graphp {
      */
     void pdf2cdf(std::vector<double>& pdf);
 
-
+	/**
+     * Normalize a discrete PDF
+     */
+    void pdf2normalization(std::vector<double>& pdf);
     
   }; // end of random 
 }; // end of graphp
