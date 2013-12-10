@@ -285,7 +285,9 @@ namespace graphp {
 				for(size_t idx = 0; idx < edges.size(); idx++) {
 					const edge_type& e = edges[idx];
 
-					//cout << e.source << ", " << e.target << endl;
+					#ifdef DEBUG
+						cout << e.source << ", " << e.target << endl;
+					#endif
 
 					if(e.source != current_source_vid) {
 						if(current_source_vid != -1) {

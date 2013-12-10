@@ -181,6 +181,12 @@ namespace graphp {
 				}
 			}
 
+			#ifdef DEBUG
+				foreach(const basic_graph::edge_type& e, graph.edges) {
+					cout << e.source << ", " << e.target << ": " << e.placement << endl;
+				}
+			#endif
+
 			// report
 			size_t max_parts = 0;
 			for(size_t i = 0; i < nparts; i++) {
