@@ -498,6 +498,8 @@ namespace graphp {
 						
 					const size_t out_degree = random::multinomial_cdf(prob) + 1;
 					for(size_t target = 0; target < nverts; target++) {
+						if(source == target)
+							continue;
 						double pr = out_degree * indegree_dist[target];
 						pr = pr > 1 ? 1 : pr;
 						if(pr > random::uniform<double>(0, 1)) {
