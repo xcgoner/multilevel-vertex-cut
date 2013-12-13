@@ -92,6 +92,8 @@ namespace graphp {
 
 			// use degree in streaming partitioning
 			size_t degree;
+			size_t indegree;
+			size_t outdegree;
 
 			size_t edge_begin;
 			size_t edge_end;
@@ -99,7 +101,7 @@ namespace graphp {
 			boost::dynamic_bitset<> mirror_list;
 
 			vertex_type() :
-			edge_begin(-1), edge_end(-1), degree(0) { }
+			edge_begin(-1), edge_end(-1), degree(0),indegree(0), outdegree(0) { }
 
 			bool isFree() const {
 				return (mirror_list.size() == 0);
@@ -206,6 +208,8 @@ namespace graphp {
 			clear_mirrors();
 			foreach(vertex_type& v, verts) {
 				v.degree = 0;
+				v.indegree = 0;
+				v.outdegree = 0;
 			}
 		}
 

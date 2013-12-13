@@ -25,6 +25,7 @@
 #include <boost/timer.hpp>
 #include <queue>
 #include <stack>
+#include <cmath>
 #include "sharding_constraint.hpp"
 #include "basic_graph.hpp"
 #include "util.hpp"
@@ -479,6 +480,75 @@ namespace graphp {
 			}
 		}
 
+		// for indegree and outdegree
+		part_t edge_to_part_degreeio(basic_graph& graph, 
+			const basic_graph::vertex_id_type source,
+			const basic_graph::vertex_id_type target,
+			const vector<size_t>& part_num_edges
+			) {
+				const size_t nparts = part_num_edges.size();
+
+				const basic_graph::vertex_type& source_v = graph.getVert(source);
+				const basic_graph::vertex_type& target_v = graph.getVert(target);
+
+				// compute the score of each part
+				part_t best_part = -1;
+				double maxscore = 0.0;
+				double epsilon = 1.0;
+				vector<double> part_score(nparts);
+				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
+				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
+
+				// greedy for degree
+				// nbr_list is not used in streaming partitioning
+				//double sum = source_v.nbr_list.size() + target_v.nbr_list.size();
+				//double s = target_v.nbr_list.size() / sum + 1;
+				//double t = source_v.nbr_list.size() / sum + 1;
+				// use degree in streaming partitioning
+
+				double inscore, outscore;
+				inscore = fabs((double)(source_v.indegree - target_v.indegree)) / (source_v.indegree + target_v.indegree);
+				outscore = fabs((double)(source_v.outdegree - target_v.outdegree)) / (source_v.outdegree + target_v.outdegree);
+				size_t source_degree, target_degree;
+				if(inscore > outscore) {
+					source_degree = source_v.indegree;
+					target_degree = target_v.indegree;
+				}
+				else {
+					source_degree = source_v.outdegree;
+					target_degree = target_v.outdegree;
+				}
+				// not to be zero
+				double e = 0.001;
+				double sum = source_degree + target_degree + e * 2;
+				double s = (target_degree + e) / sum + 1;
+				double t = (source_degree + e) / sum + 1;
+
+				for(size_t i = 0; i < nparts; ++i) {
+					size_t sd = source_v.mirror_list[i];
+					size_t td = target_v.mirror_list[i];
+					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+					part_score[i] = bal + ((sd > 0) * s + (td > 0) * t);
+				}
+
+				maxscore = *max_element(part_score.begin(), part_score.end());
+
+				vector<part_t> top_parts;
+				for(size_t i = 0; i < nparts; ++i) {
+					if(fabs(part_score[i] - maxscore) < 1e-5) {
+						top_parts.push_back(i);
+					}
+				}
+
+				// hash the edge to one of the best parts
+				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+				const edge_pair_type edge_pair(min(source, target),
+					max(source, target));
+				best_part = top_parts[hash_edge(edge_pair) % top_parts.size()];
+
+				return best_part;
+		}
+
 		// probability
 		// powergraph
 		part_t edge_to_part_powergraphp(basic_graph& graph, 
@@ -795,6 +865,23 @@ namespace graphp {
 			}
 		}
 
+		void v_degreeio_partition(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
+			foreach(basic_graph::vertex_id_type vid, vertex_order) {
+				basic_graph::vertex_type& v = graph.getVert(vid);
+				v.outdegree += (v.edge_end - v.edge_begin);
+				for(size_t eidx = v.edge_begin; eidx < v.edge_end; eidx++) {
+					basic_graph::edge_type& e = graph.getEdge(eidx);
+					graph.getVert(e.target).indegree++;
+					// assign edges
+					part_t assignment;
+					assignment = edge_to_part_balance(graph.parts_counter);
+					if(assignment == (nparts + 1))
+						assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
+					assign_edge(graph, e, assignment);
+				}
+			}
+		}
+
 		// probability
 		void v_powergraphp_partition(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
@@ -1064,6 +1151,8 @@ namespace graphp {
 							partition_func = v_powergraphp_partition;
 						else if(strategy == "degreep")
 							partition_func = v_degreep_partition;
+						else if(strategy == "degreep")
+							partition_func = v_degreeio_partition;
 
 						for(size_t i = 0; i < nparts.size(); i++) {
 							// initialize
