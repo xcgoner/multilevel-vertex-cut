@@ -1151,7 +1151,7 @@ namespace graphp {
 							partition_func = v_powergraphp_partition;
 						else if(strategy == "degreep")
 							partition_func = v_degreep_partition;
-						else if(strategy == "degreep")
+						else if(strategy == "degreeio")
 							partition_func = v_degreeio_partition;
 
 						for(size_t i = 0; i < nparts.size(); i++) {
