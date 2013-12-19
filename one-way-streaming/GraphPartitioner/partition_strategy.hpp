@@ -956,14 +956,14 @@ namespace graphp {
 					size_t sd = source_v.mirror_list[i];
 					size_t td = target_v.mirror_list[i];
 					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-					part_score[i] = bal + ((sd > 0) * s + (td > 0) * t);
+					part_score[i] = bal + (sd > 0) + (sd > 0 && s > t) + (td > 0) + (td > 0 && s < t);
 				}
 
 				maxscore = *max_element(part_score.begin(), part_score.end());
 
 				vector<part_t> top_parts;
 				for(size_t i = 0; i < nparts; ++i) {
-					if(fabs(part_score[i] - maxscore) < 1e-5) {
+					if(fabs(part_score[i] - maxscore) < 1e-4) {
 						top_parts.push_back(i);
 					}
 				}
