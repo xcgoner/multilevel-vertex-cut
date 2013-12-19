@@ -519,8 +519,8 @@ namespace graphp {
 					target_degree = target_v.indegree;
 				}
 				else {
-					source_degree = 1;
-					target_degree = 1;
+					source_degree = 2;
+					target_degree = 2;
 				}
 				// not to be zero
 				double e = 0.001;
