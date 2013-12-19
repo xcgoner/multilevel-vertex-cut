@@ -951,12 +951,11 @@ namespace graphp {
 				double sum = source_degree + target_degree + e;
 				double s = target_degree / sum + 1;
 				double t = source_degree / sum + 1;
-				double k = s > t ? s : t;
 
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list[i];
 					size_t td = target_v.mirror_list[i];
-					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges) * k;
+					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
 					part_score[i] = bal + ((sd > 0) * s + (td > 0) * t);
 				}
 
