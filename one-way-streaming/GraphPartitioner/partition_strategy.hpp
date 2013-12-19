@@ -511,16 +511,16 @@ namespace graphp {
 				outscore = fabs((double)(source_v.outdegree - target_v.outdegree)) / (source_v.outdegree + target_v.outdegree);
 				size_t source_degree, target_degree;
 				if(fabs(inscore - outscore) < 5e-2) {
-					source_degree = source_v.indegree;
-					target_degree = target_v.indegree;
+					source_degree = 0;
+					target_degree = 0;
 				}
 				else if(inscore > outscore) {
 					source_degree = source_v.indegree;
 					target_degree = target_v.indegree;
 				}
 				else {
-					source_degree = 2;
-					target_degree = 2;
+					source_degree = target_v.outdegree;
+					target_degree = source_v.outdegree;
 				}
 				// not to be zero
 				double e = 0.001;
