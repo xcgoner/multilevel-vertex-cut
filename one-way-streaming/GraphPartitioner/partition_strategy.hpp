@@ -514,13 +514,13 @@ namespace graphp {
 					source_degree = 0;
 					target_degree = 0;
 				}
-				if(inscore > outscore) {
+				else if(inscore > outscore) {
 					source_degree = source_v.indegree;
 					target_degree = target_v.indegree;
 				}
 				else {
-					source_degree = 5;
-					target_degree = 5;
+					source_degree = source_v.outdegree;
+					target_degree = target_v.outdegree;
 				}
 				// not to be zero
 				double e = 0.001;
@@ -532,7 +532,7 @@ namespace graphp {
 					size_t sd = source_v.mirror_list[i];
 					size_t td = target_v.mirror_list[i];
 					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-					part_score[i] = bal + ((sd > 0) * s + (td > 0) * t);
+					part_score[i] = bal + (sd > 0) + (sd > 0 && s > t) + (td > 0) + (td > 0 && s < t);
 				}
 
 				maxscore = *max_element(part_score.begin(), part_score.end());
@@ -1002,9 +1002,7 @@ namespace graphp {
 					graph.getVert(e.target).indegree++;
 					// assign edges
 					part_t assignment;
-					assignment = edge_to_part_balance(graph.parts_counter);
-					if(assignment == (nparts + 1))
-						assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
+					assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
 					assign_edge(graph, e, assignment);
 				}
 			}
