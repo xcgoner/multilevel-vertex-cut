@@ -1003,10 +1003,10 @@ namespace graphp {
 
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
 
-				foreach(graphp::edge_id_type eidx, ebuffer) {
-					cout << graph.getEdge(eidx).source << "," << graph.getEdge(eidx).target << "; ";
-				}
-				cout << endl;
+				//foreach(graphp::edge_id_type eidx, ebuffer) {
+				//	cout << graph.getEdge(eidx).source << "," << graph.getEdge(eidx).target << "; ";
+				//}
+				//cout << endl;
 
 				basic_graph::vertex_type& v = graph.getVert(vid);
 				v.outdegree += (v.edge_end - v.edge_begin);
@@ -1031,7 +1031,7 @@ namespace graphp {
 					part_t assignment;
 					assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
 					assign_edge(graph, e, assignment);
-					cout << "assign " << e.source << "," << e.target << " to " << assignment << endl;
+					//cout << "assign " << e.source << "," << e.target << " to " << assignment << endl;
 				}
 
 				if(v_needed[vid]) {
@@ -1046,7 +1046,7 @@ namespace graphp {
 							assignment = edge_to_part_degreeio(graph, eb.source, eb.target, graph.parts_counter);
 							assign_edge(graph, eb, assignment);
 							buffer_itr = ebuffer.erase(buffer_itr);
-							cout << "assign " << eb.source << "," << eb.target << " to " << assignment << endl;
+							//cout << "assign " << eb.source << "," << eb.target << " to " << assignment << endl;
 						}
 						else
 							buffer_itr++;
