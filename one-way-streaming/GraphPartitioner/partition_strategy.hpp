@@ -508,8 +508,10 @@ namespace graphp {
 				// use degree in streaming partitioning
 
 				double inscore, outscore;
-				inscore = (source_v.indegree > target_v.indegree ? source_v.indegree : target_v.indegree) / (source_v.indegree + target_v.indegree);
-				outscore = (source_v.outdegree > target_v.outdegree ? source_v.outdegree : target_v.outdegree) / (source_v.outdegree + target_v.outdegree);
+				//inscore = (source_v.indegree > target_v.indegree ? source_v.indegree : target_v.indegree) / (source_v.indegree + target_v.indegree);
+				//outscore = (source_v.outdegree > target_v.outdegree ? source_v.outdegree : target_v.outdegree) / (source_v.outdegree + target_v.outdegree);
+				inscore = fabs((double)(source_v.indegree - target_v.indegree)) / (source_v.indegree + target_v.indegree);
+				outscore = fabs((double)(source_v.outdegree - target_v.outdegree)) / (source_v.outdegree + target_v.outdegree);
 				size_t source_degree, target_degree;
 				if(inscore > outscore) {
 					source_degree = source_v.indegree;
@@ -529,7 +531,7 @@ namespace graphp {
 					size_t sd = source_v.mirror_list[i];
 					size_t td = target_v.mirror_list[i];
 					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-					part_score[i] = bal + (sd > 0) + (sd > 0 && s > t) + (td > 0) + (td > 0 && s < t);
+					part_score[i] = bal + (sd > 0) + (sd > 0 && s >= t) + (td > 0) + (td > 0 && s <= t);
 				}
 
 				maxscore = *max_element(part_score.begin(), part_score.end());
