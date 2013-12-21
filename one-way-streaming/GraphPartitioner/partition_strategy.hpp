@@ -495,18 +495,10 @@ namespace graphp {
 				// compute the score of each part
 				part_t best_part = -1;
 				double maxscore = 0.0;
-				double epsilon = 0.01;
+				double epsilon = 0.0001;
 				vector<double> part_score(nparts);
-				//size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
-				//size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
-				double avgedges = accumulate(part_num_edges.begin(), part_num_edges.end(), 0) / nparts;
-
-				// greedy for degree
-				// nbr_list is not used in streaming partitioning
-				//double sum = source_v.nbr_list.size() + target_v.nbr_list.size();
-				//double s = target_v.nbr_list.size() / sum + 1;
-				//double t = source_v.nbr_list.size() / sum + 1;
-				// use degree in streaming partitioning
+				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
+				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
 
 				double inscore, outscore;
 				inscore = (source_v.indegree > target_v.indegree ? source_v.indegree : target_v.indegree) / (source_v.indegree + target_v.indegree);
@@ -531,8 +523,7 @@ namespace graphp {
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list[i];
 					size_t td = target_v.mirror_list[i];
-					//double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-					double bal = part_num_edges[i] / (epsilon + avgedges);
+					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
 					part_score[i] = bal + (sd > 0) + (sd > 0 && s >= t) + (td > 0) + (td > 0 && s <= t);
 				}
 
