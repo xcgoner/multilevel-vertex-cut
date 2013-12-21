@@ -25,6 +25,7 @@
 #include <boost/timer.hpp>
 #include <queue>
 #include <stack>
+#include <list>
 #include <cmath>
 #include "sharding_constraint.hpp"
 #include "basic_graph.hpp"
@@ -507,20 +508,16 @@ namespace graphp {
 				// use degree in streaming partitioning
 
 				double inscore, outscore;
-				inscore = fabs((double)(source_v.indegree - target_v.indegree)) / (source_v.indegree + target_v.indegree);
-				outscore = fabs((double)(source_v.outdegree - target_v.outdegree)) / (source_v.outdegree + target_v.outdegree);
+				inscore = (source_v.indegree > target_v.indegree ? source_v.indegree : target_v.indegree) / (source_v.indegree + target_v.indegree);
+				outscore = (source_v.outdegree > target_v.outdegree ? source_v.outdegree : target_v.outdegree) / (source_v.outdegree + target_v.outdegree);
 				size_t source_degree, target_degree;
-				if(fabs(inscore - outscore) < 5e-2) {
-					source_degree = 0;
-					target_degree = 0;
-				}
-				else if(inscore > outscore) {
+				if(inscore > outscore) {
 					source_degree = source_v.indegree;
 					target_degree = target_v.indegree;
 				}
 				else {
-					source_degree = target_v.outdegree;
-					target_degree = source_v.outdegree;
+					source_degree = source_v.outdegree;
+					target_degree = target_v.outdegree;
 				}
 				// not to be zero
 				double e = 0.001;
@@ -993,18 +990,69 @@ namespace graphp {
 			}
 		}
 
+		// important feature
 		void v_degreeio_partition(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
+
+			// buffered
+			boost::dynamic_bitset<> v_existed(graph.max_vid + 1);
+			v_existed.clear();
+			boost::dynamic_bitset<> v_needed(graph.max_vid + 1);
+			v_needed.clear();
+			// the buffer
+			list<graphp::edge_id_type> ebuffer;
+
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
 				basic_graph::vertex_type& v = graph.getVert(vid);
 				v.outdegree += (v.edge_end - v.edge_begin);
+
+				v_existed[vid] = true;
+
 				for(size_t eidx = v.edge_begin; eidx < v.edge_end; eidx++) {
 					basic_graph::edge_type& e = graph.getEdge(eidx);
 					graph.getVert(e.target).indegree++;
+
+					// if the target has not arrived
+					// for buffer
+					if(v_existed[e.target] == false) {
+						// the target has not arrived
+						v_needed[e.target] = true;
+						ebuffer.push_back(eidx);
+						continue;
+					}
+
+					// if the target has arrived
 					// assign edges
 					part_t assignment;
 					assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
 					assign_edge(graph, e, assignment);
 				}
+
+				if(v_needed[vid]) {
+					// the coming vertex is needed
+					v_needed[vid] = true;
+					// clear the buffer, assign the edges with target = vid
+					for(list<graphp::edge_id_type>::iterator buffer_itr = ebuffer.begin(); buffer_itr != ebuffer.end(); ) {
+						basic_graph::edge_type& eb = graph.getEdge(*buffer_itr);
+						if(eb.target == vid) {
+							// assign edges
+							part_t assignment;
+							assignment = edge_to_part_degreeio(graph, eb.source, eb.target, graph.parts_counter);
+							assign_edge(graph, eb, assignment);
+							buffer_itr = ebuffer.erase(buffer_itr);
+						}
+						else
+							buffer_itr++;
+					}
+					v_needed[vid] = false;
+				}
+			}
+
+			// finally clear the buffer
+			foreach(graphp::edge_id_type eidx, ebuffer) {
+				basic_graph::edge_type& e = graph.getEdge(eidx);
+				part_t assignment;
+				assignment = edge_to_part_powergraphp(graph, e.source, e.target, graph.parts_counter);
+				assign_edge(graph, e, assignment);
 			}
 		}
 
