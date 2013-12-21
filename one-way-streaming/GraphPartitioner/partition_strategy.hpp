@@ -508,12 +508,12 @@ namespace graphp {
 				// use degree in streaming partitioning
 
 				double inscore, outscore;
-				//inscore = (source_v.indegree > target_v.indegree ? source_v.indegree : target_v.indegree) / (source_v.indegree + target_v.indegree);
-				//outscore = (source_v.outdegree > target_v.outdegree ? source_v.outdegree : target_v.outdegree) / (source_v.outdegree + target_v.outdegree);
-				inscore = fabs((double)(source_v.indegree - target_v.indegree)) / (source_v.indegree + target_v.indegree);
-				outscore = fabs((double)(source_v.outdegree - target_v.outdegree)) / (source_v.outdegree + target_v.outdegree);
+				inscore = (source_v.indegree > target_v.indegree ? source_v.indegree : target_v.indegree) / (source_v.indegree + target_v.indegree);
+				outscore = (source_v.outdegree > target_v.outdegree ? source_v.outdegree : target_v.outdegree) / (source_v.outdegree + target_v.outdegree);
+				//inscore = fabs((double)(source_v.indegree - target_v.indegree)) / (source_v.indegree + target_v.indegree);
+				//outscore = fabs((double)(source_v.outdegree - target_v.outdegree)) / (source_v.outdegree + target_v.outdegree);
 				size_t source_degree, target_degree;
-				if(inscore > outscore) {
+				if(inscore > outscore || target_v.outdegree == 0) {
 					source_degree = source_v.indegree;
 					target_degree = target_v.indegree;
 				}
@@ -992,6 +992,20 @@ namespace graphp {
 			}
 		}
 
+		void v_degreeio0_partition(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
+			foreach(basic_graph::vertex_id_type vid, vertex_order) {
+				basic_graph::vertex_type& v = graph.getVert(vid);
+				v.outdegree += (v.edge_end - v.edge_begin);
+				for(size_t eidx = v.edge_begin; eidx < v.edge_end; eidx++) {
+					basic_graph::edge_type& e = graph.getEdge(eidx);
+					graph.getVert(e.target).indegree++;
+					// assign edges
+					part_t assignment;
+					assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
+					assign_edge(graph, e, assignment);
+				}
+			}
+		}
 		// important feature
 		void v_degreeio_partition(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
 
@@ -1339,6 +1353,8 @@ namespace graphp {
 							partition_func = v_powergraphp_partition;
 						else if(strategy == "degreep")
 							partition_func = v_degreep_partition;
+						else if(strategy == "degreeio0")
+							partition_func = v_degreeio0_partition;
 						else if(strategy == "degreeio")
 							partition_func = v_degreeio_partition;
 
