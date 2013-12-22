@@ -994,7 +994,9 @@ namespace graphp {
 					graph.getVert(e.target).indegree++;
 					// assign edges
 					part_t assignment;
-					assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
+					assignment = edge_to_part_balance(graph.parts_counter);
+					if(assignment == (nparts + 1))
+						assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
 					assign_edge(graph, e, assignment);
 				}
 			}
