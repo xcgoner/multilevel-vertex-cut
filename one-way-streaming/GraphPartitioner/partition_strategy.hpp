@@ -1043,13 +1043,9 @@ namespace graphp {
 				}
 
 				boost::dynamic_bitset<> v_arrived = v_existed & v_needed;
-				cout << v_existed << endl;
-				cout << v_needed << endl;
-				cout << v_arrived << endl;
-				if(v_needed.count() > 1 && v_arrived.count() >= v_needed.count() * 0.01) {
-					cout << "buffer: " << ebuffer.size() * 1.0 / CAPACITY << endl;
+				if(v_needed.count() > 1 && v_arrived.count() >= v_needed.count() * 0.3) {
 					// if the condition is satisfied
-					//std::random_shuffle(ebuffer.begin(), ebuffer.end());
+					std::random_shuffle(ebuffer.begin(), ebuffer.end());
 					// clear the buffer, assign the edges with target = vid
 					foreach(graphp::edge_id_type eidx, ebuffer) {
 						basic_graph::edge_type& e = graph.getEdge(eidx);
