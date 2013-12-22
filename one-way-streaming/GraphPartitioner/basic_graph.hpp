@@ -265,7 +265,7 @@ namespace graphp {
 				else {
 					for(deque<edge_type>::iterator itr = edges_storage.begin(); itr != edges_storage.end(); ++itr) {
 						edges[edges_idx++] = (*itr);
-						//cout << itr->source << ", " << itr->target << endl;
+						cout << itr->source << ", " << itr->target << endl;
 					}
 				}
 
