@@ -1007,7 +1007,7 @@ namespace graphp {
 			boost::dynamic_bitset<> v_existed(graph.max_vid + 1);
 			v_existed.clear();
 			// the buffer
-			list<graphp::edge_id_type> ebuffer;
+			vector<graphp::edge_id_type> ebuffer;
 
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
 
