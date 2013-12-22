@@ -1045,6 +1045,7 @@ namespace graphp {
 				}
 
 				boost::dynamic_bitset<> v_arrived = v_existed & v_needed;
+				cout << "aaa" << endl;
 				for(size_t i = 0; i < v_existed.size(); i++)
 					cout<<v_existed[i];
 				cout<<endl;
