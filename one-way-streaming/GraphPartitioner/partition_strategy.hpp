@@ -1007,7 +1007,7 @@ namespace graphp {
 			boost::dynamic_bitset<> v_existed(graph.max_vid + 1);
 			v_existed.clear();
 			// the buffer
-			vector<graphp::edge_id_type> ebuffer;
+			list<graphp::edge_id_type> ebuffer;
 
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
 
@@ -1042,17 +1042,37 @@ namespace graphp {
 				}
 
 				if(ebuffer.size() >= CAPACITY) {
-					// if the buffer is full
-					//std::random_shuffle(ebuffer.begin(), ebuffer.end());
-					// clear the buffer, assign the edges with target = vid
-					foreach(graphp::edge_id_type eidx, ebuffer) {
-						basic_graph::edge_type& e = graph.getEdge(eidx);
-						part_t assignment;
-						assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
-						assign_edge(graph, e, assignment);
-						//cout << "buffer assign " << e.source << "," << e.target << " to " << assignment << endl;
+					// the buffer is full
+					// clear the buffer
+					for(list<graphp::edge_id_type>::iterator buffer_itr = ebuffer.begin(); buffer_itr != ebuffer.end(); ) {
+						basic_graph::edge_type& eb = graph.getEdge(*buffer_itr);
+						if(v_existed[eb.target]) {
+							// if the target has arrived
+							// assign edges
+							part_t assignment;
+							assignment = edge_to_part_degreeio(graph, eb.source, eb.target, graph.parts_counter);
+							assign_edge(graph, eb, assignment);
+							buffer_itr = ebuffer.erase(buffer_itr);
+							//cout << "assign " << eb.source << "," << eb.target << " to " << assignment << endl;
+						}
+						else
+							buffer_itr++;
 					}
-					ebuffer.clear();
+
+					for(list<graphp::edge_id_type>::iterator buffer_itr = ebuffer.begin(); buffer_itr != ebuffer.end(); ) {
+						basic_graph::edge_type& eb = graph.getEdge(*buffer_itr);
+						boost::dynamic_bitset<> mirror_intersect = graph.getVert(eb.source).mirror_list & graph.getVert(eb.target).mirror_list;
+						if(mirror_intersect.count() > 0) {
+							// assign edges
+							part_t assignment;
+							assignment = edge_to_part_powergraph2(graph, eb.source, eb.target, graph.parts_counter);
+							assign_edge(graph, eb, assignment);
+							buffer_itr = ebuffer.erase(buffer_itr);
+							//cout << "assign " << eb.source << "," << eb.target << " to " << assignment << endl;
+						}
+						else
+							buffer_itr++;
+					}
 				}
 			}
 
@@ -1062,7 +1082,6 @@ namespace graphp {
 				part_t assignment;
 				assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
 				assign_edge(graph, e, assignment);
-				//cout << "buffer assign " << e.source << "," << e.target << " to " << assignment << endl;
 			}
 		}
 
