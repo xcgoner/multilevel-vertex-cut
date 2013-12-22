@@ -1045,6 +1045,9 @@ namespace graphp {
 				}
 
 				boost::dynamic_bitset<> v_arrived = v_existed & v_needed;
+				cout << v_existed << endl;
+				cout << v_needed << endl;
+				cout << v_arrived << endl;
 				if(v_needed.count() > 1 && v_arrived.count() >= v_needed.count() * 0.01) {
 					cout << "buffer: " << ebuffer.size() * 1.0 / CAPACITY << endl;
 					// if the condition is satisfied
