@@ -1045,7 +1045,8 @@ namespace graphp {
 				}
 
 				boost::dynamic_bitset<> v_arrived = v_existed & v_needed;
-				if(v_arrived.count() >= v_needed.count() * 0.6 && ebuffer.size() >= CAPACITY) {
+				if(v_arrived.count() >= v_needed.count() * 0.8 && ebuffer.size() >= CAPACITY) {
+					cout << "buffer: " << ebuffer.size() * 1.0 / CAPACITY << endl;
 					// if the condition is satisfied
 					//std::random_shuffle(ebuffer.begin(), ebuffer.end());
 					// clear the buffer, assign the edges with target = vid
