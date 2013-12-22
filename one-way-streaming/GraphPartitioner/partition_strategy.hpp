@@ -1047,13 +1047,13 @@ namespace graphp {
 				boost::dynamic_bitset<> v_arrived = v_existed & v_needed;
 				cout << "aaa" << endl;
 				for(size_t i = 0; i < v_existed.size(); i++)
-					cout<<v_existed[i];
+					cout<<v_existed[i] ? 1 : 0;
 				cout<<endl;
 				for(size_t i = 0; i < v_needed.size(); i++)
-					cout<<v_needed[i];
+					cout<<v_needed[i] ? 1 : 0;
 				cout<<endl;
 				for(size_t i = 0; i < v_arrived.size(); i++)
-					cout<<v_arrived[i];
+					cout<<v_arrived[i] ? 1 : 0;
 				cout<<endl;
 				if(v_needed.count() > 1 && v_arrived.count() >= v_needed.count() * 0.01) {
 					cout << "buffer: " << ebuffer.size() * 1.0 / CAPACITY << endl;
