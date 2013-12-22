@@ -1043,7 +1043,7 @@ namespace graphp {
 
 				if(ebuffer.size() >= CAPACITY) {
 					// if the buffer is full
-					random_shuffle(ebuffer.begin(), ebuffer.end());
+					std::random_shuffle(ebuffer.begin(), ebuffer.end());
 					// clear the buffer, assign the edges with target = vid
 					foreach(graphp::edge_id_type eidx, ebuffer) {
 						basic_graph::edge_type& e = graph.getEdge(eidx);
