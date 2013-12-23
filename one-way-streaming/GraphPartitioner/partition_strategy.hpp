@@ -1063,7 +1063,7 @@ namespace graphp {
 			// buffered
 			boost::dynamic_bitset<> v_existed(graph.max_vid + 1);
 			// the buffer
-			list<graphp::edge_id_type> ebuffer;
+			vector<graphp::edge_id_type> ebuffer;
 
 			// the average out-degree
 			size_t acc_outdegree = 0;
@@ -1107,24 +1107,25 @@ namespace graphp {
 				}
 
 				if(ebuffer.size() >= CAPACITY) {
-					// the buffer is full
-					cout << "buffered" << endl;
-					// clear the buffer
-					for(list<graphp::edge_id_type>::iterator buffer_itr = ebuffer.begin(); buffer_itr != ebuffer.end(); ) {
-						basic_graph::edge_type& eb = graph.getEdge(*buffer_itr);
-						if(v_existed[eb.target] || graph.getVert(eb.source).outdegree <= avg_outdegree_double) {
-							// if the target has arrived
-							// assign edges
-							part_t assignment;
-							assignment = edge_to_part_degreeio(graph, eb.source, eb.target, graph.parts_counter);
-							assign_edge(graph, eb, assignment);
-							buffer_itr = ebuffer.erase(buffer_itr);
-							//cout << "assign " << eb.source << "," << eb.target << " to " << assignment << endl;
+					//cout << "buffered" << endl;
+					// if the condition is satisfied
+					// clear the buffer, assign the edges with target = vid
+					vector<graphp::edge_id_type> sbuffer;
+					foreach(graphp::edge_id_type eidx, ebuffer) {
+						basic_graph::edge_type& e = graph.getEdge(eidx);
+						part_t assignment;
+						if(v_existed[e.target] || graph.getVert(e.source).outdegree <= avg_outdegree_double) {
+							assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
+							assign_edge(graph, e, assignment);
+							//cout << "buffer assign " << e.source << "," << e.target << " to " << assignment << endl;
 						}
 						else
-							buffer_itr++;
+							sbuffer.push_back(eidx);
 					}
+					ebuffer.swap(sbuffer);
 				}
+				cout << "buffer: " << ebuffer.size() << endl;
+
 			}
 
 			// finally clear the buffer
