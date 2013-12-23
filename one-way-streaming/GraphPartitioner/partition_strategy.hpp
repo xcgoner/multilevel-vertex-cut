@@ -1108,6 +1108,7 @@ namespace graphp {
 
 				if(ebuffer.size() >= CAPACITY) {
 					// the buffer is full
+					cout << "buffered" << endl;
 					// clear the buffer
 					for(list<graphp::edge_id_type>::iterator buffer_itr = ebuffer.begin(); buffer_itr != ebuffer.end(); ) {
 						basic_graph::edge_type& eb = graph.getEdge(*buffer_itr);
