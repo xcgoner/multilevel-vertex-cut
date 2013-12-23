@@ -1057,9 +1057,10 @@ namespace graphp {
 			}
 		}
 		// important feature
-		#define CAPACITY 50000
+		//#define CAPACITY 50000
 		void v_degreeio_partition(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
 
+			size_t CAPACITY = 50000;
 			// buffered
 			boost::dynamic_bitset<> v_existed(graph.max_vid + 1);
 			// the buffer
@@ -1123,8 +1124,12 @@ namespace graphp {
 							sbuffer.push_back(eidx);
 					}
 					ebuffer.swap(sbuffer);
-					cout << "buffer: " << ebuffer.size() << endl;
-					cout << "existed: " << v_existed.count() << endl;
+					if(ebuffer.size() >= CAPACITY)
+						CAPACITY *= 1.2;
+					else
+						CAPACITY = ebuffer.size() * 1.2;
+					/*cout << "buffer: " << ebuffer.size() << endl;
+					cout << "existed: " << v_existed.count() << endl;*/
 				}
 
 			}
