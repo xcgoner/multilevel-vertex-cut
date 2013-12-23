@@ -1063,7 +1063,7 @@ namespace graphp {
 			// buffered
 			boost::dynamic_bitset<> v_existed(graph.max_vid + 1);
 			// the buffer
-			vector<graphp::edge_id_type> ebuffer;
+			list<graphp::edge_id_type> ebuffer;
 
 			// the average out-degree
 			size_t acc_outdegree = 0;
@@ -1081,7 +1081,7 @@ namespace graphp {
 				v.outdegree += (v.edge_end - v.edge_begin);
 				acc_outdegree += v.outdegree;
 				v_counter++;
-				avg_outdegree_double = acc_outdegree * 3.0 / v_counter;
+				avg_outdegree_double = acc_outdegree * 2.0 / v_counter;
 				bool isLarge = (v.outdegree > avg_outdegree_double);
 
 				v_existed[vid] = true;
@@ -1107,20 +1107,23 @@ namespace graphp {
 				}
 
 				if(ebuffer.size() >= CAPACITY) {
-					//cout << "buffered" << endl;
-					// if the condition is satisfied
-					//std::random_shuffle(ebuffer.begin(), ebuffer.end());
-					// clear the buffer, assign the edges with target = vid
-					foreach(graphp::edge_id_type eidx, ebuffer) {
-						basic_graph::edge_type& e = graph.getEdge(eidx);
-						part_t assignment;
-						assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
-						assign_edge(graph, e, assignment);
-						//cout << "buffer assign " << e.source << "," << e.target << " to " << assignment << endl;
+					// the buffer is full
+					// clear the buffer
+					for(list<graphp::edge_id_type>::iterator buffer_itr = ebuffer.begin(); buffer_itr != ebuffer.end(); ) {
+						basic_graph::edge_type& eb = graph.getEdge(*buffer_itr);
+						if(v_existed[eb.target] || graph.getVert(eb.source).outdegree <= avg_outdegree_double) {
+							// if the target has arrived
+							// assign edges
+							part_t assignment;
+							assignment = edge_to_part_degreeio(graph, eb.source, eb.target, graph.parts_counter);
+							assign_edge(graph, eb, assignment);
+							buffer_itr = ebuffer.erase(buffer_itr);
+							//cout << "assign " << eb.source << "," << eb.target << " to " << assignment << endl;
+						}
+						else
+							buffer_itr++;
 					}
-					ebuffer.clear();
 				}
-
 			}
 
 			// finally clear the buffer
