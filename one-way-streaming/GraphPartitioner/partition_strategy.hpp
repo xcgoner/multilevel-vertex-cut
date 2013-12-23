@@ -514,17 +514,12 @@ namespace graphp {
 					source_degree = source_v.outdegree;
 					target_degree = target_v.outdegree;
 				}
-				// not to be zero
-				double e = 0.001;
-				double sum = source_degree + target_degree + e * 2;
-				double s = (target_degree + e) / sum + 1;
-				double t = (source_degree + e) / sum + 1;
 
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list[i];
 					size_t td = target_v.mirror_list[i];
 					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-					part_score[i] = bal + (sd > 0) + (sd > 0 && s >= t) + (td > 0) + (td > 0 && s <= t);
+					part_score[i] = bal + (sd > 0) + (sd > 0 && target_degree >= source_degree) + (td > 0) + (td > 0 && target_degree <= source_degree);
 				}
 
 				maxscore = *max_element(part_score.begin(), part_score.end());
@@ -1086,7 +1081,7 @@ namespace graphp {
 				v.outdegree += (v.edge_end - v.edge_begin);
 				acc_outdegree += v.outdegree;
 				v_counter++;
-				avg_outdegree_double = acc_outdegree * 2.0 / v_counter;
+				avg_outdegree_double = acc_outdegree * 3.0 / v_counter;
 				bool isLarge = (v.outdegree > avg_outdegree_double);
 
 				v_existed[vid] = true;
