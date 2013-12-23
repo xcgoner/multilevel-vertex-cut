@@ -1057,7 +1057,7 @@ namespace graphp {
 			}
 		}
 		// important feature
-		#define CAPACITY 5000000
+		#define CAPACITY 500000
 		void v_degreeio_partition(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
 
 			// buffered
@@ -1123,8 +1123,8 @@ namespace graphp {
 							sbuffer.push_back(eidx);
 					}
 					ebuffer.swap(sbuffer);
+					cout << "buffer: " << ebuffer.size() << endl;
 				}
-				cout << "buffer: " << ebuffer.size() << endl;
 
 			}
 
