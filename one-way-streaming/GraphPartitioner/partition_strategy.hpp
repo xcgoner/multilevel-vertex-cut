@@ -1062,13 +1062,18 @@ namespace graphp {
 			}
 		}
 		// important feature
-#define CAPACITY 50000
+		#define CAPACITY 50000
 		void v_degreeio_partition(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
 
 			// buffered
 			boost::dynamic_bitset<> v_existed(graph.max_vid + 1);
 			// the buffer
-			list<graphp::edge_id_type> ebuffer;
+			vector<graphp::edge_id_type> ebuffer;
+
+			// the average out-degree
+			size_t acc_outdegree = 0;
+			double avg_outdegree_double;
+			size_t v_counter = 0;
 
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
 
@@ -1079,6 +1084,10 @@ namespace graphp {
 
 				basic_graph::vertex_type& v = graph.getVert(vid);
 				v.outdegree += (v.edge_end - v.edge_begin);
+				acc_outdegree += v.outdegree;
+				v_counter++;
+				avg_outdegree_double = acc_outdegree * 2.0 / v_counter;
+				bool isLarge = (v.outdegree > avg_outdegree_double);
 
 				v_existed[vid] = true;
 
@@ -1088,7 +1097,7 @@ namespace graphp {
 
 					// if the target has not arrived
 					// for buffer
-					if(v_existed[e.target] == false) {
+					if(isLarge && v_existed[e.target] == false) {
 						// the target has not arrived
 						ebuffer.push_back(eidx);
 						continue;
@@ -1103,38 +1112,19 @@ namespace graphp {
 				}
 
 				if(ebuffer.size() >= CAPACITY) {
-					// the buffer is full
-					// clear the buffer
-					for(list<graphp::edge_id_type>::iterator buffer_itr = ebuffer.begin(); buffer_itr != ebuffer.end(); ) {
-						basic_graph::edge_type& eb = graph.getEdge(*buffer_itr);
-						if(v_existed[eb.target]) {
-							// if the target has arrived
-							// assign edges
-							part_t assignment;
-							assignment = edge_to_part_degreeio(graph, eb.source, eb.target, graph.parts_counter);
-							assign_edge(graph, eb, assignment);
-							buffer_itr = ebuffer.erase(buffer_itr);
-							//cout << "assign " << eb.source << "," << eb.target << " to " << assignment << endl;
-						}
-						else
-							buffer_itr++;
+					// if the condition is satisfied
+					std::random_shuffle(ebuffer.begin(), ebuffer.end());
+					// clear the buffer, assign the edges with target = vid
+					foreach(graphp::edge_id_type eidx, ebuffer) {
+						basic_graph::edge_type& e = graph.getEdge(eidx);
+						part_t assignment;
+						assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
+						assign_edge(graph, e, assignment);
+						//cout << "buffer assign " << e.source << "," << e.target << " to " << assignment << endl;
 					}
-
-					for(list<graphp::edge_id_type>::iterator buffer_itr = ebuffer.begin(); buffer_itr != ebuffer.end(); ) {
-						basic_graph::edge_type& eb = graph.getEdge(*buffer_itr);
-						boost::dynamic_bitset<> mirror_intersect = graph.getVert(eb.source).mirror_list & graph.getVert(eb.target).mirror_list;
-						if(mirror_intersect.count() > 0) {
-							// assign edges
-							part_t assignment;
-							assignment = edge_to_part_powergraph2(graph, eb.source, eb.target, graph.parts_counter);
-							assign_edge(graph, eb, assignment);
-							buffer_itr = ebuffer.erase(buffer_itr);
-							//cout << "assign " << eb.source << "," << eb.target << " to " << assignment << endl;
-						}
-						else
-							buffer_itr++;
-					}
+					ebuffer.clear();
 				}
+
 			}
 
 			// finally clear the buffer
