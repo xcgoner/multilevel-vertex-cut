@@ -1062,7 +1062,7 @@ namespace graphp {
 			}
 		}
 		// important feature
-		#define CAPACITY 500000
+		#define CAPACITY 5000000
 		void v_degreeio_partition(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
 
 			// buffered
@@ -1112,7 +1112,7 @@ namespace graphp {
 				}
 
 				if(ebuffer.size() >= CAPACITY) {
-					cout << "buffered" << endl;
+					//cout << "buffered" << endl;
 					// if the condition is satisfied
 					//std::random_shuffle(ebuffer.begin(), ebuffer.end());
 					// clear the buffer, assign the edges with target = vid
