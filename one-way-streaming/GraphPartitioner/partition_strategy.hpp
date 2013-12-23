@@ -1112,6 +1112,7 @@ namespace graphp {
 				}
 
 				if(ebuffer.size() >= CAPACITY) {
+					cout << "buffered" << endl;
 					// if the condition is satisfied
 					std::random_shuffle(ebuffer.begin(), ebuffer.end());
 					// clear the buffer, assign the edges with target = vid
