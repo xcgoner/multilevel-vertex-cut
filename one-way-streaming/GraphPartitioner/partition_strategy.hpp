@@ -1124,6 +1124,7 @@ namespace graphp {
 					}
 					ebuffer.swap(sbuffer);
 					cout << "buffer: " << ebuffer.size() << endl;
+					cout << "existed: " << v_existed.count() << endl;
 				}
 
 			}
