@@ -1127,7 +1127,7 @@ namespace graphp {
 					if(ebuffer.size() >= CAPACITY)
 						CAPACITY *= 1.2;
 					else
-						CAPACITY = ebuffer.size() * 1.2;
+						CAPACITY /= 2;
 					/*cout << "buffer: " << ebuffer.size() << endl;
 					cout << "existed: " << v_existed.count() << endl;*/
 				}
