@@ -270,7 +270,9 @@ namespace graphp {
 				}
 
 				// release the memory
+				cout<< "size of edges_storage: " << edges_storage.size() << endl;
 				edges_storage.clear();
+				cout<< "size of edges_storage: " << edges_storage.size() << endl;
 				edges_storage.shrink_to_fit();
 				deque<edge_type>().swap(edges_storage);
 				
