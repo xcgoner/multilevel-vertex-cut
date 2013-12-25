@@ -29,6 +29,7 @@ int main(int argc, char* argv[])
 		("indegree", po::value<string>(), "Set the paramater of powerlaw...")
 		("reverse", po::value<string>(), "Set the paramater of powerlaw...")
 		("rearrange", po::value<string>(), "Rearrange the edges by their source...")
+		("histprefix", po::value<string>(), "The prefix of histgram files...")
 	;
 
 	po::variables_map vm;
@@ -90,7 +91,7 @@ int main(int argc, char* argv[])
 
 	if(vm.count("powerlaw") > 0) {
 		// true for in-degree
-		graph.load_synthetic_powerlaw1(vm["powerlaw"].as<size_t>(), false, vm["alpha"].as<double>(), 100000000);
+		graph.load_synthetic_powerlaw(vm["powerlaw"].as<size_t>(), false, vm["alpha"].as<double>(), 100000000);
 	}
 	else if(vm.count("file") > 0 && vm.count("format") > 0) {
 		graph.load_format(vm["file"].as<string>(), vm["format"].as<string>());
@@ -98,7 +99,10 @@ int main(int argc, char* argv[])
 	
 	graph.finalize();
 
-	graphp::partition_strategy::run_partition(graph, nparts, strategies, orders, vm["type"].as<string>());
+	if(vm.count("histprefix") > 0)
+		graphp::partition_strategy::degreeHistgram(graph, vm["histprefix"].as<string>());
+	else
+		graphp::partition_strategy::run_partition(graph, nparts, strategies, orders, vm["type"].as<string>());
 
 #ifdef WIN32
 	system("Pause");

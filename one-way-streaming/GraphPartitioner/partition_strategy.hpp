@@ -27,6 +27,7 @@
 #include <stack>
 #include <list>
 #include <cmath>
+#include <fstream>
 #include "sharding_constraint.hpp"
 #include "basic_graph.hpp"
 #include "util.hpp"
@@ -1010,7 +1011,8 @@ namespace graphp {
 					target_degree = target_v.indegree;
 				}
 				else {
-					return edge_to_part_powergraph2(graph, source, target, part_num_edges);
+					source_degree = source_v.outdegree;
+					target_degree = target_v.outdegree;
 				}
 				// not to be zero
 				double e = 0.001;
@@ -1466,6 +1468,48 @@ namespace graphp {
 					<< endl;
 			}
 		} // run partition in one thread
+
+		void degreeHistgram(basic_graph& graph, string prefix) {
+			vector<size_t> indegreeHist;
+			vector<size_t> outdegreeHist;
+			size_t maxInDegree = 0, maxOutDegree = 0;
+			graph.initialize(graph.nparts);
+			// count the degrees
+			foreach(basic_graph::edge_type& e, graph.edges) {
+				graph.getVert(e.source).outdegree++;
+				graph.getVert(e.target).indegree++;
+			}
+			// get the size of the histgrams
+			foreach(basic_graph::vertex_type& v, graph.verts) {
+				if(v.indegree > maxInDegree)
+					maxInDegree = v.indegree;
+				if(v.outdegree > maxOutDegree)
+					maxOutDegree = v.outdegree;
+			}
+			// count the histgram
+			indegreeHist.resize(maxInDegree + 1);
+			foreach(size_t& hist, indegreeHist) {
+				hist = 0;
+			}
+			outdegreeHist.resize(maxOutDegree + 1);
+			foreach(size_t& hist, outdegreeHist) {
+				hist = 0;
+			}
+			foreach(basic_graph::vertex_type& v, graph.verts) {
+				indegreeHist[v.indegree]++;
+				outdegreeHist[v.outdegree]++;
+			}
+			// output
+			ofstream fout1(prefix + "InDegree"), fout2(prefix + "OutDegree");
+			foreach(size_t& hist, indegreeHist) {
+				fout1 << hist << endl;
+			}
+			fout1.close();
+			foreach(size_t& hist, outdegreeHist) {
+				fout2 << hist << endl;
+			}
+			fout2.close();
+		} // get the histgram of indegree and outdegree
 
 	} // end of namespace partition_strategy
 
