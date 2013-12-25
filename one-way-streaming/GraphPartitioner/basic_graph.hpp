@@ -130,7 +130,7 @@ namespace graphp {
 
 		vector<edge_type> edges;
 		vector<edge_type>::iterator ebegin, eend;
-		vector<edge_type> edges_p;
+		//vector<edge_type> edges_p;
 
 		deque<edge_type> edges_storage;
 
@@ -284,7 +284,7 @@ namespace graphp {
 				ebegin = edges.begin();
 				eend = edges.end();
 
-				edges_p.resize(edges.size());
+				//edges_p.resize(edges.size());
 			}
 
 			// access the edges in random order
