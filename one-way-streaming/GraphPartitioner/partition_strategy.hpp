@@ -1061,11 +1061,11 @@ namespace graphp {
 			// buffered
 			boost::dynamic_bitset<> v_existed(graph.max_vid + 1);
 			// the buffer
-			vector<graphp::edge_id_type> ebuffer;
+			vector< vector<graphp::edge_id_type> > ebuffer(graph.nverts);
 
 			// the average out-degree
 			size_t acc_outdegree = 0;
-			double avg_outdegree_double;
+			double avg_outdegree;
 			size_t v_counter = 0;
 
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
@@ -1079,8 +1079,8 @@ namespace graphp {
 				v.outdegree += (v.edge_end - v.edge_begin);
 				acc_outdegree += v.outdegree;
 				v_counter++;
-				avg_outdegree_double = acc_outdegree * 2.0 / v_counter;
-				bool isLarge = (v.outdegree > avg_outdegree_double);
+				avg_outdegree = acc_outdegree / v_counter;
+				bool isLarge = (log((double) v.outdegree) / log(avg_outdegree) >= 2);
 
 				v_existed[vid] = true;
 
@@ -1092,7 +1092,7 @@ namespace graphp {
 					// for buffer
 					if(isLarge && v_existed[e.target] == false) {
 						// the target has not arrived
-						ebuffer.push_back(eidx);
+						ebuffer[graph.vid_to_lvid[e.target]].push_back(eidx);
 						continue;
 					}
 
@@ -1104,39 +1104,27 @@ namespace graphp {
 					//cout << "assign " << e.source << "," << e.target << " to " << assignment << endl;
 				}
 
-				if(ebuffer.size() >= CAPACITY) {
-					//cout << "buffered" << endl;
-					// if the condition is satisfied
-					// clear the buffer, assign the edges with target = vid
-					vector<graphp::edge_id_type> sbuffer;
-					foreach(graphp::edge_id_type eidx, ebuffer) {
+				if(ebuffer[vid].size() > 0) {
+					foreach(graphp::edge_id_type eidx, ebuffer[vid]) {
 						basic_graph::edge_type& e = graph.getEdge(eidx);
 						part_t assignment;
-						if(v_existed[e.target] || graph.getVert(e.source).outdegree <= avg_outdegree_double) {
-							assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
-							assign_edge(graph, e, assignment);
-							//cout << "buffer assign " << e.source << "," << e.target << " to " << assignment << endl;
-						}
-						else
-							sbuffer.push_back(eidx);
+						assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
+						assign_edge(graph, e, assignment);
 					}
-					ebuffer.swap(sbuffer);
-					if(ebuffer.size() >= CAPACITY)
-						CAPACITY *= 1.2;
-					else
-						CAPACITY /= 2;
-					/*cout << "buffer: " << ebuffer.size() << endl;
-					cout << "existed: " << v_existed.count() << endl;*/
+					vector<graphp::edge_id_type>().swap(ebuffer[vid]);
 				}
 
 			}
 
 			// finally clear the buffer
-			foreach(graphp::edge_id_type eidx, ebuffer) {
-				basic_graph::edge_type& e = graph.getEdge(eidx);
-				part_t assignment;
-				assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
-				assign_edge(graph, e, assignment);
+			foreach(vector<graphp::edge_id_type>& vbuffer, ebuffer) {
+				if(vbuffer.size() > 0)
+					foreach(graphp::edge_id_type eidx, vbuffer) {
+						basic_graph::edge_type& e = graph.getEdge(eidx);
+						part_t assignment;
+						assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
+						assign_edge(graph, e, assignment);
+					}
 			}
 		}
 
