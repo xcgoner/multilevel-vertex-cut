@@ -271,6 +271,8 @@ namespace graphp {
 
 				// release the memory
 				edges_storage.clear();
+				deque<edge_type>().swap(edges_storage);
+				
 				// access the edges in random order
 				//srand(time(0));
 				//random_shuffle(edges.begin(), edges.end());
