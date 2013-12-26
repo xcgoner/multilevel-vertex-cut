@@ -212,6 +212,7 @@ namespace graphp {
 				v.degree = 0;
 				v.indegree = 0;
 				v.outdegree = 0;
+				vector<graphp::edge_id_type>().swap(v.ebuffer);
 			}
 		}
 
