@@ -1062,6 +1062,7 @@ namespace graphp {
 			boost::dynamic_bitset<> v_existed(graph.max_vid + 1);
 			// the buffer
 			vector< vector<graphp::edge_id_type> > ebuffer(graph.nverts);
+			//boost::unordered_map< edge_id_type, vector<graphp::edge_id_type> > ebuffer;
 
 			// the average out-degree
 			size_t acc_outdegree = 0;
@@ -1105,14 +1106,15 @@ namespace graphp {
 					//cout << "assign " << e.source << "," << e.target << " to " << assignment << endl;
 				}
 
-				if(ebuffer[vid].size() > 0) {
-					foreach(graphp::edge_id_type eidx, ebuffer[vid]) {
+				graphp::vertex_id_type lvid = graph.vid_to_lvid[vid];
+				if(ebuffer[lvid].size() > 0) {
+					foreach(graphp::edge_id_type eidx, ebuffer[lvid]) {
 						basic_graph::edge_type& e = graph.getEdge(eidx);
 						part_t assignment;
 						assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
 						assign_edge(graph, e, assignment);
 					}
-					vector<graphp::edge_id_type>().swap(ebuffer[vid]);
+					vector<graphp::edge_id_type>().swap(ebuffer[lvid]);
 				}
 
 			}
