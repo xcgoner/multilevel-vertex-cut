@@ -100,6 +100,8 @@ namespace graphp {
 
 			boost::dynamic_bitset<> mirror_list;
 
+			vector<edge_id_type> ebuffer;
+
 			vertex_type() :
 			edge_begin(-1), edge_end(-1), degree(0),indegree(0), outdegree(0) { }
 
