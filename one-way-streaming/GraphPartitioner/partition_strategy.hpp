@@ -1061,7 +1061,7 @@ namespace graphp {
 			// buffered
 			boost::dynamic_bitset<> v_existed(graph.max_vid + 1);
 			// the buffer
-			vector< vector<graphp::edge_id_type> > ebuffer(graph.nverts);
+			//vector< vector<graphp::edge_id_type> > ebuffer(graph.nverts);
 			//boost::unordered_map< edge_id_type, vector<graphp::edge_id_type> > ebuffer;
 
 			// the average out-degree
@@ -1094,7 +1094,8 @@ namespace graphp {
 					// for buffer
 					if(isLarge && v_existed[e.target] == false) {
 						// the target has not arrived
-						ebuffer[graph.vid_to_lvid[e.target]].push_back(eidx);
+						graph.getVert(e.target).ebuffer.push_back(eidx);
+						//ebuffer[graph.vid_to_lvid[e.target]].push_back(eidx);
 						continue;
 					}
 
@@ -1107,7 +1108,17 @@ namespace graphp {
 				}
 
 				graphp::vertex_id_type lvid = graph.vid_to_lvid[vid];
-				if(ebuffer[lvid].size() > 0) {
+				vector<graphp::edge_id_type>& ebuffer = graph.getVert(vid).ebuffer;
+				if(ebuffer.size() > 0) {
+					foreach(graphp::edge_id_type eidx, ebuffer) {
+						basic_graph::edge_type& e = graph.getEdge(eidx);
+						part_t assignment;
+						assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
+						assign_edge(graph, e, assignment);
+					}
+					vector<graphp::edge_id_type>().swap(ebuffer);
+				}
+				/*if(ebuffer[lvid].size() > 0) {
 					foreach(graphp::edge_id_type eidx, ebuffer[lvid]) {
 						basic_graph::edge_type& e = graph.getEdge(eidx);
 						part_t assignment;
@@ -1115,14 +1126,14 @@ namespace graphp {
 						assign_edge(graph, e, assignment);
 					}
 					vector<graphp::edge_id_type>().swap(ebuffer[lvid]);
-				}
+				}*/
 
 			}
 
 			// finally clear the buffer
-			foreach(vector<graphp::edge_id_type>& vbuffer, ebuffer) {
-				if(vbuffer.size() > 0)
-					foreach(graphp::edge_id_type eidx, vbuffer) {
+			foreach(basic_graph::vertex_type& v, graph.verts) {
+				if(v.ebuffer.size() > 0)
+					foreach(graphp::edge_id_type eidx, v.ebuffer) {
 						basic_graph::edge_type& e = graph.getEdge(eidx);
 						part_t assignment;
 						assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
