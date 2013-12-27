@@ -1069,6 +1069,8 @@ namespace graphp {
 			double avg_outdegree;
 			size_t v_counter = 0;
 
+			size_t edge_counter = 0;
+
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
 
 				//foreach(graphp::edge_id_type eidx, ebuffer) {
@@ -1104,6 +1106,7 @@ namespace graphp {
 					part_t assignment;
 					assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
 					assign_edge(graph, e, assignment);
+					edge_counter++;
 					//cout << "assign " << e.source << "," << e.target << " to " << assignment << endl;
 				}
 
@@ -1115,6 +1118,7 @@ namespace graphp {
 						part_t assignment;
 						assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
 						assign_edge(graph, e, assignment);
+						edge_counter++;
 					}
 					vector<graphp::edge_id_type>().swap(ebuffer);
 				}
@@ -1138,8 +1142,11 @@ namespace graphp {
 						part_t assignment;
 						assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
 						assign_edge(graph, e, assignment);
+						edge_counter++;
 					}
 			}
+			if(edge_counter != graph.nedges)
+				cerr << "The number of assigned edges is incorrect !!!" << endl;
 		}
 
 
