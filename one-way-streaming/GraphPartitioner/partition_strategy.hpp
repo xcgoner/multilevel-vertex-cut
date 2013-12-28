@@ -1093,7 +1093,7 @@ namespace graphp {
 					source_degree = source_v.indegree;
 					target_degree = target_v.indegree;
 				}
-				else if(outscore >= 0.5) {
+				else if(outscore >= 0.4) {
 					source_degree = source_v.outdegree;
 					target_degree = target_v.outdegree;
 				}
