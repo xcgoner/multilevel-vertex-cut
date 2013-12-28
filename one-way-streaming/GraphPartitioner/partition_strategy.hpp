@@ -1093,11 +1093,16 @@ namespace graphp {
 					source_degree = source_v.indegree;
 					target_degree = target_v.indegree;
 				}
-				else if(outscore >= 0.4) {
+				else if(outscore >= 0.5) {
 					source_degree = source_v.outdegree;
 					target_degree = target_v.outdegree;
 				}
 				else {
+					if(!(outscore >= 0.5))
+						cout << (source_v.outdegree > target_v.outdegree ? source_v.outdegree : target_v.outdegree) / (source_v.outdegree + target_v.outdegree)
+						<< " "
+						<< (source_v.outdegree <= target_v.outdegree ? source_v.outdegree : target_v.outdegree) / (source_v.outdegree + target_v.outdegree)
+						<< endl;
 					return edge_to_part_powergraph2(graph, source, target, part_num_edges);
 				}
 
