@@ -1078,11 +1078,11 @@ namespace graphp {
 				//inscore = fabs((double)(source_v.indegree - target_v.indegree)) / (source_v.indegree + target_v.indegree);
 				//outscore = fabs((double)(source_v.outdegree - target_v.outdegree)) / (source_v.outdegree + target_v.outdegree);
 				size_t source_degree, target_degree;
-				if(inscore > outscore && inscore > 0.75) {
+				if(inscore > outscore && inscore > 0.5) {
 					source_degree = source_v.indegree;
 					target_degree = target_v.indegree;
 				}
-				else if(target_v.outdegree != 0 && outscore > inscore && outscore > 0.75) {
+				else if(target_v.outdegree != 0 && outscore > inscore && outscore > 0.5) {
 					source_degree = source_v.outdegree;
 					target_degree = target_v.outdegree;
 				}
