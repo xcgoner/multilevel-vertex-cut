@@ -1093,11 +1093,13 @@ namespace graphp {
 					source_degree = source_v.indegree;
 					target_degree = target_v.indegree;
 				}
-				else {
+				else if(outscore > 0.5) {
 					source_degree = source_v.outdegree;
 					target_degree = target_v.outdegree;
 				}
-
+				else {
+					return edge_to_part_powergraph2(graph, source, target, part_num_edges);
+				}
 
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list[i];
