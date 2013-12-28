@@ -1054,10 +1054,67 @@ namespace graphp {
 			}
 		}
 		// important feature
-		//#define CAPACITY 50000
-		void v_degreeio_partition(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
+		part_t edge_to_part_vdegreeio(basic_graph& graph, 
+			const basic_graph::vertex_id_type source,
+			const basic_graph::vertex_id_type target,
+			const vector<size_t>& part_num_edges
+			) {
+				const size_t nparts = part_num_edges.size();
 
-			size_t CAPACITY = 50000;
+				const basic_graph::vertex_type& source_v = graph.getVert(source);
+				const basic_graph::vertex_type& target_v = graph.getVert(target);
+
+				// compute the score of each part
+				part_t best_part = -1;
+				double maxscore = 0.0;
+				double epsilon = 0.0001;
+				vector<double> part_score(nparts);
+				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
+				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
+
+				double inscore, outscore;
+				inscore = target_v.indegree / (source_v.indegree + target_v.indegree);
+				outscore = source_v.outdegree / (source_v.outdegree + target_v.outdegree);
+				//inscore = fabs((double)(source_v.indegree - target_v.indegree)) / (source_v.indegree + target_v.indegree);
+				//outscore = fabs((double)(source_v.outdegree - target_v.outdegree)) / (source_v.outdegree + target_v.outdegree);
+				size_t source_degree, target_degree;
+				if(inscore > outscore && inscore > 7.5) {
+					source_degree = source_v.indegree;
+					target_degree = target_v.indegree;
+				}
+				else if(target_v.outdegree == 0 && outscore > inscore && outscore > 7.5) {
+					source_degree = source_v.outdegree;
+					target_degree = target_v.outdegree;
+				}
+				else {
+					return edge_to_part_powergraph2(graph, source, target, part_num_edges);
+				}
+
+				for(size_t i = 0; i < nparts; ++i) {
+					size_t sd = source_v.mirror_list[i];
+					size_t td = target_v.mirror_list[i];
+					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+					part_score[i] = bal + (sd > 0) + (sd > 0 && target_degree >= source_degree) + (td > 0) + (td > 0 && target_degree <= source_degree);
+				}
+
+				maxscore = *max_element(part_score.begin(), part_score.end());
+
+				vector<part_t> top_parts;
+				for(size_t i = 0; i < nparts; ++i) {
+					if(fabs(part_score[i] - maxscore) < 1e-5) {
+						top_parts.push_back(i);
+					}
+				}
+
+				// hash the edge to one of the best parts
+				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+				const edge_pair_type edge_pair(min(source, target),
+					max(source, target));
+				best_part = top_parts[hash_edge(edge_pair) % top_parts.size()];
+
+				return best_part;
+		} // edge_to_part_vdegreeio
+		void v_degreeio_partition(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
 			// buffered
 			boost::dynamic_bitset<> v_existed(graph.max_vid + 1);
 			// the buffer
@@ -1104,19 +1161,18 @@ namespace graphp {
 					// if the target has arrived
 					// assign edges
 					part_t assignment;
-					assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
+					assignment = edge_to_part_vdegreeio(graph, e.source, e.target, graph.parts_counter);
 					assign_edge(graph, e, assignment);
 					edge_counter++;
 					//cout << "assign " << e.source << "," << e.target << " to " << assignment << endl;
 				}
 
-				graphp::vertex_id_type lvid = graph.vid_to_lvid[vid];
 				vector<graphp::edge_id_type>& ebuffer = graph.getVert(vid).ebuffer;
 				if(ebuffer.size() > 0) {
 					foreach(graphp::edge_id_type eidx, ebuffer) {
 						basic_graph::edge_type& e = graph.getEdge(eidx);
 						part_t assignment;
-						assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
+						assignment = edge_to_part_vdegreeio(graph, e.source, e.target, graph.parts_counter);
 						assign_edge(graph, e, assignment);
 						edge_counter++;
 					}
@@ -1140,7 +1196,7 @@ namespace graphp {
 					foreach(graphp::edge_id_type eidx, v.ebuffer) {
 						basic_graph::edge_type& e = graph.getEdge(eidx);
 						part_t assignment;
-						assignment = edge_to_part_degreeio(graph, e.source, e.target, graph.parts_counter);
+						assignment = edge_to_part_vdegreeio(graph, e.source, e.target, graph.parts_counter);
 						assign_edge(graph, e, assignment);
 						edge_counter++;
 					}
