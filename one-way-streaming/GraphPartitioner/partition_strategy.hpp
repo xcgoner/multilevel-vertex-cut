@@ -1099,7 +1099,8 @@ namespace graphp {
 				}
 				else {
 					if(!(outscore >= 0.5))
-						cout << (source_v.outdegree > target_v.outdegree ? source_v.outdegree : target_v.outdegree) / (source_v.outdegree + target_v.outdegree)
+						cout << source_v.outdegree << " " << target_v.outdegree << " "
+						<< (source_v.outdegree > target_v.outdegree ? source_v.outdegree : target_v.outdegree) / (source_v.outdegree + target_v.outdegree)
 						<< " "
 						<< (source_v.outdegree <= target_v.outdegree ? source_v.outdegree : target_v.outdegree) / (source_v.outdegree + target_v.outdegree)
 						<< endl;
