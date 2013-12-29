@@ -1080,25 +1080,25 @@ namespace graphp {
 				//inscore = fabs((double)(source_v.indegree - target_v.indegree)) / (source_v.indegree + target_v.indegree);
 				//outscore = fabs((double)(source_v.outdegree - target_v.outdegree)) / (source_v.outdegree + target_v.outdegree);
 				size_t source_degree, target_degree;
-				//if(inscore > outscore && inscore > 0.75) {
-				//	source_degree = source_v.indegree;
-				//	target_degree = target_v.indegree;
-				//}
-				//else if(target_v.outdegree != 0 && outscore > inscore && outscore > 0.75) {
-				//	source_degree = source_v.outdegree;
-				//	target_degree = target_v.outdegree;
-				//}
-				//else {
-				//	return edge_to_part_powergraph2(graph, source, target, part_num_edges);
-				//}
-				if(inscore > outscore || target_v.outdegree == 0) {
+				if(inscore > outscore && inscore > 0.5) {
 					source_degree = source_v.indegree;
 					target_degree = target_v.indegree;
 				}
-				else {
+				else if(target_v.outdegree != 0 && outscore > inscore && outscore > 0.5) {
 					source_degree = source_v.outdegree;
 					target_degree = target_v.outdegree;
 				}
+				else {
+					return edge_to_part_powergraph2(graph, source, target, part_num_edges);
+				}
+				//if(inscore > outscore || target_v.outdegree == 0) {
+				//	source_degree = source_v.indegree;
+				//	target_degree = target_v.indegree;
+				//}
+				//else {
+				//	source_degree = source_v.outdegree;
+				//	target_degree = target_v.outdegree;
+				//}
 
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list[i];
