@@ -1104,7 +1104,12 @@ namespace graphp {
 					size_t sd = source_v.mirror_list[i];
 					size_t td = target_v.mirror_list[i];
 					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-					part_score[i] = bal + (sd > 0) + (sd > 0 && target_degree >= source_degree) + (td > 0) + (td > 0 && target_degree <= source_degree);
+					bool sd1 = (sd > 0);
+					bool td1 = (td > 0);
+					bool sd2 = (sd1 && target_degree >= source_degree);
+					bool td2 = (td1 && target_degree <= source_degree);
+					bool d0 = (sd2 && td2);
+					part_score[i] = bal + sd1 + sd2 + td1 + td2 - d0;
 				}
 
 				maxscore = *max_element(part_score.begin(), part_score.end());
