@@ -1100,12 +1100,12 @@ namespace graphp {
 					target_degree = target_v.outdegree;
 				}
 
-				double avg = accumulate(part_num_edges.begin(), part_num_edges.end(), 0) * 1.0 / nparts;
+				//double avg = accumulate(part_num_edges.begin(), part_num_edges.end(), 0) * 1.0 / nparts;
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list[i];
 					size_t td = target_v.mirror_list[i];
-					//double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-					double bal = (maxedges - part_num_edges[i]) * 5.0 / (epsilon + avg);
+					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+					//double bal = (maxedges - part_num_edges[i]) * 5.0 / (epsilon + avg);
 					bool sd1 = (sd > 0);
 					bool td1 = (td > 0);
 					bool sd2 = (sd1 && target_degree >= source_degree);
