@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 	nparts.push_back(2);
 	if(vm.count("nparts") > 0) {
 		nparts.clear();
-		typedef boost::tokenizer<boost::char_separator<char>> tokenizers;
+		typedef boost::tokenizer< boost::char_separator<char> > tokenizers;
 		boost::char_separator<char> sep(",");
 		tokenizers tok(vm["nparts"].as<string>(), sep);
 		for(tokenizers::iterator beg=tok.begin(); beg!=tok.end(); ++beg){
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
 	vector<string> orders;
 	if(vm.count("order") > 0) {
 		orders.clear();
-		typedef boost::tokenizer<boost::char_separator<char>> tokenizers;
+		typedef boost::tokenizer< boost::char_separator<char> > tokenizers;
 		boost::char_separator<char> sep(",");
 		tokenizers tok(vm["order"].as<string>(), sep);
 		for(tokenizers::iterator beg=tok.begin(); beg!=tok.end(); ++beg){
@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
 	strategies.push_back("random");
 	if(vm.count("strategy") > 0) {
 		strategies.clear();
-		typedef boost::tokenizer<boost::char_separator<char>> tokenizers;
+		typedef boost::tokenizer< boost::char_separator<char> > tokenizers;
 		boost::char_separator<char> sep(",");
 		tokenizers tok(vm["strategy"].as<string>(), sep);
 		for(tokenizers::iterator beg=tok.begin(); beg!=tok.end(); ++beg){
