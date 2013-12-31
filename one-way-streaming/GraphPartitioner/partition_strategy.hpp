@@ -555,7 +555,6 @@ namespace graphp {
 
 				// compute the score of each part
 				part_t best_part = -1;
-				double maxscore = 0.0;
 				double epsilon = 1.0;
 				vector<double> part_score(nparts);
 				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
@@ -601,7 +600,6 @@ namespace graphp {
 
 				// compute the score of each part
 				part_t best_part = -1;
-				double maxscore = 0.0;
 				double epsilon = 1.0;
 				vector<double> part_score(nparts);
 				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());

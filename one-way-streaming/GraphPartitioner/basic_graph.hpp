@@ -483,7 +483,7 @@ namespace graphp {
 				cerr << "constructing cdf" << std::endl;
 				random::pdf2cdf(prob);
 				cerr << "Building graph" << std::endl;
-				size_t target_index = 0;
+				//size_t target_index = 0;
 				size_t addedvtx = 0;
 
 				// powerlaw distribution for indegree
