@@ -180,16 +180,16 @@ namespace graphp {
 			namespace phoenix = boost::phoenix;
 			vertex_id_type source(-1);
 			vector<vertex_id_type> targets;
-			//const bool success = qi::phrase_parse
-			//	(line.begin(), line.end(),       
-			//	//  Begin grammar
-			//	(
-			//	qi::ulong_[phoenix::ref(source) = qi::_1] >> -qi::char_(":") >>
-			//	*(qi::ulong_[phoenix::push_back(phoenix::ref(targets), qi::_1)] % -qi::char_(","))
-			//	)
-			//	,
-			//	//  End grammar
-			//	ascii::space); 
+			const bool success = qi::phrase_parse
+				(line.begin(), line.end(),       
+				//  Begin grammar
+				(
+				qi::ulong_[phoenix::ref(source) = qi::_1] >> -qi::char_(":") >>
+				*(qi::ulong_[phoenix::push_back(phoenix::ref(targets), qi::_1)] % -qi::char_(","))
+				)
+				,
+				//  End grammar
+				ascii::space); 
 			for(size_t i = 0; i < targets.size(); ++i) {
 				if(source != targets[i]) graph.add_edge_to_storage(source, targets[i]);
 				//cout << source << "," << targets[i] << endl;
