@@ -999,8 +999,8 @@ namespace graphp {
 				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
 
 				double inscore, outscore;
-				inscore = (source_v.indegree > target_v.indegree ? source_v.indegree : target_v.indegree) / (source_v.indegree + target_v.indegree);
-				outscore = (source_v.outdegree > target_v.outdegree ? source_v.outdegree : target_v.outdegree) / (source_v.outdegree + target_v.outdegree);
+				inscore = 1.0 * (source_v.indegree > target_v.indegree ? source_v.indegree : target_v.indegree) / (source_v.indegree + target_v.indegree);
+				outscore = 1.0 * (source_v.outdegree > target_v.outdegree ? source_v.outdegree : target_v.outdegree) / (source_v.outdegree + target_v.outdegree);
 				//inscore = fabs((double)(source_v.indegree - target_v.indegree)) / (source_v.indegree + target_v.indegree);
 				//outscore = fabs((double)(source_v.outdegree - target_v.outdegree)) / (source_v.outdegree + target_v.outdegree);
 				size_t source_degree, target_degree;
