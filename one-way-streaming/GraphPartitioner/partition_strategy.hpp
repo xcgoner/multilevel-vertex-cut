@@ -1176,7 +1176,10 @@ namespace graphp {
 					// if the target has arrived
 					// assign edges
 					part_t assignment;
-					assignment = edge_to_part_vdegreeio(graph, e.source, e.target, graph.parts_counter);
+					if(isLarge)
+						assignment = edge_to_part_vdegreeio(graph, e.source, e.target, graph.parts_counter);
+					else
+						assignment = edge_to_part_degree2(graph, e.source, e.target, v.indegree, graph.getVert(e.target).indegree, graph.parts_counter);
 					assign_edge(graph, e, assignment);
 					edge_counter++;
 					//cout << "assign " << e.source << "," << e.target << " to " << assignment << endl;
@@ -1187,11 +1190,7 @@ namespace graphp {
 					foreach(graphp::edge_id_type eidx, ebuffer) {
 						basic_graph::edge_type& e = graph.getEdge(eidx);
 						part_t assignment;
-						basic_graph::vertex_type& vsource = graph.getVert(e.source);
-						if(isLarge || (1.0 * vsource.outdegree / avg_outdegree >= 2))
-							assignment = edge_to_part_vdegreeio(graph, e.source, e.target, graph.parts_counter);
-						else
-							assignment = edge_to_part_degree2(graph, e.source, e.target, vsource.indegree, v.indegree, graph.parts_counter);
+						assignment = edge_to_part_vdegreeio(graph, e.source, e.target, graph.parts_counter);
 						assign_edge(graph, e, assignment);
 						edge_counter++;
 					}
