@@ -1156,7 +1156,7 @@ namespace graphp {
 				v_counter++;
 				avg_outdegree = 1.0 * acc_outdegree / v_counter;
 				//bool isLarge = (log((double) v.outdegree) / log(avg_outdegree) >= 2);
-				bool isLarge = (1.0 * v.outdegree / avg_outdegree >= 2);
+				bool isLarge = (1.0 * v.outdegree / avg_outdegree >= 3);
 
 				v_existed[vid] = true;
 
@@ -1176,7 +1176,7 @@ namespace graphp {
 					// if the target has arrived
 					// assign edges
 					part_t assignment;
-					assignment = edge_to_part_degree2(graph, e.source, e.target, v.indegree, graph.getVert(e.target).indegree, graph.parts_counter);
+					assignment = edge_to_part_vdegreeio(graph, e.source, e.target, graph.parts_counter);
 					assign_edge(graph, e, assignment);
 					edge_counter++;
 					//cout << "assign " << e.source << "," << e.target << " to " << assignment << endl;
