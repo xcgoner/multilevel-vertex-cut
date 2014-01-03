@@ -1158,7 +1158,7 @@ namespace graphp {
 				avg_outdegree = 1.0 * acc_outdegree / v_counter;
 				//bool isLarge = (log((double) v.outdegree) / log(avg_outdegree) >= 2);
 				//bool isLarge = (1.0 * v.outdegree / avg_outdegree >= 4);
-				bool isLarge = (log(1.0 * v.outdegree) - avg_outdegree > 1);
+				bool isLarge = (log(1.0 * v.outdegree) > avg_outdegree);
 
 				v_existed[vid] = true;
 
