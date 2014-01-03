@@ -1176,10 +1176,7 @@ namespace graphp {
 					// if the target has arrived
 					// assign edges
 					part_t assignment;
-					if(isLarge)
-						assignment = edge_to_part_vdegreeio(graph, e.source, e.target, graph.parts_counter);
-					else
-						assignment = edge_to_part_degree2(graph, e.source, e.target, v.indegree, graph.getVert(e.target).indegree, graph.parts_counter);
+					assignment = edge_to_part_degree2(graph, e.source, e.target, v.indegree, graph.getVert(e.target).indegree, graph.parts_counter);
 					assign_edge(graph, e, assignment);
 					edge_counter++;
 					//cout << "assign " << e.source << "," << e.target << " to " << assignment << endl;
