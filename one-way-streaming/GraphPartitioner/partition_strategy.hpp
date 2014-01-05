@@ -1143,6 +1143,9 @@ namespace graphp {
 
 			size_t edge_counter = 0;
 
+			// estimate by prior
+			avg_outdegree = 1.0 * graph.nedges / graph.nverts;
+
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
 
 				//foreach(graphp::edge_id_type eidx, ebuffer) {
@@ -1155,10 +1158,11 @@ namespace graphp {
 				acc_outdegree += v.outdegree;
 				//acc_outdegree += log(v.outdegree * 1.0);
 				v_counter++;
-				avg_outdegree = 1.0 * acc_outdegree / v_counter;
-				bool isLarge = (log(1.0 *  v.outdegree / avg_outdegree) >= 2);
+				//avg_outdegree = 1.0 * acc_outdegree / v_counter;
+				//bool isLarge = (log(1.0 *  v.outdegree / avg_outdegree) >= 2);
 				//bool isLarge = (1.0 * v.outdegree / avg_outdegree >= 4);
 				//bool isLarge = (log(1.0 * v.outdegree) > (avg_outdegree * 2.0));
+				bool isLarge = (1.0 * v.outdegree / avg_outdegree > 2);
 
 				v_existed[vid] = true;
 
