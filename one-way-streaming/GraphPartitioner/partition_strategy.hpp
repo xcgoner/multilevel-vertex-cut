@@ -1138,13 +1138,12 @@ namespace graphp {
 
 			// the average out-degree
 			double acc_outdegree = 0;
+			double acc_outdegree_var = 0;
 			double avg_outdegree;
+			double var_outdegree;
 			size_t v_counter = 0;
 
 			size_t edge_counter = 0;
-
-			// estimate by prior
-			avg_outdegree = 1.0 * graph.nedges / graph.nverts;
 
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
 
@@ -1156,13 +1155,15 @@ namespace graphp {
 				basic_graph::vertex_type& v = graph.getVert(vid);
 				v.outdegree += (v.edge_end - v.edge_begin);
 				acc_outdegree += v.outdegree;
+				acc_outdegree_var += v.outdegree * v.outdegree;
 				//acc_outdegree += log(v.outdegree * 1.0);
 				v_counter++;
-				//avg_outdegree = 1.0 * acc_outdegree / v_counter;
+				avg_outdegree = 1.0 * acc_outdegree / v_counter;
+				var_outdegree = (acc_outdegree_var - v_counter * avg_outdegree * avg_outdegree) / (v_counter - 1);
 				//bool isLarge = (log(1.0 *  v.outdegree / avg_outdegree) >= 2);
 				//bool isLarge = (1.0 * v.outdegree / avg_outdegree >= 4);
 				//bool isLarge = (log(1.0 * v.outdegree) > (avg_outdegree * 2.0));
-				bool isLarge = (1.0 * v.outdegree / avg_outdegree > 2);
+				bool isLarge = (pow(v.outdegree - avg_outdegree, 2.0) > var_outdegree);
 
 				v_existed[vid] = true;
 
