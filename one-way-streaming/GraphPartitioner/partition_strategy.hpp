@@ -1163,7 +1163,7 @@ namespace graphp {
 				//bool isLarge = (log(1.0 *  v.outdegree / avg_outdegree) >= 2);
 				//bool isLarge = (1.0 * v.outdegree / avg_outdegree >= 4);
 				//bool isLarge = (log(1.0 * v.outdegree) > (avg_outdegree * 2.0));
-				bool isLarge = (v.outdegree > avg_outdegree && pow(v.outdegree - avg_outdegree, 2.0) > var_outdegree);
+				bool isLarge = (pow(v.outdegree - avg_outdegree, 2.0) > var_outdegree * 1.96);
 
 				v_existed[vid] = true;
 
