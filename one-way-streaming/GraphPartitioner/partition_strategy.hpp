@@ -1160,8 +1160,8 @@ namespace graphp {
 				//bool isLarge = (log(1.0 *  v.outdegree / avg_outdegree) >= 2);
 				//bool isLarge = (1.0 * v.outdegree / avg_outdegree >= 4);
 				//bool isLarge = (log(1.0 * v.outdegree) > (avg_outdegree * 2.0));
-				bool isLarge = (fabs(v.outdegree - avg_outdegree) > sqrt(var_outdegree) * 1.96);
-				//bool isLarge = (v.outdegree >= (graph.nparts / 6));
+				//bool isLarge = (fabs(v.outdegree - avg_outdegree) > sqrt(var_outdegree) * 1.96);
+				bool isLarge = (v.outdegree >= (graph.nparts));
 
 				
 				acc_outdegree += v.outdegree;
