@@ -1153,16 +1153,17 @@ namespace graphp {
 				//cout << endl;
 
 				basic_graph::vertex_type& v = graph.getVert(vid);
+				v.outdegree += (v.edge_end - v.edge_begin);
 				
-				//avg_outdegree = 1.0 * acc_outdegree / v_counter;
-				//var_outdegree = (acc_outdegree_var - v_counter * avg_outdegree * avg_outdegree) / (v_counter - 1);
+				avg_outdegree = 1.0 * acc_outdegree / v_counter;
+				var_outdegree = (acc_outdegree_var - v_counter * avg_outdegree * avg_outdegree) / (v_counter - 1);
 				//bool isLarge = (log(1.0 *  v.outdegree / avg_outdegree) >= 2);
 				//bool isLarge = (1.0 * v.outdegree / avg_outdegree >= 4);
 				//bool isLarge = (log(1.0 * v.outdegree) > (avg_outdegree * 2.0));
-				//bool isLarge = (pow(v.outdegree - avg_outdegree, 2.0) > var_outdegree * 0.9);
-				bool isLarge = (v.outdegree >= (graph.nparts / 6));
+				bool isLarge = (fabs(v.outdegree - avg_outdegree) > sqrt(var_outdegree) * 1.96);
+				//bool isLarge = (v.outdegree >= (graph.nparts / 6));
 
-				v.outdegree += (v.edge_end - v.edge_begin);
+				
 				acc_outdegree += v.outdegree;
 				acc_outdegree_var += v.outdegree * v.outdegree;
 				//acc_outdegree += log(v.outdegree * 1.0);
