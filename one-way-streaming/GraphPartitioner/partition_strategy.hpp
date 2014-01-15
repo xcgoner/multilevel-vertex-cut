@@ -1292,13 +1292,15 @@ namespace graphp {
 
 				basic_graph::vertex_type& v = graph.getVert(vid);
 				v.outdegree += (v.edge_end - v.edge_begin);
-				bool isLarge = (v.outdegree >= (graph.nparts));
+				v.degree += (v.edge_end - v.edge_begin);
+				bool isLarge = (v.degree >= (graph.nparts));
 
 				v_existed[vid] = true;
 
 				for(size_t eidx = v.edge_begin; eidx < v.edge_end; eidx++) {
 					basic_graph::edge_type& e = graph.getEdge(eidx);
 					graph.getVert(e.target).indegree++;
+					graph.getVert(e.target).degree++;
 
 					// if the target has not arrived
 					// for buffer
@@ -1314,8 +1316,8 @@ namespace graphp {
 					part_t assignment;
 					if(v_existed[e.target] == true)
 						assignment = edge_to_part_vdegreeio2(graph, e.source, e.target, 
-															graph.getVert(e.source).indegree + graph.getVert(e.source).outdegree, 
-															graph.getVert(e.target).indegree + graph.getVert(e.target).outdegree,
+															graph.getVert(e.source).degree, 
+															graph.getVert(e.target).degree,
 															graph.parts_counter);
 					else
 						assignment = edge_to_part_vdegreeio2(graph, e.source, e.target, 
@@ -1333,8 +1335,8 @@ namespace graphp {
 						basic_graph::edge_type& e = graph.getEdge(eidx);
 						part_t assignment;
 						assignment = edge_to_part_vdegreeio2(graph, e.source, e.target, 
-															graph.getVert(e.source).indegree + graph.getVert(e.source).outdegree, 
-															graph.getVert(e.target).indegree + graph.getVert(e.target).outdegree,
+															graph.getVert(e.source).degree, 
+															graph.getVert(e.target).degree,
 															graph.parts_counter);
 						assign_edge(graph, e, assignment);
 						edge_counter++;
@@ -1350,8 +1352,8 @@ namespace graphp {
 						basic_graph::edge_type& e = graph.getEdge(eidx);
 						part_t assignment;
 						assignment = edge_to_part_vdegreeio2(graph, e.source, e.target, 
-															graph.getVert(e.source).indegree + graph.getVert(e.source).outdegree, 
-															graph.getVert(e.target).indegree + graph.getVert(e.target).outdegree,
+															graph.getVert(e.source).degree, 
+															graph.getVert(e.target).degree,
 															graph.parts_counter);
 						assign_edge(graph, e, assignment);
 						edge_counter++;
