@@ -89,6 +89,8 @@ namespace graphp {
 
 			// use degree in streaming partitioning
 			size_t degree;
+			size_t indegree;
+			size_t outdegree;
 
 			boost::dynamic_bitset<> mirror_list;
 
@@ -139,6 +141,8 @@ namespace graphp {
 		bool add_vertex(const vertex_id_type& vid, const size_t& weight = 1) {
 			if(verts[vid].isFree()) {
 				verts[vid].degree = 0;
+				verts[vid].indegree = 0;
+				verts[vid].outdegree = 0;
 				verts[vid].mirror_list.resize(nparts);
 				nverts++;
 				return true;
@@ -236,34 +240,19 @@ namespace graphp {
 
 			size_t edgecount = 0;
 			if(saveEdges)
-			for(vector<edge_type>::iterator itr = edges.begin(); itr != edges.end(); ++itr) {
-				// add edge
-				//edges[edgecount] = itr;
+				for(vector<edge_type>::iterator itr = edges.begin(); itr != edges.end(); ++itr) {
+					getVert(itr->source).degree++;
+					getVert(itr->source).outdegree++;
+					getVert(itr->target).degree++;
+					getVert(itr->target).indegree++;
 
-				// add vertex
-				// treat every single edge as an undirected one
-				//add_vertex(itr->source);
-				// not used in streaming partitioning
-				//verts[itr->source].nbr_list.push_back(itr->target);
-				//verts[itr->source].edge_list.push_back(edgecount);
-				//verts[itr->source].degree++;
-				// use degree in streaming partitioning
-				getVert(itr->source).degree++;
-				//add_vertex(itr->target);
-				// not used in streaming partitioning
-				//verts[itr->target].nbr_list.push_back(itr->source);
-				//verts[itr->target].edge_list.push_back(edgecount);
-				//verts[itr->target].degree++;
-				// use degree in streaming partitioning
-				getVert(itr->target).degree++;
-
-				edgecount++;
-				if(saveEdges)
-					if(ti.elapsed() > 5.0) {
-						cout << edgecount << " edges saved" << endl;
-						ti.restart();
-					}
-			}
+					edgecount++;
+					if(saveEdges)
+						if(ti.elapsed() > 5.0) {
+							cout << edgecount << " edges saved" << endl;
+							ti.restart();
+						}
+				}
 
 			// release the memory
 			//edges_storage.clear();
@@ -273,19 +262,6 @@ namespace graphp {
 
 			cout << "finalized" << endl;
 		}
-
-		//// some utilities
-		//vertex_list_type vertex_intersection(const vertex_list_type& list1, const vertex_list_type& list2) {
-		//	vertex_list_type result;
-		//	set_intersection(list1.begin(), list1.end(), list2.begin(), list2.end(), inserter(result, result.begin()));
-		//	return result;
-		//}
-
-		//vertex_list_type vertex_union(const vertex_list_type& list1, const vertex_list_type& list2) {
-		//	vertex_list_type result;
-		//	set_union(list1.begin(), list1.end(), list2.begin(), list2.end(), inserter(result, result.begin()));
-		//	return result;
-		//}
 
 		void load_format(const string& path, const string& format) {
 			line_parser_type line_parser;

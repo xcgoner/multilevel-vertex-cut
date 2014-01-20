@@ -23,7 +23,6 @@ int main(int argc, char* argv[])
 		("nparts", po::value<string>(), "Set the number of partitions...")
 		("nthreads", po::value<string>(), "Set the number of threads...")
 		("strategy", po::value<string>(), "Set file partitioning strategy...")
-		("prestrategy", po::value<string>(), "Set file pre-partitioning strategy...")
 	;
 
 	po::variables_map vm;
@@ -74,19 +73,6 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	vector<string> prestrategies;
-	prestrategies.push_back("random");
-	if(vm.count("prestrategy") > 0) {
-		prestrategies.clear();
-		typedef boost::tokenizer< boost::char_separator<char> > tokenizers;
-		boost::char_separator<char> sep(",");
-		tokenizers tok(vm["prestrategy"].as<string>(), sep);
-		for(tokenizers::iterator beg=tok.begin(); beg!=tok.end(); ++beg){
-			//cout << *beg << endl;
-			prestrategies.push_back(*beg);
-		}
-	}
-
 	graphp::basic_graph graph;
 
 	if(vm.count("file") > 0 && vm.count("format") > 0) {
@@ -99,13 +85,12 @@ int main(int argc, char* argv[])
 			cerr << "The length of paramater nthreads should be the same as that of nparts..." << endl;
 			return 0;
 		}
-		graphp::partition_strategy::run_partition(graph, nparts, nthreads, prestrategies, strategies);
+		graphp::partition_strategy::run_partition(graph, nparts, nthreads, strategies);
 	}
 
 #ifdef WIN32
 	system("Pause");
 #endif
-
 	return 0;
 }
 
