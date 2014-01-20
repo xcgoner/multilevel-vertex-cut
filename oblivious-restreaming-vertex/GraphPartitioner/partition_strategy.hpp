@@ -725,6 +725,8 @@ namespace graphp {
 						partition_func = greedy_partition2;
 					else if(strategy == "degreec")
 						partition_func = greedy_partition2_constrainted;
+					else if(strategy == "degree2")
+						partition_func = degree_partition;
 					else 
 						partition_func = random_partition;
 
