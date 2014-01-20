@@ -699,28 +699,19 @@ namespace graphp {
 				// threshold
 				const size_t threshold = nparts[i];
 
-				//sharding_constraint* constraint;
-				//boost::hash<vertex_id_type> hashvid;
-				//constraint = new sharding_constraint(nthreads[i], "grid"); 
-
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); itr++)  {
 					part_t assignment;
 					basic_graph::edge_type& e = *itr;
 					const basic_graph::vertex_type& source_v = graph.getVert(e.source);
 					const basic_graph::vertex_type& target_v = graph.getVert(e.target);
 
-					//// randomly assign to the source vertex ...
-					//if(source_v.degree < threshold && target_v.degree < threshold)
-					//	assignment = hash_vertex(e.source) % nthreads[i];
-					//else
-					//	assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
-					//assignment = hash_vertex(e.source) % nthreads[i];
-					assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
-					//const vector<part_t>& candidates = 
-					//	constraint->get_joint_neighbors(hashvid(e.source) % nthreads[i], hashvid(e.target) % nthreads[i]);
-					//size_t si = hash_vertex(e.source) % candidates.size();
-					//size_t ti = hash_vertex(e.target) % candidates.size();
-					//assignment = source_v.degree < target_v.degree ? candidates[si] : candidates[ti];
+					// randomly assign to the source vertex ...
+					if(source_v.degree < threshold)
+						assignment = hash_vertex(e.source) % nthreads[i];
+					else
+						assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
+					//assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
+
 					
 					e.placement = assignment;
 					thread_p[assignment]++;
