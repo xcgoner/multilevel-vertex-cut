@@ -706,11 +706,12 @@ namespace graphp {
 					const basic_graph::vertex_type& target_v = graph.getVert(e.target);
 
 					// randomly assign to the source vertex ...
-					if(source_v.degree < threshold && target_v.degree < threshold)
-						assignment = hash_vertex(min(e.source, e.target)) % nthreads[i];
-					else
-						assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
+					//if(source_v.degree < threshold && target_v.degree < threshold)
+					//	assignment = hash_vertex(min(e.source, e.target)) % nthreads[i];
+					//else
+					//	assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
 					//assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
+					assignment = hash_vertex(min(e.source, e.target)) % nthreads[i];
 
 					
 					e.placement = assignment;
