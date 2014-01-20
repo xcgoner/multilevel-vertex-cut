@@ -197,7 +197,8 @@ namespace graphp {
 		}
 
 		void finalize(bool saveEdges = true) {
-			cout << "finalizing..." << endl;
+			if(saveEdges)
+				cout << "finalizing..." << endl;
 
 			//edges.reserve(edges_storage.size() + 1);
 			//verts.resize(max_vid + 1);
@@ -256,11 +257,12 @@ namespace graphp {
 
 			// release the memory
 			//edges_storage.clear();
+			if(saveEdges) {
+				cout << "Nodes: " << nverts << " Edges: " << nedges <<endl;
+				//memory_info::print_usage();
 
-			cout << "Nodes: " << nverts << " Edges: " << nedges <<endl;
-			//memory_info::print_usage();
-
-			cout << "finalized" << endl;
+				cout << "finalized" << endl;
+			}
 		}
 
 		void load_format(const string& path, const string& format) {

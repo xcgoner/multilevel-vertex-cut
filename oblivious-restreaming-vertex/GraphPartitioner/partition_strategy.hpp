@@ -647,7 +647,7 @@ namespace graphp {
 
 					cout << strategy << endl;
 					size_t nt = NUM_THREADS;
-					cout << "using " << nt << " threads..." << endl;
+					//cout << "using " << nt << " threads..." << endl;
 
 					// initialize each subgraph
 					for(size_t ptid = 0; ptid <= nthreads[i] / nt; ptid++) {
@@ -657,7 +657,7 @@ namespace graphp {
 							break;
 						if(tend >= nthreads[i])
 							tend = nthreads[i];
-						cout << "threads " << tbegin << " to " << tend - 1 << endl;
+						//cout << "threads " << tbegin << " to " << tend - 1 << endl;
 						size_t tl = tend - tbegin;
 #pragma omp parallel for
 						for(size_t tt = 0; tt < tl; tt++) {
