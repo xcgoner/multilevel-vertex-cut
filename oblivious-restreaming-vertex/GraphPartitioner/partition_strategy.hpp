@@ -645,6 +645,12 @@ namespace graphp {
 
 		                      partition_func(graph, nparts[i]);
 
+							  // debug
+							  for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+								  basic_graph::edge_type& e = *itr;
+							  	cout << e.source << ":" << e.target << ":" << e.placement << endl;
+							  }
+
 		                      runtime = ti.elapsed();
 		                      cout << "Time elapsed: " << runtime << endl;
 
@@ -699,11 +705,12 @@ namespace graphp {
 					const basic_graph::vertex_type& source_v = graph.getVert(e.source);
 					const basic_graph::vertex_type& target_v = graph.getVert(e.target);
 
-					// randomly assign to the source vertex ...
-					if(source_v.degree < threshold && target_v.degree < threshold)
-						assignment = hash_vertex(e.source) % nthreads[i];
-					else
-						assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
+					//// randomly assign to the source vertex ...
+					//if(source_v.degree < threshold && target_v.degree < threshold)
+					//	assignment = hash_vertex(e.source) % nthreads[i];
+					//else
+					//	assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
+					assignment = hash_vertex(e.source) % nthreads[i];
 					
 					e.placement = assignment;
 					thread_p[assignment]++;
