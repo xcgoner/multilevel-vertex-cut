@@ -709,12 +709,15 @@ namespace graphp {
 					if(source_v.degree < threshold && target_v.degree < threshold)
 						assignment = hash_vertex(min(e.source, e.target)) % nthreads[i];
 					else
-						assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
+						assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i] + nthreads[i];
 					//assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
 
 					
 					e.placement = assignment;
-					thread_p[assignment]++;
+					if(assignment < nthreads[i])
+						thread_p[assignment]++;
+					else
+						thread_p[assignment - nthreads[i]]++;
 					edge_counter++;
 				}
 
@@ -729,14 +732,29 @@ namespace graphp {
 				}
 
 				// warning
-				// alternative1
 				edge_counter = 0;
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
 				      basic_graph::edge_type& e = *itr;
 				      size_t t = e.placement;
-				      graph.edges_p[pp[t]] = e;
-					  edge_counter++;
-				      pp[t]++;
+					  if(t < nthreads[i]) {
+						  graph.edges_p[pp[t]] = e;
+						  edge_counter++;
+						  pp[t]++;
+					  }
+				}
+				vector<size_t> lh(pp);
+				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
+					lh[idx_p] = lh[idx_p] + lh[idx_p - 1];
+				}
+				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
+					basic_graph::edge_type& e = *itr;
+					size_t t = e.placement;
+					if(t >= nthreads[i]) {
+						t = t - nthreads[i];
+						graph.edges_p[pp[t]] = e;
+						edge_counter++;
+						pp[t]++;
+					}
 				}
 				if(edge_counter != graph.nedges)
 					cerr << "edge_counter != graph.nedges" << endl;
@@ -807,11 +825,11 @@ namespace graphp {
 							tend = nthreads[i];
 						//cout << "threads " << tbegin << " to " << tend - 1 << endl;
 						size_t tl = tend - tbegin;
-#pragma omp parallel for
+						#pragma omp parallel for
 						for(size_t tt = 0; tt < tl; tt++) {
 							size_t tid = tbegin + tt;
 							size_t begin = pp[tid];
-							size_t end = thread_p[tid];
+							size_t end = lh[tid];
 							if(tid == nthreads[i] - 1)
 								end = graph.nedges;
 							subgraphs[tid].ebegin = graph.ebegin + begin;
@@ -825,6 +843,57 @@ namespace graphp {
 							for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = subgraphs[tid].vid_to_lvid.begin(); itr != subgraphs[tid].vid_to_lvid.end(); ++itr) {
 								subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
 							}
+							partition_func(subgraphs[tid], nparts[i]);
+
+							// clear memory
+							vector<basic_graph::vertex_type>().swap(subgraphs[tid].verts);
+							boost::unordered_map<basic_graph::vertex_id_type, basic_graph::vertex_id_type>().swap(subgraphs[tid].vid_to_lvid);
+						}
+					}
+					// do assignment in single thread
+					// note: use edges_p
+					for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
+						basic_graph::edge_type& e = *itr;
+
+						// assign vertex
+						basic_graph::vertex_type& source = graph.getVert(e.source);
+						basic_graph::vertex_type& target = graph.getVert(e.target);
+						if(source.degree < threshold && target.degree < threshold) {
+							source.mirror_list[e.placement] = true;
+							target.mirror_list[e.placement] = true;
+							// assign edge
+							graph.parts_counter[e.placement]++;
+						}
+					}
+					for(size_t ptid = 0; ptid <= nthreads[i] / nt; ptid++) {
+						size_t tbegin = nt * ptid;
+						size_t tend = nt * (ptid + 1);
+						if(tbegin >= nthreads[i])
+							break;
+						if(tend >= nthreads[i])
+							tend = nthreads[i];
+						//cout << "threads " << tbegin << " to " << tend - 1 << endl;
+						size_t tl = tend - tbegin;
+						#pragma omp parallel for
+						for(size_t tt = 0; tt < tl; tt++) {
+							size_t tid = tbegin + tt;
+							size_t begin = lh[tid];
+							size_t end = thread_p[tid];
+							if(tid == nthreads[i] - 1)
+								end = graph.nedges;
+							subgraphs[tid].ebegin = graph.ebegin + begin;
+							subgraphs[tid].eend = graph.ebegin + end;
+
+							// do not let finalize to save edges
+							subgraphs[tid].nparts = nparts[i];
+							subgraphs[tid].max_vid = graph.max_vid;
+							subgraphs[tid].finalize(false);
+							subgraphs[tid].initialize(nparts[i]);
+							for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = subgraphs[tid].vid_to_lvid.begin(); itr != subgraphs[tid].vid_to_lvid.end(); ++itr) {
+								subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
+								subgraphs[tid].getVert(itr->first).mirror_list = graph.getVert(itr->first).mirror_list;
+							}
+							subgraphs[tid].parts_counter = graph.parts_counter;
 							partition_func(subgraphs[tid], nparts[i]);
 
 							// clear memory
@@ -853,18 +922,17 @@ namespace graphp {
 					// note: use edges_p
 					for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
 						basic_graph::edge_type& e = *itr;
-						//assign_edge(graph, e, e.placement);
+
+						// assign vertex
+						basic_graph::vertex_type& source = graph.getVert(e.source);
+						basic_graph::vertex_type& target = graph.getVert(e.target);
+						if(source.degree < threshold && target.degree < threshold)
+							continue;
+						source.mirror_list[e.placement] = true;
+						target.mirror_list[e.placement] = true;
 
 						// assign edge
 						graph.parts_counter[e.placement]++;
-
-						// assign vertex
-						//basic_graph::vertex_type& source = graph.verts[vmap[e.source]];
-						//basic_graph::vertex_type& target = graph.verts[vmap[e.target]];
-						basic_graph::vertex_type& source = graph.getVert(e.source);
-						basic_graph::vertex_type& target = graph.getVert(e.target);
-						source.mirror_list[e.placement] = true;
-						target.mirror_list[e.placement] = true;
 					}
 
 					report_performance(graph, nparts[i], result_table[j * nparts.size() + i]);
