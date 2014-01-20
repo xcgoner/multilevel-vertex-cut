@@ -235,7 +235,7 @@ namespace graphp {
 
 		void random_partition(basic_graph& graph, part_t nparts) {
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
-			size_t edge_counter = 0;
+			//size_t edge_counter = 0;
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 
@@ -243,11 +243,11 @@ namespace graphp {
 				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
 				part_t assignment;
 				assignment = hash_edge(edge_pair, hashing_seed) % (nparts);
-				edge_counter++;
+				//edge_counter++;
 				//assignment = edgernd(gen) % (nparts);
 				assign_edge(graph, e, assignment);
 			}
-			cout << edge_counter << endl;
+			//cout << edge_counter << endl;
 		}
 
 		void random_partition_constrained(basic_graph& graph, part_t nparts) {
@@ -515,6 +515,88 @@ namespace graphp {
 		}
 
 		void greedy_partition2_constrainted(basic_graph& graph, part_t nparts) {
+			sharding_constraint* constraint;
+			boost::hash<vertex_id_type> hashvid;
+			constraint = new sharding_constraint(nparts, "grid"); 
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
+
+				// greedy assign
+				part_t assignment;
+				const vector<part_t>& candidates = 
+					constraint->get_joint_neighbors(hashvid(e.source) % nparts, hashvid(e.target) % nparts);
+				assignment = edge_to_part_greedy2(graph, e.source, e.target, candidates, graph.parts_counter, false);
+				assign_edge(graph, e, assignment);
+			}
+			delete constraint;
+		}
+
+		part_t edge_to_part_degree(basic_graph& graph,
+			const basic_graph::vertex_id_type source,
+			const basic_graph::vertex_id_type target,
+			const size_t source_degree,
+			const size_t target_degree,
+			const vector<size_t>& part_num_edges
+			) {
+				const size_t nparts = part_num_edges.size();
+
+				const basic_graph::vertex_type& source_v = graph.getVert(source);
+				const basic_graph::vertex_type& target_v = graph.getVert(target);
+
+				// compute the score of each part
+				part_t best_part = -1;
+				double maxscore = 0.0;
+				double epsilon = 0.001;
+				vector<double> part_score(nparts);
+				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
+				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
+
+				// not to be zero
+				double e = 0.001;
+				double sum = source_degree + target_degree + e;
+				double s = target_degree / sum + 1;
+				double t = source_degree / sum + 1;
+
+				for(size_t i = 0; i < nparts; ++i) {
+					size_t sd = source_v.mirror_list[i];
+					size_t td = target_v.mirror_list[i];
+					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+					part_score[i] = bal + (sd > 0) + (sd > 0 && s > t) + (td > 0) + (td > 0 && s < t);
+				}
+
+				maxscore = *max_element(part_score.begin(), part_score.end());
+
+				vector<part_t> top_parts;
+				for(size_t i = 0; i < nparts; ++i) {
+					if(fabs(part_score[i] - maxscore) < 1e-3) {
+						top_parts.push_back(i);
+					}
+				}
+
+				// hash the edge to one of the best parts
+				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+				const edge_pair_type edge_pair(min(source, target),
+					max(source, target));
+				best_part = top_parts[hash_edge(edge_pair) % top_parts.size()];
+
+				return best_part;
+		}
+
+		void degree_partition(basic_graph& graph, part_t nparts) {
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
+
+				// greedy assign
+				part_t assignment;
+				assignment = edge_to_part_degree(graph, e.source, e.target, 
+					graph.getVert(e.source).degree,
+					graph.getVert(e.target).degree,
+					graph.parts_counter);
+				assign_edge(graph, e, assignment);
+			}
+		}
+
+		void degree_partition2_constrainted(basic_graph& graph, part_t nparts) {
 			sharding_constraint* constraint;
 			boost::hash<vertex_id_type> hashvid;
 			constraint = new sharding_constraint(nparts, "grid"); 
