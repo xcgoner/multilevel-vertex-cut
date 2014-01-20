@@ -697,7 +697,7 @@ namespace graphp {
 				size_t edge_counter = 0;
 
 				// threshold
-				const size_t threshold = nparts[i] * 2;
+				const size_t threshold = nparts[i];
 
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); itr++)  {
 					part_t assignment;
