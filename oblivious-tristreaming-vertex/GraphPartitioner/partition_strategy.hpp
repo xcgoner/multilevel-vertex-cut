@@ -709,7 +709,7 @@ namespace graphp {
 					if(source_v.degree < threshold && target_v.degree < threshold)
 						assignment = hash_vertex(min(e.source, e.target)) % nthreads[i];
 					else
-						assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i] + nthreads[i];
+						assignment = (source_v.degree < target_v.degree ? (hash_vertex(e.source) % nthreads[i]) : (hash_vertex(e.target) % nthreads[i])) + nthreads[i];
 					//assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
 
 					
@@ -743,9 +743,6 @@ namespace graphp {
 					  }
 				}
 				vector<size_t> lh(pp);
-				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
-					lh[idx_p] = lh[idx_p] + lh[idx_p - 1];
-				}
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
 					basic_graph::edge_type& e = *itr;
 					size_t t = e.placement;
@@ -778,6 +775,9 @@ namespace graphp {
 				pp[0] = 0;
 				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
 					pp[idx_p] = thread_p[idx_p - 1] + pp[idx_p - 1];
+				}
+				for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
+					lh[idx_p] = pp[idx_p] + lh[idx_p];
 				}
 				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
 					thread_p[idx_p] = thread_p[idx_p] + thread_p[idx_p - 1];
