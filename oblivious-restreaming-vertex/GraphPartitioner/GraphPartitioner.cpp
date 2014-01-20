@@ -87,8 +87,9 @@ int main(int argc, char* argv[])
 		}
 		graphp::partition_strategy::run_partition(graph, nparts, nthreads, strategies);
 	}
-	else
+	else {
 		graphp::partition_strategy::run_partition(graph, nparts, strategies);
+	}
 
 #ifdef WIN32
 	system("Pause");

@@ -616,6 +616,7 @@ namespace graphp {
 		// deprecated for a while ...
 		void run_partition(basic_graph& graph, vector<part_t>& nparts, vector<string>& strategies) {
 		      vector<report_result> result_table(strategies.size() * nparts.size());
+			  cout << "single thread" << endl;
 		      for(size_t j = 0; j < strategies.size(); j++) {
 		              // select the strategy
 		              void (*partition_func)(basic_graph& graph, part_t nparts);
