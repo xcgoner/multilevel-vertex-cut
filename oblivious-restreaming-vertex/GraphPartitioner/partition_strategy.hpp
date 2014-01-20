@@ -235,6 +235,7 @@ namespace graphp {
 
 		void random_partition(basic_graph& graph, part_t nparts) {
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+			size_t edge_counter = 0;
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
 
@@ -242,9 +243,11 @@ namespace graphp {
 				const edge_pair_type edge_pair(min(e.source, e.target), max(e.source, e.target));
 				part_t assignment;
 				assignment = hash_edge(edge_pair, hashing_seed) % (nparts);
+				edge_counter++;
 				//assignment = edgernd(gen) % (nparts);
 				assign_edge(graph, e, assignment);
 			}
+			cout << edge_counter << endl;
 		}
 
 		void random_partition_constrained(basic_graph& graph, part_t nparts) {
