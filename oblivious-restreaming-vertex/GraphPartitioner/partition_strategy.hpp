@@ -710,7 +710,8 @@ namespace graphp {
 					//	assignment = hash_vertex(e.source) % nthreads[i];
 					//else
 					//	assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
-					assignment = hash_vertex(e.source) % nthreads[i];
+					//assignment = hash_vertex(e.source) % nthreads[i];
+					assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
 					
 					e.placement = assignment;
 					thread_p[assignment]++;
