@@ -720,7 +720,7 @@ namespace graphp {
 						constraint->get_joint_neighbors(hashvid(e.source) % nthreads[i], hashvid(e.target) % nthreads[i]);
 					size_t si = hash_vertex(e.source) % candidates.size();
 					size_t ti = hash_vertex(e.target) % candidates.size();
-					assignment = source_v.degree < target_v.degree ? candidates[si] : candidates[ti];
+					assignment = candidates[si];
 					
 					e.placement = assignment;
 					thread_p[assignment]++;
