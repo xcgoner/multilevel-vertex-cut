@@ -733,6 +733,10 @@ namespace graphp {
 
 				// warning
 				edge_counter = 0;
+				vector<size_t> lh(nthreads[i]);
+				foreach(size_t& elem, lh) {
+					elem = 0;
+				}
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
 				      basic_graph::edge_type& e = *itr;
 				      size_t t = e.placement;
@@ -740,18 +744,9 @@ namespace graphp {
 						  graph.edges_p[pp[t]] = e;
 						  edge_counter++;
 						  pp[t]++;
+						  lh[t]++;
 					  }
 				}
-				vector<size_t> lh;
-				lh = pp;
-				foreach(size_t observation, pp) {
-					cout << observation << "\t";
-				}
-				cout << endl;
-				foreach(size_t observation, lh) {
-					cout << observation << "\t";
-				}
-				cout << endl;
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
 					basic_graph::edge_type& e = *itr;
 					size_t t = e.placement;
@@ -791,19 +786,6 @@ namespace graphp {
 				for(size_t idx_p = 1; idx_p < nthreads[i]; idx_p++) {
 					thread_p[idx_p] = thread_p[idx_p] + thread_p[idx_p - 1];
 				}
-
-				foreach(size_t observation, pp) {
-					cout << observation << "\t";
-				}
-				cout << endl;
-				foreach(size_t observation, lh) {
-					cout << observation << "\t";
-				}
-				cout << endl;
-				foreach(size_t observation, thread_p) {
-					cout << observation << "\t";
-				}
-				cout << endl;
 
 				// random inner shuffle
 				//for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
