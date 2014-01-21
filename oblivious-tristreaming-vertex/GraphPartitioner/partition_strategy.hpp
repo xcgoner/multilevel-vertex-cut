@@ -783,6 +783,19 @@ namespace graphp {
 					thread_p[idx_p] = thread_p[idx_p] + thread_p[idx_p - 1];
 				}
 
+				foreach(size_t observation, pp) {
+					cout << observation << "\t";
+				}
+				cout << endl;
+				foreach(size_t observation, lh) {
+					cout << observation << "\t";
+				}
+				cout << endl;
+				foreach(size_t observation, thread_p) {
+					cout << observation << "\t";
+				}
+				cout << endl;
+
 				// random inner shuffle
 				//for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
 				//      random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
@@ -850,6 +863,7 @@ namespace graphp {
 							boost::unordered_map<basic_graph::vertex_id_type, basic_graph::vertex_id_type>().swap(subgraphs[tid].vid_to_lvid);
 						}
 					}
+					cout << "stage 1 finished ..." << endl;
 					// do assignment in single thread
 					// note: use edges_p
 					for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
@@ -865,6 +879,7 @@ namespace graphp {
 							graph.parts_counter[e.placement]++;
 						}
 					}
+					cout << "synchronization finished ..." << endl;
 					for(size_t ptid = 0; ptid <= nthreads[i] / nt; ptid++) {
 						size_t tbegin = nt * ptid;
 						size_t tend = nt * (ptid + 1);
