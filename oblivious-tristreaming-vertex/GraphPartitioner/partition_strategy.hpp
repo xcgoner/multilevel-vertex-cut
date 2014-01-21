@@ -751,6 +751,7 @@ namespace graphp {
 				foreach(size_t observation, lh) {
 					cout << observation << "\t";
 				}
+				cout << endl;
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
 					basic_graph::edge_type& e = *itr;
 					size_t t = e.placement;
