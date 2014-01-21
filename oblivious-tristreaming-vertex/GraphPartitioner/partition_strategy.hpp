@@ -787,6 +787,19 @@ namespace graphp {
 					thread_p[idx_p] = thread_p[idx_p] + thread_p[idx_p - 1];
 				}
 
+				foreach(size_t observation, pp) {
+					cout << observation << "\t";
+				}
+				cout << endl;
+				foreach(size_t observation, lh) {
+					cout << observation << "\t";
+				}
+				cout << endl;
+				foreach(size_t observation, thread_p) {
+					cout << observation << "\t";
+				}
+				cout << endl;
+
 				// random inner shuffle
 				//for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
 				//      random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
