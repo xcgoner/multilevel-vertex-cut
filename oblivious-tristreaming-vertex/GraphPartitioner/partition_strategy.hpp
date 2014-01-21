@@ -868,6 +868,7 @@ namespace graphp {
 						}
 					}
 					cout << "stage 1 finished ..." << endl;
+					exit(0);
 					// do assignment in single thread
 					// note: use edges_p
 					for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
