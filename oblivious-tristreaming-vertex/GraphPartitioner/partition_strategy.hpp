@@ -699,6 +699,19 @@ namespace graphp {
 				// threshold
 				const size_t threshold = nparts[i];
 
+				//// debug
+				//for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = graph.vid_to_lvid.begin(); itr != graph.vid_to_lvid.end(); itr++) {
+				//	cout << itr->first << ":" << graph.getVert(itr->first).degree << " ";
+				//}
+				//cout << endl;
+				//cout << endl;
+				//for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = graph.vid_to_lvid.begin(); itr != graph.vid_to_lvid.end(); itr++) {
+				//	if(graph.getVert(itr->first).degree >= threshold)
+				//		cout << itr->first << ":" << graph.getVert(itr->first).degree << " ";
+				//}
+				//cout << endl;
+				//cout << endl;
+
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); itr++)  {
 					part_t assignment;
 					basic_graph::edge_type& e = *itr;
@@ -711,7 +724,6 @@ namespace graphp {
 					else
 						assignment = (source_v.degree < target_v.degree ? (hash_vertex(e.source) % nthreads[i]) : (hash_vertex(e.target) % nthreads[i])) + nthreads[i];
 					//assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
-
 					
 					e.placement = assignment;
 					if(assignment < nthreads[i])
@@ -742,6 +754,7 @@ namespace graphp {
 				      size_t t = e.placement;
 					  if(t < nthreads[i]) {
 						  graph.edges_p[pp[t]] = e;
+						  graph.edges_p[pp[t]].placement = nthreads[i]+1;
 						  edge_counter++;
 						  pp[t]++;
 						  lh[t]++;
@@ -753,6 +766,7 @@ namespace graphp {
 					if(t >= nthreads[i]) {
 						t = t - nthreads[i];
 						graph.edges_p[pp[t]] = e;
+						graph.edges_p[pp[t]].placement = nthreads[i]+1;
 						edge_counter++;
 						pp[t]++;
 					}
@@ -833,6 +847,14 @@ namespace graphp {
 					size_t nt = NUM_THREADS;
 					//cout << "using " << nt << " threads..." << endl;
 
+					//// debug
+					//for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr) {
+					//	basic_graph::edge_type& e = *itr;
+					//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
+					//}
+					//cout << endl;
+					//cout << endl;
+
 					// initialize each subgraph
 					for(size_t ptid = 0; ptid <= nthreads[i] / nt; ptid++) {
 						size_t tbegin = nt * ptid;
@@ -848,8 +870,6 @@ namespace graphp {
 							size_t tid = tbegin + tt;
 							size_t begin = pp[tid];
 							size_t end = lh[tid];
-							if(tid == nthreads[i] - 1)
-								end = graph.nedges;
 							subgraphs[tid].ebegin = graph.ebegin + begin;
 							subgraphs[tid].eend = graph.ebegin + end;
 
@@ -862,13 +882,29 @@ namespace graphp {
 								subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
 							}
 							partition_func(subgraphs[tid], nparts[i]);
+							//// debug
+							//cout << begin << "," << end << endl;
+							//for(vector<basic_graph::edge_type>::iterator itr = subgraphs[tid].ebegin; itr != subgraphs[tid].eend; ++itr) {
+							//	basic_graph::edge_type& e = *itr;
+							//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
+							//}
+							//cout << endl;
 
 							// clear memory
 							vector<basic_graph::vertex_type>().swap(subgraphs[tid].verts);
 							boost::unordered_map<basic_graph::vertex_id_type, basic_graph::vertex_id_type>().swap(subgraphs[tid].vid_to_lvid);
 						}
 					}
+
+					//// debug
+					//for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr) {
+					//	basic_graph::edge_type& e = *itr;
+					//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
+					//}
+					//cout << endl;
+					//cout << endl;
 					//cout << "stage 1 finished ..." << endl;
+
 
 					// assign back to the origin graph
 					graph.initialize(nparts[i]);
@@ -889,6 +925,7 @@ namespace graphp {
 					}
 					//cout << "synchronization finished ..." << endl;
 					//exit(0);
+
 					for(size_t ptid = 0; ptid <= nthreads[i] / nt; ptid++) {
 						size_t tbegin = nt * ptid;
 						size_t tend = nt * (ptid + 1);
@@ -919,12 +956,27 @@ namespace graphp {
 							}
 							subgraphs[tid].parts_counter = graph.parts_counter;
 							partition_func(subgraphs[tid], nparts[i]);
+							//// debug
+							//cout << begin << "," << end << endl;
+							//for(vector<basic_graph::edge_type>::iterator itr = subgraphs[tid].ebegin; itr != subgraphs[tid].eend; ++itr) {
+							//	basic_graph::edge_type& e = *itr;
+							//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
+							//}
+							//cout << endl;
 
 							// clear memory
 							vector<basic_graph::vertex_type>().swap(subgraphs[tid].verts);
 							boost::unordered_map<basic_graph::vertex_id_type, basic_graph::vertex_id_type>().swap(subgraphs[tid].vid_to_lvid);
 						}
 					}
+
+					//// debug
+					//for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr) {
+					//	basic_graph::edge_type& e = *itr;
+					//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
+					//}
+					//cout << endl;
+					//cout << endl;
 
 					//boost::timer ti;
 					double runtime = 0;
