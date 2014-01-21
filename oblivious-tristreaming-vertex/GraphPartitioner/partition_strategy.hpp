@@ -742,7 +742,15 @@ namespace graphp {
 						  pp[t]++;
 					  }
 				}
-				vector<size_t> lh(pp);
+				vector<size_t> lh;
+				lh = pp;
+				foreach(size_t observation, pp) {
+					cout << observation << "\t";
+				}
+				cout << endl;
+				foreach(size_t observation, lh) {
+					cout << observation << "\t";
+				}
 				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
 					basic_graph::edge_type& e = *itr;
 					size_t t = e.placement;
