@@ -89,8 +89,8 @@ namespace graphp {
 
 			// use degree in streaming partitioning
 			size_t degree;
-			size_t indegree;
-			size_t outdegree;
+			//size_t indegree;
+			//size_t outdegree;
 
 			boost::dynamic_bitset<> mirror_list;
 
@@ -141,8 +141,8 @@ namespace graphp {
 		bool add_vertex(const vertex_id_type& vid, const size_t& weight = 1) {
 			if(verts[vid].isFree()) {
 				verts[vid].degree = 0;
-				verts[vid].indegree = 0;
-				verts[vid].outdegree = 0;
+				//verts[vid].indegree = 0;
+				//verts[vid].outdegree = 0;
 				verts[vid].mirror_list.resize(nparts);
 				nverts++;
 				return true;
@@ -211,6 +211,7 @@ namespace graphp {
 				for(deque<edge_type>::iterator itr = edges_storage.begin(); itr != edges_storage.end(); ++itr) {
 					edges[edges_idx++] = (*itr);
 				}
+				deque<edge_type>().swap(edges_storage);
 				edges_storage.clear();
 				// access the edges in random order
 				//srand(time(0));
@@ -243,9 +244,9 @@ namespace graphp {
 			if(saveEdges)
 				for(vector<edge_type>::iterator itr = edges.begin(); itr != edges.end(); ++itr) {
 					getVert(itr->source).degree++;
-					getVert(itr->source).outdegree++;
+					//getVert(itr->source).outdegree++;
 					getVert(itr->target).degree++;
-					getVert(itr->target).indegree++;
+					//getVert(itr->target).indegree++;
 
 					edgecount++;
 					if(saveEdges)
