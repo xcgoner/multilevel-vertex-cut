@@ -906,6 +906,8 @@ namespace graphp {
 						prepartition_func = degree_partition;
 					else if(prestrategy == "degree2c")
 						prepartition_func = degree_partition_constrainted;
+					else if(prestrategy == "hash")
+						prepartition_func = hash_partition;
 					else 
 						prepartition_func = random_partition;
 
