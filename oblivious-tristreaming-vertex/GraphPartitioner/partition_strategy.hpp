@@ -662,6 +662,25 @@ namespace graphp {
 			delete constraint;
 		}
 
+		void hash_partition(basic_graph& graph, part_t nparts) {
+			//const size_t threshold = nparts;
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
+
+				// greedy assign
+				part_t assignment;
+				//const basic_graph::vertex_type& source_v = graph.getVert(e.source);
+				//const basic_graph::vertex_type& target_v = graph.getVert(e.target);
+
+				// randomly assign to the source vertex ...
+				//if(source_v.degree < threshold && target_v.degree < threshold)
+					assignment = hash_vertex(min(e.source, e.target)) % nparts;
+				//else
+				//	assignment = (source_v.degree < target_v.degree ? (hash_vertex(e.source) % nparts) : (hash_vertex(e.target) % nparts));
+				assign_edge(graph, e, assignment);
+			}
+		}
+
 		// deprecated for a while ...
 		void run_partition(basic_graph& graph, vector<part_t>& nparts, vector<string>& strategies) {
 		      vector<report_result> result_table(strategies.size() * nparts.size());
