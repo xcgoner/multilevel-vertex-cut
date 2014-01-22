@@ -534,14 +534,14 @@ namespace graphp {
 		part_t edge_to_part_degree(basic_graph& graph,
 			const basic_graph::vertex_id_type source,
 			const basic_graph::vertex_id_type target,
-			const size_t source_degree,
-			const size_t target_degree,
 			const vector<size_t>& part_num_edges
 			) {
 				const size_t nparts = part_num_edges.size();
 
 				const basic_graph::vertex_type& source_v = graph.getVert(source);
 				const basic_graph::vertex_type& target_v = graph.getVert(target);
+				const size_t source_degree = source_v.degree;
+				const size_t target_degree = target_v.degree;
 
 				// compute the score of each part
 				part_t best_part = -1;
@@ -581,6 +581,58 @@ namespace graphp {
 
 				return best_part;
 		}
+		part_t edge_to_part_degree(basic_graph& graph,
+			const basic_graph::vertex_id_type source,
+			const basic_graph::vertex_id_type target,
+			const vector<part_t>& candidates,
+			const vector<size_t>& part_num_edges
+			) {
+				const size_t nparts = part_num_edges.size();
+
+				const basic_graph::vertex_type& source_v = graph.getVert(source);
+				const basic_graph::vertex_type& target_v = graph.getVert(target);
+				const size_t source_degree = source_v.degree;
+				const size_t target_degree = target_v.degree;
+
+				// compute the score of each part
+				part_t best_part = -1;
+				double maxscore = 0.0;
+				double epsilon = 0.001;
+				vector<double> part_score(candidates.size());
+				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
+				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
+
+				// not to be zero
+				double e = 0.001;
+				double sum = source_degree + target_degree + e;
+				double s = target_degree / sum + 1;
+				double t = source_degree / sum + 1;
+
+				for(size_t j = 0; j < candidates.size(); ++j) {
+					part_t i = candidates[j];
+					size_t sd = source_v.mirror_list[i];
+					size_t td = target_v.mirror_list[i];
+					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
+					part_score[j] = bal + (sd > 0) + (sd > 0 && s > t) + (td > 0) + (td > 0 && s < t);
+				}
+
+				maxscore = *max_element(part_score.begin(), part_score.end());
+
+				vector<part_t> top_parts;
+				for(size_t j = 0; j < candidates.size(); ++j) {
+					if(fabs(part_score[j] - maxscore) < 1e-5) {
+						top_parts.push_back(candidates[j]);
+					}
+				}
+
+				// hash the edge to one of the best parts
+				typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
+				const edge_pair_type edge_pair(min(source, target),
+					max(source, target));
+				best_part = top_parts[hash_edge(edge_pair) % top_parts.size()];
+
+				return best_part;
+		}
 
 		void degree_partition(basic_graph& graph, part_t nparts) {
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
@@ -588,15 +640,12 @@ namespace graphp {
 
 				// greedy assign
 				part_t assignment;
-				assignment = edge_to_part_degree(graph, e.source, e.target, 
-					graph.getVert(e.source).degree,
-					graph.getVert(e.target).degree,
-					graph.parts_counter);
+				assignment = edge_to_part_degree(graph, e.source, e.target, graph.parts_counter);
 				assign_edge(graph, e, assignment);
 			}
 		}
 
-		void degree_partition2_constrainted(basic_graph& graph, part_t nparts) {
+		void degree_partition_constrainted(basic_graph& graph, part_t nparts) {
 			sharding_constraint* constraint;
 			boost::hash<vertex_id_type> hashvid;
 			constraint = new sharding_constraint(nparts, "grid"); 
@@ -607,7 +656,7 @@ namespace graphp {
 				part_t assignment;
 				const vector<part_t>& candidates = 
 					constraint->get_joint_neighbors(hashvid(e.source) % nparts, hashvid(e.target) % nparts);
-				assignment = edge_to_part_greedy2(graph, e.source, e.target, candidates, graph.parts_counter, false);
+				assignment = edge_to_part_degree(graph, e.source, e.target, candidates, graph.parts_counter);
 				assign_edge(graph, e, assignment);
 			}
 			delete constraint;
@@ -672,10 +721,10 @@ namespace graphp {
 		} // run partition in one thread
 
 		
-		void run_partition(basic_graph& graph, vector<part_t>& nparts, vector<size_t>& nthreads, vector<string>& strategies) {
+		void run_partition(basic_graph& graph, vector<part_t>& nparts, vector<size_t>& nthreads, vector<string>& prestrategies, vector<string>& strategies) {
 			cout << endl;
 
-			vector<report_result> result_table(strategies.size() * nparts.size());
+			vector<report_result> result_table(prestrategies.size() * strategies.size() * nparts.size());
 
 			//vector<basic_graph::vertex_id_type> vmap(graph.max_vid + 1);
 			//for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = graph.vid_to_lvid.begin(); itr != graph.vid_to_lvid.end(); ++itr) {
@@ -819,189 +868,213 @@ namespace graphp {
 				//for(size_t idx_p = 0; idx_p < nthreads[i]; idx_p++) {
 				//      random_shuffle(graph.ebegin + pp[idx_p], graph.ebegin + thread_p[idx_p]);
 				//}
-
-				for(size_t j = 0; j < strategies.size(); j++) {
-					// select the strategy
-					void (*partition_func)(basic_graph& graph, part_t nparts);
-					string strategy = strategies[j];
-					if(strategy == "random")
-						partition_func = random_partition;
-					else if(strategy == "randomc")
-						partition_func = random_partition_constrained;
-					else if(strategy == "greedy")
-						partition_func = greedy_partition;
-					else if(strategy == "greedyc")
-						partition_func = greedy_partition_constrainted;
-					else if(strategy == "degree")
-						partition_func = greedy_partition2;
-					else if(strategy == "degreec")
-						partition_func = greedy_partition2_constrainted;
-					else if(strategy == "degree2")
-						partition_func = degree_partition;
+				for(size_t prei = 0; prei < prestrategies.size(); prei++) {
+					void (*prepartition_func)(basic_graph& graph, part_t nparts);
+					string prestrategy = prestrategies[prei];
+					if(prestrategy == "random")
+						prepartition_func = random_partition;
+					else if(prestrategy == "randomc")
+						prepartition_func = random_partition_constrained;
+					else if(prestrategy == "greedy")
+						prepartition_func = greedy_partition;
+					else if(prestrategy == "greedyc")
+						prepartition_func = greedy_partition_constrainted;
+					else if(prestrategy == "degree")
+						prepartition_func = greedy_partition2;
+					else if(prestrategy == "degreec")
+						prepartition_func = greedy_partition2_constrainted;
+					else if(prestrategy == "degree2")
+						prepartition_func = degree_partition;
+					else if(prestrategy == "degree2c")
+						prepartition_func = degree_partition_constrainted;
 					else 
-						partition_func = random_partition;
+						prepartition_func = random_partition;
 
-					vector<basic_graph> subgraphs(nthreads[i]);
+					for(size_t j = 0; j < strategies.size(); j++) {
+						// select the strategy
+						void (*partition_func)(basic_graph& graph, part_t nparts);
+						string strategy = strategies[j];
+						if(strategy == "random")
+							partition_func = random_partition;
+						else if(strategy == "randomc")
+							partition_func = random_partition_constrained;
+						else if(strategy == "greedy")
+							partition_func = greedy_partition;
+						else if(strategy == "greedyc")
+							partition_func = greedy_partition_constrainted;
+						else if(strategy == "degree")
+							partition_func = greedy_partition2;
+						else if(strategy == "degreec")
+							partition_func = greedy_partition2_constrainted;
+						else if(strategy == "degree2")
+							partition_func = degree_partition;
+						else if(strategy == "degree2c")
+							partition_func = degree_partition_constrainted;
+						else 
+							partition_func = random_partition;
 
-					cout << strategy << endl;
-					size_t nt = NUM_THREADS;
-					//cout << "using " << nt << " threads..." << endl;
+						vector<basic_graph> subgraphs(nthreads[i]);
 
-					//// debug
-					//for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr) {
-					//	basic_graph::edge_type& e = *itr;
-					//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
-					//}
-					//cout << endl;
-					//cout << endl;
+						cout << strategy << endl;
+						size_t nt = NUM_THREADS;
+						//cout << "using " << nt << " threads..." << endl;
 
-					// initialize each subgraph
-					for(size_t ptid = 0; ptid <= nthreads[i] / nt; ptid++) {
-						size_t tbegin = nt * ptid;
-						size_t tend = nt * (ptid + 1);
-						if(tbegin >= nthreads[i])
-							break;
-						if(tend >= nthreads[i])
-							tend = nthreads[i];
-						//cout << "threads " << tbegin << " to " << tend - 1 << endl;
-						size_t tl = tend - tbegin;
-						#pragma omp parallel for
-						for(size_t tt = 0; tt < tl; tt++) {
-							size_t tid = tbegin + tt;
-							size_t begin = pp[tid];
-							size_t end = lh[tid];
-							subgraphs[tid].ebegin = graph.ebegin + begin;
-							subgraphs[tid].eend = graph.ebegin + end;
+						//// debug
+						//for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr) {
+						//	basic_graph::edge_type& e = *itr;
+						//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
+						//}
+						//cout << endl;
+						//cout << endl;
 
-							// do not let finalize to save edges
-							subgraphs[tid].nparts = nparts[i];
-							subgraphs[tid].max_vid = graph.max_vid;
-							subgraphs[tid].finalize(false);
-							subgraphs[tid].initialize(nparts[i]);
-							for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = subgraphs[tid].vid_to_lvid.begin(); itr != subgraphs[tid].vid_to_lvid.end(); ++itr) {
-								subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
+						// initialize each subgraph
+						for(size_t ptid = 0; ptid <= nthreads[i] / nt; ptid++) {
+							size_t tbegin = nt * ptid;
+							size_t tend = nt * (ptid + 1);
+							if(tbegin >= nthreads[i])
+								break;
+							if(tend >= nthreads[i])
+								tend = nthreads[i];
+							//cout << "threads " << tbegin << " to " << tend - 1 << endl;
+							size_t tl = tend - tbegin;
+							#pragma omp parallel for
+							for(size_t tt = 0; tt < tl; tt++) {
+								size_t tid = tbegin + tt;
+								size_t begin = pp[tid];
+								size_t end = lh[tid];
+								subgraphs[tid].ebegin = graph.ebegin + begin;
+								subgraphs[tid].eend = graph.ebegin + end;
+
+								// do not let finalize to save edges
+								subgraphs[tid].nparts = nparts[i];
+								subgraphs[tid].max_vid = graph.max_vid;
+								subgraphs[tid].finalize(false);
+								subgraphs[tid].initialize(nparts[i]);
+								for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = subgraphs[tid].vid_to_lvid.begin(); itr != subgraphs[tid].vid_to_lvid.end(); ++itr) {
+									subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
+								}
+								prepartition_func(subgraphs[tid], nparts[i]);
+								//// debug
+								//cout << begin << "," << end << endl;
+								//for(vector<basic_graph::edge_type>::iterator itr = subgraphs[tid].ebegin; itr != subgraphs[tid].eend; ++itr) {
+								//	basic_graph::edge_type& e = *itr;
+								//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
+								//}
+								//cout << endl;
+
+								// clear memory
+								vector<basic_graph::vertex_type>().swap(subgraphs[tid].verts);
+								boost::unordered_map<basic_graph::vertex_id_type, basic_graph::vertex_id_type>().swap(subgraphs[tid].vid_to_lvid);
 							}
-							partition_func(subgraphs[tid], nparts[i]);
-							//// debug
-							//cout << begin << "," << end << endl;
-							//for(vector<basic_graph::edge_type>::iterator itr = subgraphs[tid].ebegin; itr != subgraphs[tid].eend; ++itr) {
-							//	basic_graph::edge_type& e = *itr;
-							//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
-							//}
-							//cout << endl;
-
-							// clear memory
-							vector<basic_graph::vertex_type>().swap(subgraphs[tid].verts);
-							boost::unordered_map<basic_graph::vertex_id_type, basic_graph::vertex_id_type>().swap(subgraphs[tid].vid_to_lvid);
 						}
-					}
 
-					//// debug
-					//for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr) {
-					//	basic_graph::edge_type& e = *itr;
-					//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
-					//}
-					//cout << endl;
-					//cout << endl;
-					//cout << "stage 1 finished ..." << endl;
+						//// debug
+						//for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr) {
+						//	basic_graph::edge_type& e = *itr;
+						//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
+						//}
+						//cout << endl;
+						//cout << endl;
+						//cout << "stage 1 finished ..." << endl;
 
 
-					// assign back to the origin graph
-					graph.initialize(nparts[i]);
-					// do assignment in single thread
-					// note: use edges_p
-					for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
-						basic_graph::edge_type& e = *itr;
+						// assign back to the origin graph
+						graph.initialize(nparts[i]);
+						// do assignment in single thread
+						// note: use edges_p
+						for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
+							basic_graph::edge_type& e = *itr;
 
-						// assign vertex
-						basic_graph::vertex_type& source = graph.getVert(e.source);
-						basic_graph::vertex_type& target = graph.getVert(e.target);
-						if(source.degree < threshold && target.degree < threshold) {
+							// assign vertex
+							basic_graph::vertex_type& source = graph.getVert(e.source);
+							basic_graph::vertex_type& target = graph.getVert(e.target);
+							if(source.degree < threshold && target.degree < threshold) {
+								source.mirror_list[e.placement] = true;
+								target.mirror_list[e.placement] = true;
+								// assign edge
+								graph.parts_counter[e.placement]++;
+							}
+						}
+						//cout << "synchronization finished ..." << endl;
+						//exit(0);
+
+						for(size_t ptid = 0; ptid <= nthreads[i] / nt; ptid++) {
+							size_t tbegin = nt * ptid;
+							size_t tend = nt * (ptid + 1);
+							if(tbegin >= nthreads[i])
+								break;
+							if(tend >= nthreads[i])
+								tend = nthreads[i];
+							//cout << "threads " << tbegin << " to " << tend - 1 << endl;
+							size_t tl = tend - tbegin;
+							#pragma omp parallel for
+							for(size_t tt = 0; tt < tl; tt++) {
+								size_t tid = tbegin + tt;
+								size_t begin = lh[tid];
+								size_t end = thread_p[tid];
+								if(tid == nthreads[i] - 1)
+									end = graph.nedges;
+								subgraphs[tid].ebegin = graph.ebegin + begin;
+								subgraphs[tid].eend = graph.ebegin + end;
+
+								// do not let finalize to save edges
+								subgraphs[tid].nparts = nparts[i];
+								subgraphs[tid].max_vid = graph.max_vid;
+								subgraphs[tid].finalize(false);
+								subgraphs[tid].initialize(nparts[i]);
+								for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = subgraphs[tid].vid_to_lvid.begin(); itr != subgraphs[tid].vid_to_lvid.end(); ++itr) {
+									subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
+									subgraphs[tid].getVert(itr->first).mirror_list = graph.getVert(itr->first).mirror_list;
+								}
+								subgraphs[tid].parts_counter = graph.parts_counter;
+								partition_func(subgraphs[tid], nparts[i]);
+								//// debug
+								//cout << begin << "," << end << endl;
+								//for(vector<basic_graph::edge_type>::iterator itr = subgraphs[tid].ebegin; itr != subgraphs[tid].eend; ++itr) {
+								//	basic_graph::edge_type& e = *itr;
+								//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
+								//}
+								//cout << endl;
+
+								// clear memory
+								vector<basic_graph::vertex_type>().swap(subgraphs[tid].verts);
+								boost::unordered_map<basic_graph::vertex_id_type, basic_graph::vertex_id_type>().swap(subgraphs[tid].vid_to_lvid);
+							}
+						}
+
+						//// debug
+						//for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr) {
+						//	basic_graph::edge_type& e = *itr;
+						//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
+						//}
+						//cout << endl;
+						//cout << endl;
+
+						//boost::timer ti;
+						double runtime = 0;
+						//runtime = omp_get_wtime();
+
+						// do assignment in single thread
+						// note: use edges_p
+						for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
+							basic_graph::edge_type& e = *itr;
+
+							// assign vertex
+							basic_graph::vertex_type& source = graph.getVert(e.source);
+							basic_graph::vertex_type& target = graph.getVert(e.target);
+							if(source.degree < threshold && target.degree < threshold)
+								continue;
 							source.mirror_list[e.placement] = true;
 							target.mirror_list[e.placement] = true;
+
 							// assign edge
 							graph.parts_counter[e.placement]++;
 						}
+
+						report_performance(graph, nparts[i], result_table[i*prestrategies.size()*strategies.size() + prei*strategies.size() + j]);
+						result_table[i*prestrategies.size()*strategies.size() + prei*strategies.size() + j].runtime = 0;
+
 					}
-					//cout << "synchronization finished ..." << endl;
-					//exit(0);
-
-					for(size_t ptid = 0; ptid <= nthreads[i] / nt; ptid++) {
-						size_t tbegin = nt * ptid;
-						size_t tend = nt * (ptid + 1);
-						if(tbegin >= nthreads[i])
-							break;
-						if(tend >= nthreads[i])
-							tend = nthreads[i];
-						//cout << "threads " << tbegin << " to " << tend - 1 << endl;
-						size_t tl = tend - tbegin;
-						#pragma omp parallel for
-						for(size_t tt = 0; tt < tl; tt++) {
-							size_t tid = tbegin + tt;
-							size_t begin = lh[tid];
-							size_t end = thread_p[tid];
-							if(tid == nthreads[i] - 1)
-								end = graph.nedges;
-							subgraphs[tid].ebegin = graph.ebegin + begin;
-							subgraphs[tid].eend = graph.ebegin + end;
-
-							// do not let finalize to save edges
-							subgraphs[tid].nparts = nparts[i];
-							subgraphs[tid].max_vid = graph.max_vid;
-							subgraphs[tid].finalize(false);
-							subgraphs[tid].initialize(nparts[i]);
-							for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = subgraphs[tid].vid_to_lvid.begin(); itr != subgraphs[tid].vid_to_lvid.end(); ++itr) {
-								subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
-								subgraphs[tid].getVert(itr->first).mirror_list = graph.getVert(itr->first).mirror_list;
-							}
-							subgraphs[tid].parts_counter = graph.parts_counter;
-							partition_func(subgraphs[tid], nparts[i]);
-							//// debug
-							//cout << begin << "," << end << endl;
-							//for(vector<basic_graph::edge_type>::iterator itr = subgraphs[tid].ebegin; itr != subgraphs[tid].eend; ++itr) {
-							//	basic_graph::edge_type& e = *itr;
-							//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
-							//}
-							//cout << endl;
-
-							// clear memory
-							vector<basic_graph::vertex_type>().swap(subgraphs[tid].verts);
-							boost::unordered_map<basic_graph::vertex_id_type, basic_graph::vertex_id_type>().swap(subgraphs[tid].vid_to_lvid);
-						}
-					}
-
-					//// debug
-					//for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr) {
-					//	basic_graph::edge_type& e = *itr;
-					//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
-					//}
-					//cout << endl;
-					//cout << endl;
-
-					//boost::timer ti;
-					double runtime = 0;
-					//runtime = omp_get_wtime();
-
-					// do assignment in single thread
-					// note: use edges_p
-					for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
-						basic_graph::edge_type& e = *itr;
-
-						// assign vertex
-						basic_graph::vertex_type& source = graph.getVert(e.source);
-						basic_graph::vertex_type& target = graph.getVert(e.target);
-						if(source.degree < threshold && target.degree < threshold)
-							continue;
-						source.mirror_list[e.placement] = true;
-						target.mirror_list[e.placement] = true;
-
-						// assign edge
-						graph.parts_counter[e.placement]++;
-					}
-
-					report_performance(graph, nparts[i], result_table[j * nparts.size() + i]);
-					//report_performance(graph, nparts[i], vertex_cut_counter, result_table[j * nparts.size() + i]);
-					result_table[j * nparts.size() + i].runtime = runtime;
 				}
 			}
 
