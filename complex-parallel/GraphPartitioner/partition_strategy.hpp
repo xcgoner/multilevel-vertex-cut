@@ -852,10 +852,12 @@ namespace graphp {
 						  size_t current_pp;
 						  omp_set_lock(&(tlocks[t]));
 						  current_pp = pp[t];
+						  graph.edges_p[pp[t]] = e;
+						  graph.edges_p[pp[t]].placement = nthreads[i]+1;
 						  pp[t]++;
 						  lh[t]++;
-						  graph.edges_p[current_pp] = e;
-						  graph.edges_p[current_pp].placement = nthreads[i]+1;
+						  //graph.edges_p[current_pp] = e;
+						  //graph.edges_p[current_pp].placement = nthreads[i]+1;
 						  omp_unset_lock(&(tlocks[t]));
 						  #pragma omp atomic
 						  edge_counter++;
@@ -870,9 +872,11 @@ namespace graphp {
 						size_t current_pp;
 						omp_set_lock(&(tlocks[t]));
 						current_pp = pp[t];
+						graph.edges_p[pp[t]] = e;
+						graph.edges_p[pp[t]].placement = nthreads[i]+1;
 						pp[t]++;
-						graph.edges_p[current_pp] = e;
-						graph.edges_p[current_pp].placement = nthreads[i]+1;
+						//graph.edges_p[current_pp] = e;
+						//graph.edges_p[current_pp].placement = nthreads[i]+1;
 						omp_unset_lock(&(tlocks[t]));
 						#pragma omp atomic
 						edge_counter++;
