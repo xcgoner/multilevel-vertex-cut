@@ -953,6 +953,7 @@ namespace graphp {
 						// initialize each subgraph
 						#pragma omp parallel for
 						for(size_t tid = 0; tid < nthreads[i]; tid++) {
+							cout << "Thread: " << omp_get_thread_num() << ", Tid: " << tid << endl;
 							size_t begin = pp[tid];
 							size_t end = lh[tid];
 							subgraphs[tid].ebegin = graph.ebegin + begin;
