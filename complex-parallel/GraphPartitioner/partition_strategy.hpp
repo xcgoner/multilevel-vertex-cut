@@ -999,7 +999,7 @@ namespace graphp {
 								basic_graph::vertex_type& lsource = subgraphs[tid].getVert(e.source);
 								basic_graph::vertex_type& ltarget = subgraphs[tid].getVert(e.target);
 								// id
-								size_t sid = graph.vid_to_lvid[e.source]
+								size_t sid = graph.vid_to_lvid[e.source];
 								size_t tid = graph.vid_to_lvid[e.target];
 
 								// greedy assign
