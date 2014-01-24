@@ -843,6 +843,8 @@ namespace graphp {
 				}
 				if(edge_counter != graph.nedges)
 					cerr << "edge_counter != graph.nedges" << endl;
+				vector<basic_graph::edge_type>().swap(graph.edges);
+				graph.edges.clear();
 
 				// debug
 				//for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
@@ -1021,7 +1023,8 @@ namespace graphp {
 								ltarget.mirror_list = gtarget.mirror_list;
 								omp_unset_lock(&(vlocks[target_id]));
 
-								assignment = edge_to_part_degree(subgraphs[tid], e.source, e.target, subgraphs[tid].parts_counter);
+								//assignment = edge_to_part_degree(subgraphs[tid], e.source, e.target, subgraphs[tid].parts_counter);
+								assignment = edge_to_part_greedy(subgraphs[tid], e.source, e.target, subgraphs[tid].parts_counter);
 								e.placement = assignment;
 								
 
@@ -1056,7 +1059,7 @@ namespace graphp {
 						//}
 						//cout << endl;
 						//cout << endl;
-						//cout << "stage 1 finished ..." << endl;
+						cout << "stage 1 finished ..." << endl;
 
 						// do assignment in single thread
 						// note: use edges_p
