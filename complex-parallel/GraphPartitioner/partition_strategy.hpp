@@ -862,25 +862,20 @@ namespace graphp {
 						  #pragma omp atomic
 						  edge_counter++;
 					  }
-				}
-				#pragma omp parallel for
-				for(size_t itr = 0; itr < graph.edges.size(); itr++)  {
-					basic_graph::edge_type& e = graph.edges[itr];
-					size_t t = e.placement;
-					if(t >= nthreads[i]) {
-						t = t - nthreads[i];
-						size_t current_pp;
-						omp_set_lock(&(tlocks[t]));
-						current_pp = pp[t];
-						graph.edges_p[pp[t]] = e;
-						graph.edges_p[pp[t]].placement = nthreads[i]+1;
-						pp[t]++;
-						//graph.edges_p[current_pp] = e;
-						//graph.edges_p[current_pp].placement = nthreads[i]+1;
-						omp_unset_lock(&(tlocks[t]));
-						#pragma omp atomic
-						edge_counter++;
-					}
+					  else {
+						  t = t - nthreads[i];
+						  size_t current_pp;
+						  omp_set_lock(&(tlocks[t]));
+						  current_pp = pp[t];
+						  graph.edges_p[pp[t]] = e;
+						  graph.edges_p[pp[t]].placement = nthreads[i]+1;
+						  pp[t]++;
+						  //graph.edges_p[current_pp] = e;
+						  //graph.edges_p[current_pp].placement = nthreads[i]+1;
+						  omp_unset_lock(&(tlocks[t]));
+						  #pragma omp atomic
+						  edge_counter++;
+					  }
 				}
 				if(edge_counter != graph.nedges)
 					cerr << "edge_counter != graph.nedges" << endl;
