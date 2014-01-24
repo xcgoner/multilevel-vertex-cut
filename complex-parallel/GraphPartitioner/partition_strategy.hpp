@@ -995,7 +995,7 @@ namespace graphp {
 							//}
 							//cout << endl;
 							for(vector<basic_graph::edge_type>::iterator itr = subgraphs[tid].ebegin; itr != subgraphs[tid].eend; ++itr)  {
-								cout << tid << endl;
+								//cout << tid << endl;
 								basic_graph::edge_type& e = *itr;
 								// global
 								basic_graph::vertex_type& gsource = graph.getVert(e.source);
@@ -1004,22 +1004,22 @@ namespace graphp {
 								basic_graph::vertex_type& lsource = subgraphs[tid].getVert(e.source);
 								basic_graph::vertex_type& ltarget = subgraphs[tid].getVert(e.target);
 								// id
-								size_t sid = graph.vid_to_lvid[e.source];
+								size_t source_id = graph.vid_to_lvid[e.source];
 								//size_t sid = e.source;
 								//cout << "sid: " << sid << endl;
-								size_t tid = graph.vid_to_lvid[e.target];
+								size_t target_id = graph.vid_to_lvid[e.target];
 								//size_t tid = e.target;
 								//cout << "tid: " << tid << endl;
 								//cout << "length: " << vlocks.size() << endl;
 
 								// greedy assign
 								part_t assignment;
-								omp_set_lock(&(vlocks[sid]));
+								omp_set_lock(&(vlocks[source_id]));
 								lsource.mirror_list = gsource.mirror_list;
-								omp_unset_lock(&(vlocks[sid]));
-								omp_set_lock(&(vlocks[tid]));
+								omp_unset_lock(&(vlocks[source_id]));
+								omp_set_lock(&(vlocks[target_id]));
 								ltarget.mirror_list = gtarget.mirror_list;
-								omp_unset_lock(&(vlocks[tid]));
+								omp_unset_lock(&(vlocks[target_id]));
 
 								assignment = edge_to_part_degree(subgraphs[tid], e.source, e.target, subgraphs[tid].parts_counter);
 								e.placement = assignment;
@@ -1031,15 +1031,15 @@ namespace graphp {
 								subgraphs[tid].parts_counter[assignment]++;
 
 								if(!(lsource.mirror_list[assignment])) {
-									omp_set_lock(&(vlocks[sid]));
+									omp_set_lock(&(vlocks[source_id]));
 									gsource.mirror_list[assignment] = true;
-									omp_unset_lock(&(vlocks[sid]));
+									omp_unset_lock(&(vlocks[source_id]));
 									lsource.mirror_list[assignment] = true;
 								}
 								if(!(ltarget.mirror_list[assignment])) {
-									omp_set_lock(&(vlocks[tid]));
+									omp_set_lock(&(vlocks[target_id]));
 									gtarget.mirror_list[assignment] = true;
-									omp_unset_lock(&(vlocks[tid]));
+									omp_unset_lock(&(vlocks[target_id]));
 									ltarget.mirror_list[assignment] = true;
 								}
 							}
