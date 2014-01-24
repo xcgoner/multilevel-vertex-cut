@@ -998,15 +998,18 @@ namespace graphp {
 								// local
 								basic_graph::vertex_type& lsource = subgraphs[tid].getVert(e.source);
 								basic_graph::vertex_type& ltarget = subgraphs[tid].getVert(e.target);
+								// id
+								size_t sid = graph.vid_to_lvid(e.source);
+								size_t tid = graph.vid_to_lvid(e.target);
 
 								// greedy assign
 								part_t assignment;
-								omp_set_lock(&(vlocks[e.source]));
+								omp_set_lock(&(vlocks[sid]));
 								lsource.mirror_list = gsource.mirror_list;
-								omp_unset_lock(&(vlocks[e.source]));
-								omp_set_lock(&(vlocks[e.target]));
+								omp_unset_lock(&(vlocks[sid]));
+								omp_set_lock(&(vlocks[tid]));
 								ltarget.mirror_list = gtarget.mirror_list;
-								omp_unset_lock(&(vlocks[e.target]));
+								omp_unset_lock(&(vlocks[tid]));
 
 								assignment = edge_to_part_degree(subgraphs[tid], e.source, e.target, subgraphs[tid].parts_counter);
 								e.placement = assignment;
@@ -1018,15 +1021,15 @@ namespace graphp {
 								subgraphs[tid].parts_counter[assignment]++;
 
 								if(!(lsource.mirror_list[assignment])) {
-									omp_set_lock(&(vlocks[e.source]));
+									omp_set_lock(&(vlocks[sid]));
 									gsource.mirror_list[assignment] = true;
-									omp_unset_lock(&(vlocks[e.source]));
+									omp_unset_lock(&(vlocks[sid]));
 									lsource.mirror_list[assignment] = true;
 								}
 								if(!(ltarget.mirror_list[assignment])) {
-									omp_set_lock(&(vlocks[e.target]));
+									omp_set_lock(&(vlocks[tid]));
 									gtarget.mirror_list[assignment] = true;
-									omp_unset_lock(&(vlocks[e.target]));
+									omp_unset_lock(&(vlocks[tid]));
 									ltarget.mirror_list[assignment] = true;
 								}
 							}
