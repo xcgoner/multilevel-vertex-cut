@@ -1004,11 +1004,11 @@ namespace graphp {
 								// id
 								size_t sid = graph.vid_to_lvid[e.source];
 								//size_t sid = e.source;
-								cout << "sid: " << sid << endl;
+								//cout << "sid: " << sid << endl;
 								size_t tid = graph.vid_to_lvid[e.target];
 								//size_t tid = e.target;
-								cout << "tid: " << tid << endl;
-								cout << "length: " << vlocks.size() << endl;
+								//cout << "tid: " << tid << endl;
+								//cout << "length: " << vlocks.size() << endl;
 
 								// greedy assign
 								part_t assignment;
