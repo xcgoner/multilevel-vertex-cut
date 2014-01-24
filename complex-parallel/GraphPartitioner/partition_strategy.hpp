@@ -1144,7 +1144,7 @@ namespace graphp {
 						}
 
 						if(edge_counter != graph.nedges)
-							cerr << "edge_counter != graph.nedges" << endl;
+							cerr << "edge_counter:" << edge_counter << " != graph.nedges:" << graph.nedges << endl;
 
 						//// debug
 						//for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr) {
