@@ -1000,7 +1000,10 @@ namespace graphp {
 								basic_graph::vertex_type& ltarget = subgraphs[tid].getVert(e.target);
 								// id
 								size_t sid = graph.vid_to_lvid[e.source];
+								cout << "sid: " << sid << endl;
 								size_t tid = graph.vid_to_lvid[e.target];
+								cout << "tid: " << tid << endl;
+								cout << "length: " << vlocks.size() << endl;
 
 								// greedy assign
 								part_t assignment;
