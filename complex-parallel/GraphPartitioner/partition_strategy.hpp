@@ -951,10 +951,10 @@ namespace graphp {
 						//cout << endl;
 
 						graph.initialize(nparts[i]);
-						vector<omp_lock_t> vlocks(graph.nverts);
+						vector<omp_lock_t> vlocks(graph.max_vid);
 						vector<omp_lock_t> plocks(nparts[i]);
 						#pragma omp parallel for
-						for(size_t tid = 0; tid < graph.nverts; tid++) {
+						for(size_t tid = 0; tid < graph.max_vid; tid++) {
 							omp_init_lock(&(vlocks[tid]));
 						}
 						#pragma omp parallel for
