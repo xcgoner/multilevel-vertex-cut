@@ -862,20 +862,25 @@ namespace graphp {
 						  #pragma omp atomic
 						  edge_counter++;
 					  }
-					  else {
-						  t = t - nthreads[i];
-						  size_t current_pp;
-						  omp_set_lock(&(tlocks[t]));
-						  current_pp = pp[t];
-						  graph.edges_p[pp[t]] = e;
-						  graph.edges_p[pp[t]].placement = nthreads[i]+1;
-						  pp[t]++;
-						  //graph.edges_p[current_pp] = e;
-						  //graph.edges_p[current_pp].placement = nthreads[i]+1;
-						  omp_unset_lock(&(tlocks[t]));
-						  #pragma omp atomic
-						  edge_counter++;
-					  }
+				}
+				#pragma omp parallel for
+				for(size_t itr = 0; itr < graph.edges.size(); itr++)  {
+					basic_graph::edge_type& e = graph.edges[itr];
+					size_t t = e.placement;
+					if(t >= nthreads[i]) {
+						t = t - nthreads[i];
+						size_t current_pp;
+						omp_set_lock(&(tlocks[t]));
+						current_pp = pp[t];
+						graph.edges_p[pp[t]] = e;
+						graph.edges_p[pp[t]].placement = nthreads[i]+1;
+						pp[t]++;
+						//graph.edges_p[current_pp] = e;
+						//graph.edges_p[current_pp].placement = nthreads[i]+1;
+						omp_unset_lock(&(tlocks[t]));
+						#pragma omp atomic
+						edge_counter++;
+					}
 				}
 				if(edge_counter != graph.nedges)
 					cerr << "edge_counter != graph.nedges" << endl;
@@ -1022,7 +1027,8 @@ namespace graphp {
 							//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
 							//}
 							//cout << endl;
-							for(vector<basic_graph::edge_type>::iterator itr = subgraphs[tid].ebegin; itr != subgraphs[tid].eend; ++itr)  {
+							size_t itr_counter = 0;
+							for(vector<basic_graph::edge_type>::iterator itr = subgraphs[tid].ebegin; itr != subgraphs[tid].eend; ++itr,itr_counter++)  {
 								//cout << tid << endl;
 								basic_graph::edge_type& e = *itr;
 								// global
@@ -1048,6 +1054,13 @@ namespace graphp {
 								omp_set_lock(&(vlocks[target_id]));
 								ltarget.mirror_list = gtarget.mirror_list;
 								omp_unset_lock(&(vlocks[target_id]));
+								if(itr_counter % nthreads[i] == 0) {
+									for(size_t partition_idx = 0; partition_idx < nparts[i]; partition_idx++) {
+										omp_set_lock(&(plocks[partition_idx]));
+										subgraphs[tid].parts_counter[partition_idx] = graph.parts_counter[partition_idx];
+										omp_unset_lock(&(plocks[partition_idx]));
+									}
+								}
 
 								assignment = edge_to_part_degree(subgraphs[tid], e.source, e.target, subgraphs[tid].parts_counter);
 								//assignment = edge_to_part_greedy(subgraphs[tid], e.source, e.target, subgraphs[tid].parts_counter);
