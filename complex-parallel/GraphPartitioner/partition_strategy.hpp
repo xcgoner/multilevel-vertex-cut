@@ -1011,6 +1011,7 @@ namespace graphp {
 						}
 						cout << "Subgraphs initialized ..." << endl;
 						
+						edge_counter = 0;
 						#pragma omp parallel for
 						for(size_t tid = 0; tid < nthreads[i]; tid++) {
 							//prepartition_func(subgraphs[tid], nparts[i]);
@@ -1052,6 +1053,8 @@ namespace graphp {
 								assignment = edge_to_part_degree(subgraphs[tid], e.source, e.target, subgraphs[tid].parts_counter);
 								//assignment = edge_to_part_greedy(subgraphs[tid], e.source, e.target, subgraphs[tid].parts_counter);
 								e.placement = assignment;
+								#pragma omp atomic
+								edge_counter++;
 								
 
 								omp_set_lock(&(plocks[assignment]));
@@ -1123,6 +1126,10 @@ namespace graphp {
 							}
 							subgraphs[tid].parts_counter = graph.parts_counter;
 							partition_func(subgraphs[tid], nparts[i]);
+
+							size_t elength = end - begin + 1;
+							#pragma omp atomic
+							edge_counter += elength;
 							//// debug
 							//cout << begin << "," << end << endl;
 							//for(vector<basic_graph::edge_type>::iterator itr = subgraphs[tid].ebegin; itr != subgraphs[tid].eend; ++itr) {
@@ -1135,6 +1142,9 @@ namespace graphp {
 							vector<basic_graph::vertex_type>().swap(subgraphs[tid].verts);
 							boost::unordered_map<basic_graph::vertex_id_type, basic_graph::vertex_id_type>().swap(subgraphs[tid].vid_to_lvid);
 						}
+
+						if(edge_counter != graph.nedges)
+							cerr << "edge_counter != graph.nedges" << endl;
 
 						//// debug
 						//for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr) {
