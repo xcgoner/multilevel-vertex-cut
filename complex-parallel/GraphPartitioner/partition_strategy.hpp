@@ -782,9 +782,27 @@ namespace graphp {
 				//cout << endl;
 				//cout << endl;
 
-				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); itr++)  {
+				vector<omp_lock_t> vlocks(graph.nverts);
+				vector<omp_lock_t> plocks(nparts[i]);
+				vector<omp_lock_t> tlocks(nthreads[i]);
+				#pragma omp parallel for
+				for(size_t tid = 0; tid < graph.nverts; tid++) {
+					omp_init_lock(&(vlocks[tid]));
+				}
+				#pragma omp parallel for
+				for(size_t tid = 0; tid < nparts[i]; tid++) {
+					omp_init_lock(&(plocks[tid]));
+				}
+				#pragma omp parallel for
+				for(size_t tid = 0; tid < nthreads[i]; tid++) {
+					omp_init_lock(&(tlocks[tid]));
+				}
+				cout << "Locks initialized ..." << endl;
+
+				#pragma omp parallel for
+				for(size_t itr = 0; itr < graph.edges.size(); itr++)  {
+					basic_graph::edge_type& e = graph.edges[itr];
 					part_t assignment;
-					basic_graph::edge_type& e = *itr;
 					const basic_graph::vertex_type& source_v = graph.getVert(e.source);
 					const basic_graph::vertex_type& target_v = graph.getVert(e.target);
 
@@ -796,10 +814,17 @@ namespace graphp {
 					//assignment = source_v.degree < target_v.degree ? hash_vertex(e.source) % nthreads[i] : hash_vertex(e.target) % nthreads[i];
 					
 					e.placement = assignment;
+
+					size_t assignment_t;
 					if(assignment < nthreads[i])
-						thread_p[assignment]++;
+						assignment_t = assignment;
 					else
-						thread_p[assignment - nthreads[i]]++;
+						assignment_t = assignment - nthreads[i];
+					omp_set_lock(&(tlocks[assignment_t]));
+					thread_p[assignment_t]++;
+					omp_unset_lock(&(tlocks[assignment_t]));
+
+					#pragma omp atomic
 					edge_counter++;
 				}
 
@@ -819,32 +844,40 @@ namespace graphp {
 				foreach(size_t& elem, lh) {
 					elem = 0;
 				}
-				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
-				      basic_graph::edge_type& e = *itr;
+				#pragma omp parallel for
+				for(size_t itr = 0; itr < graph.edges.size(); itr++)  {
+					basic_graph::edge_type& e = graph.edges[itr];
 				      size_t t = e.placement;
 					  if(t < nthreads[i]) {
 						  graph.edges_p[pp[t]] = e;
 						  graph.edges_p[pp[t]].placement = nthreads[i]+1;
+						  #pragma omp atomic
 						  edge_counter++;
+						  omp_set_lock(&(tlocks[t]));
 						  pp[t]++;
 						  lh[t]++;
+						  omp_unset_lock(&(tlocks[t]));
 					  }
 				}
-				for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
-					basic_graph::edge_type& e = *itr;
+				#pragma omp parallel for
+				for(size_t itr = 0; itr < graph.edges.size(); itr++)  {
+					basic_graph::edge_type& e = graph.edges[itr];
 					size_t t = e.placement;
 					if(t >= nthreads[i]) {
 						t = t - nthreads[i];
 						graph.edges_p[pp[t]] = e;
 						graph.edges_p[pp[t]].placement = nthreads[i]+1;
+						#pragma omp atomic
 						edge_counter++;
+						omp_set_lock(&(tlocks[t]));
 						pp[t]++;
+						omp_unset_lock(&(tlocks[t]));
 					}
 				}
 				if(edge_counter != graph.nedges)
 					cerr << "edge_counter != graph.nedges" << endl;
-				vector<basic_graph::edge_type>().swap(graph.edges);
-				graph.edges.clear();
+				//vector<basic_graph::edge_type>().swap(graph.edges);
+				//graph.edges.clear();
 
 				// debug
 				//for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
@@ -953,17 +986,6 @@ namespace graphp {
 						//cout << endl;
 
 						graph.initialize(nparts[i]);
-						vector<omp_lock_t> vlocks(graph.nverts);
-						vector<omp_lock_t> plocks(nparts[i]);
-						#pragma omp parallel for
-						for(size_t tid = 0; tid < graph.nverts; tid++) {
-							omp_init_lock(&(vlocks[tid]));
-						}
-						#pragma omp parallel for
-						for(size_t tid = 0; tid < nparts[i]; tid++) {
-							omp_init_lock(&(plocks[tid]));
-						}
-						cout << "Locks initialized ..." << endl;
 
 						// initialize each subgraph
 						#pragma omp parallel for
@@ -983,7 +1005,7 @@ namespace graphp {
 								subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
 							}
 						}
-						//cout << "initialized ..." << endl;
+						cout << "Subgraphs initialized ..." << endl;
 						
 						#pragma omp parallel for
 						for(size_t tid = 0; tid < nthreads[i]; tid++) {
@@ -1122,36 +1144,50 @@ namespace graphp {
 						double runtime = 0;
 						//runtime = omp_get_wtime();
 
-						// do assignment in single thread
+						// do assignment in parallel
 						// note: use edges_p
-						for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
-							basic_graph::edge_type& e = *itr;
+						#pragma omp parallel for
+						for(size_t itr = 0; itr < graph.edges_p.size(); itr++)  {
+							basic_graph::edge_type& e = graph.edges_p[itr];
 
 							// assign vertex
 							basic_graph::vertex_type& source = graph.getVert(e.source);
 							basic_graph::vertex_type& target = graph.getVert(e.target);
 							if(source.degree < threshold && target.degree < threshold)
 								continue;
+							size_t source_id = graph.vid_to_lvid[e.source];
+							size_t target_id = graph.vid_to_lvid[e.target];
+							omp_set_lock(&(vlocks[source_id]));
 							source.mirror_list[e.placement] = true;
+							omp_unset_lock(&(vlocks[source_id]));
+							omp_set_lock(&(vlocks[target_id]));
 							target.mirror_list[e.placement] = true;
+							omp_unset_lock(&(vlocks[target_id]));
 
 							// assign edge
+							omp_set_lock(&(plocks[e.placement]));
 							graph.parts_counter[e.placement]++;
+							omp_unset_lock(&(plocks[e.placement]));
 						}
 
 						report_performance(graph, nparts[i], result_table[i*prestrategies.size()*strategies.size() + prei*strategies.size() + j]);
 						result_table[i*prestrategies.size()*strategies.size() + prei*strategies.size() + j].runtime = 0;
 
-#pragma omp parallel for
-						for(size_t tid = 0; tid < graph.nverts; tid++) {
-							omp_destroy_lock(&(vlocks[tid]));
-						}
-#pragma omp parallel for
-						for(size_t tid = 0; tid < nparts[i]; tid++) {
-							omp_destroy_lock(&(plocks[tid]));
-						}
 
 					}
+				}
+
+				#pragma omp parallel for
+				for(size_t tid = 0; tid < graph.nverts; tid++) {
+					omp_destroy_lock(&(vlocks[tid]));
+				}
+				#pragma omp parallel for
+				for(size_t tid = 0; tid < nparts[i]; tid++) {
+					omp_destroy_lock(&(plocks[tid]));
+				}
+				#pragma omp parallel for
+				for(size_t tid = 0; tid < nthreads[i]; tid++) {
+					omp_destroy_lock(&(tlocks[tid]));
 				}
 			}
 
