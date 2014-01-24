@@ -982,7 +982,7 @@ namespace graphp {
 							}
 						}
 						cout << "initialized ..." << endl;
-						exit(0);
+						
 						#pragma omp parallel for
 						for(size_t tid = 0; tid < nthreads[i]; tid++) {
 							//prepartition_func(subgraphs[tid], nparts[i]);
