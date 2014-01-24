@@ -951,10 +951,10 @@ namespace graphp {
 						//cout << endl;
 
 						graph.initialize(nparts[i]);
-						vector<omp_lock_t> vlocks(graph.max_vid);
+						vector<omp_lock_t> vlocks(graph.nverts);
 						vector<omp_lock_t> plocks(nparts[i]);
 						#pragma omp parallel for
-						for(size_t tid = 0; tid < graph.max_vid; tid++) {
+						for(size_t tid = 0; tid < graph.nverts; tid++) {
 							omp_init_lock(&(vlocks[tid]));
 						}
 						#pragma omp parallel for
@@ -1002,11 +1002,11 @@ namespace graphp {
 								basic_graph::vertex_type& lsource = subgraphs[tid].getVert(e.source);
 								basic_graph::vertex_type& ltarget = subgraphs[tid].getVert(e.target);
 								// id
-								//size_t sid = graph.vid_to_lvid[e.source];
-								size_t sid = e.source;
+								size_t sid = graph.vid_to_lvid[e.source];
+								//size_t sid = e.source;
 								cout << "sid: " << sid << endl;
-								//size_t tid = graph.vid_to_lvid[e.target];
-								size_t tid = e.target;
+								size_t tid = graph.vid_to_lvid[e.target];
+								//size_t tid = e.target;
 								cout << "tid: " << tid << endl;
 								cout << "length: " << vlocks.size() << endl;
 
