@@ -990,7 +990,7 @@ namespace graphp {
 							//}
 							//cout << endl;
 							for(vector<basic_graph::edge_type>::iterator itr = subgraphs[tid].ebegin; itr != subgraphs[tid].eend; ++itr)  {
-								cout << itr << endl;
+								cout << tid << endl;
 								basic_graph::edge_type& e = *itr;
 								// global
 								basic_graph::vertex_type& gsource = graph.getVert(e.source);
