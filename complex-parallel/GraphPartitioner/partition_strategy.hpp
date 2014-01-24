@@ -1023,8 +1023,8 @@ namespace graphp {
 								ltarget.mirror_list = gtarget.mirror_list;
 								omp_unset_lock(&(vlocks[target_id]));
 
-								//assignment = edge_to_part_degree(subgraphs[tid], e.source, e.target, subgraphs[tid].parts_counter);
-								assignment = edge_to_part_greedy(subgraphs[tid], e.source, e.target, subgraphs[tid].parts_counter);
+								assignment = edge_to_part_degree(subgraphs[tid], e.source, e.target, subgraphs[tid].parts_counter);
+								//assignment = edge_to_part_greedy(subgraphs[tid], e.source, e.target, subgraphs[tid].parts_counter);
 								e.placement = assignment;
 								
 
