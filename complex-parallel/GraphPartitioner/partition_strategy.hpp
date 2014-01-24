@@ -1127,7 +1127,7 @@ namespace graphp {
 							subgraphs[tid].parts_counter = graph.parts_counter;
 							partition_func(subgraphs[tid], nparts[i]);
 
-							size_t elength = end - begin + 1;
+							size_t elength = end - begin;
 							#pragma omp atomic
 							edge_counter += elength;
 							//// debug
