@@ -1153,21 +1153,21 @@ namespace graphp {
 							// assign vertex
 							basic_graph::vertex_type& source = graph.getVert(e.source);
 							basic_graph::vertex_type& target = graph.getVert(e.target);
-							if(source.degree < threshold && target.degree < threshold)
-								continue;
-							size_t source_id = graph.vid_to_lvid[e.source];
-							size_t target_id = graph.vid_to_lvid[e.target];
-							omp_set_lock(&(vlocks[source_id]));
-							source.mirror_list[e.placement] = true;
-							omp_unset_lock(&(vlocks[source_id]));
-							omp_set_lock(&(vlocks[target_id]));
-							target.mirror_list[e.placement] = true;
-							omp_unset_lock(&(vlocks[target_id]));
+							if(!(source.degree < threshold && target.degree < threshold)) {
+								size_t source_id = graph.vid_to_lvid[e.source];
+								size_t target_id = graph.vid_to_lvid[e.target];
+								omp_set_lock(&(vlocks[source_id]));
+								source.mirror_list[e.placement] = true;
+								omp_unset_lock(&(vlocks[source_id]));
+								omp_set_lock(&(vlocks[target_id]));
+								target.mirror_list[e.placement] = true;
+								omp_unset_lock(&(vlocks[target_id]));
 
-							// assign edge
-							omp_set_lock(&(plocks[e.placement]));
-							graph.parts_counter[e.placement]++;
-							omp_unset_lock(&(plocks[e.placement]));
+								// assign edge
+								omp_set_lock(&(plocks[e.placement]));
+								graph.parts_counter[e.placement]++;
+								omp_unset_lock(&(plocks[e.placement]));
+							}
 						}
 
 						report_performance(graph, nparts[i], result_table[i*prestrategies.size()*strategies.size() + prei*strategies.size() + j]);
