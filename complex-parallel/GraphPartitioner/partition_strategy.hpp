@@ -980,7 +980,9 @@ namespace graphp {
 							for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = subgraphs[tid].vid_to_lvid.begin(); itr != subgraphs[tid].vid_to_lvid.end(); ++itr) {
 								subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
 							}
-							#pragma omp barrier
+						}
+						#pragma omp parallel for
+						for(size_t tid = 0; tid < nthreads[i]; tid++) {
 							//prepartition_func(subgraphs[tid], nparts[i]);
 
 							//// debug
