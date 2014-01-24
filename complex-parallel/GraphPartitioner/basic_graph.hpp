@@ -180,12 +180,13 @@ namespace graphp {
 			}
 		}
 
-		void initialize(part_t np) {
+		void initialize(part_t np, bool clearMirrors = true) {
 			nparts = np;
 			parts_counter.resize(np);
 			clear_partition_counter();
 			clear_partition();
-			clear_mirrors();
+			if(clearMirrors)
+				clear_mirrors();
 		}
 
 		vertex_type& getVert(vertex_id_type vid) {

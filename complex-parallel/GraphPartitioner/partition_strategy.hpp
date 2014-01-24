@@ -950,10 +950,23 @@ namespace graphp {
 						//cout << endl;
 						//cout << endl;
 
+						graph.initialize(nparts[i]);
+						vector<omp_lock_t> vlocks(graph.nverts);
+						vector<omp_lock_t> plocks(nparts[i]);
+						#pragma omp parallel for
+						for(size_t tid = 0; tid < graph.nverts; tid++) {
+							omp_init_lock(&(vlocks[tid]));
+						}
+						#pragma omp parallel for
+						for(size_t tid = 0; tid < nparts[i]; tid++) {
+							omp_init_lock(&(plocks[tid]));
+						}
+
+
 						// initialize each subgraph
 						#pragma omp parallel for
 						for(size_t tid = 0; tid < nthreads[i]; tid++) {
-							cout << "Thread: " << omp_get_thread_num() << ", Tid: " << tid << endl;
+							//cout << "Thread: " << omp_get_thread_num() << ", Tid: " << tid << endl;
 							size_t begin = pp[tid];
 							size_t end = lh[tid];
 							subgraphs[tid].ebegin = graph.ebegin + begin;
@@ -967,7 +980,8 @@ namespace graphp {
 							for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = subgraphs[tid].vid_to_lvid.begin(); itr != subgraphs[tid].vid_to_lvid.end(); ++itr) {
 								subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
 							}
-							prepartition_func(subgraphs[tid], nparts[i]);
+							//prepartition_func(subgraphs[tid], nparts[i]);
+
 							//// debug
 							//cout << begin << "," << end << endl;
 							//for(vector<basic_graph::edge_type>::iterator itr = subgraphs[tid].ebegin; itr != subgraphs[tid].eend; ++itr) {
@@ -975,6 +989,46 @@ namespace graphp {
 							//	cout << e.source << ":" << e.target << ":" << e.placement << " ";
 							//}
 							//cout << endl;
+							for(vector<basic_graph::edge_type>::iterator itr = subgraphs[tid].ebegin; itr != subgraphs[tid].eend; ++itr)  {
+								basic_graph::edge_type& e = *itr;
+								// global
+								basic_graph::vertex_type& gsource = graph.getVert(e.source);
+								basic_graph::vertex_type& gtarget = graph.getVert(e.target);
+								// local
+								basic_graph::vertex_type& lsource = subgraphs[tid].getVert(e.source);
+								basic_graph::vertex_type& ltarget = subgraphs[tid].getVert(e.target);
+
+								// greedy assign
+								part_t assignment;
+								omp_set_lock(&(vlocks[e.source]));
+								lsource.mirror_list = gsource.mirror_list;
+								omp_unset_lock(&(vlocks[e.source]));
+								omp_set_lock(&(vlocks[e.target]));
+								ltarget.mirror_list = gtarget.mirror_list;
+								omp_unset_lock(&(vlocks[e.target]));
+
+								assignment = edge_to_part_degree(subgraphs[tid], e.source, e.target, subgraphs[tid].parts_counter);
+								e.placement = assignment;
+								
+
+								omp_set_lock(&(plocks[assignment]));
+								graph.parts_counter[assignment]++;
+								omp_unset_lock(&(plocks[assignment]));
+								subgraphs[tid].parts_counter[assignment]++;
+
+								if(!(lsource.mirror_list[assignment])) {
+									omp_set_lock(&(vlocks[e.source]));
+									gsource.mirror_list[assignment] = true;
+									omp_unset_lock(&(vlocks[e.source]));
+									lsource.mirror_list[assignment] = true;
+								}
+								if(!(ltarget.mirror_list[assignment])) {
+									omp_set_lock(&(vlocks[e.source]));
+									gtarget.mirror_list[assignment] = true;
+									omp_unset_lock(&(vlocks[e.source]));
+									ltarget.mirror_list[assignment] = true;
+								}
+							}
 
 							// clear memory
 							vector<basic_graph::vertex_type>().swap(subgraphs[tid].verts);
@@ -990,24 +1044,21 @@ namespace graphp {
 						//cout << endl;
 						//cout << "stage 1 finished ..." << endl;
 
-
-						// assign back to the origin graph
-						graph.initialize(nparts[i]);
 						// do assignment in single thread
 						// note: use edges_p
-						for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
-							basic_graph::edge_type& e = *itr;
+						//for(vector<basic_graph::edge_type>::iterator itr = graph.edges_p.begin(); itr != graph.edges_p.end(); ++itr)  {
+						//	basic_graph::edge_type& e = *itr;
 
-							// assign vertex
-							basic_graph::vertex_type& source = graph.getVert(e.source);
-							basic_graph::vertex_type& target = graph.getVert(e.target);
-							if(source.degree < threshold && target.degree < threshold) {
-								source.mirror_list[e.placement] = true;
-								target.mirror_list[e.placement] = true;
-								// assign edge
-								graph.parts_counter[e.placement]++;
-							}
-						}
+						//	// assign vertex
+						//	basic_graph::vertex_type& source = graph.getVert(e.source);
+						//	basic_graph::vertex_type& target = graph.getVert(e.target);
+						//	if(source.degree < threshold && target.degree < threshold) {
+						//		source.mirror_list[e.placement] = true;
+						//		target.mirror_list[e.placement] = true;
+						//		// assign edge
+						//		graph.parts_counter[e.placement]++;
+						//	}
+						//}
 						//cout << "synchronization finished ..." << endl;
 						//exit(0);
 
