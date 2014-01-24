@@ -981,7 +981,7 @@ namespace graphp {
 								subgraphs[tid].getVert(itr->first).degree = graph.getVert(itr->first).degree;
 							}
 						}
-						cout << "initialized ..." << endl;
+						//cout << "initialized ..." << endl;
 						
 						#pragma omp parallel for
 						for(size_t tid = 0; tid < nthreads[i]; tid++) {
