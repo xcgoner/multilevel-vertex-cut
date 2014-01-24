@@ -961,7 +961,7 @@ namespace graphp {
 						for(size_t tid = 0; tid < nparts[i]; tid++) {
 							omp_init_lock(&(plocks[tid]));
 						}
-
+						cout << "Locks initialized ..." << endl;
 
 						// initialize each subgraph
 						#pragma omp parallel for
@@ -1023,9 +1023,9 @@ namespace graphp {
 									lsource.mirror_list[assignment] = true;
 								}
 								if(!(ltarget.mirror_list[assignment])) {
-									omp_set_lock(&(vlocks[e.source]));
+									omp_set_lock(&(vlocks[e.target]));
 									gtarget.mirror_list[assignment] = true;
-									omp_unset_lock(&(vlocks[e.source]));
+									omp_unset_lock(&(vlocks[e.target]));
 									ltarget.mirror_list[assignment] = true;
 								}
 							}
@@ -1124,6 +1124,15 @@ namespace graphp {
 
 						report_performance(graph, nparts[i], result_table[i*prestrategies.size()*strategies.size() + prei*strategies.size() + j]);
 						result_table[i*prestrategies.size()*strategies.size() + prei*strategies.size() + j].runtime = 0;
+
+#pragma omp parallel for
+						for(size_t tid = 0; tid < graph.nverts; tid++) {
+							omp_destroy_lock(&(vlocks[tid]));
+						}
+#pragma omp parallel for
+						for(size_t tid = 0; tid < nparts[i]; tid++) {
+							omp_destroy_lock(&(plocks[tid]));
+						}
 
 					}
 				}
