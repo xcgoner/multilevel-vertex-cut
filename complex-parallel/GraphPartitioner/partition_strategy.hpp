@@ -884,8 +884,8 @@ namespace graphp {
 				}
 				if(edge_counter != graph.nedges)
 					cerr << "edge_counter != graph.nedges" << endl;
-				//vector<basic_graph::edge_type>().swap(graph.edges);
-				//graph.edges.clear();
+				vector<basic_graph::edge_type>().swap(graph.edges);
+				graph.edges.clear();
 
 				// debug
 				//for(vector<basic_graph::edge_type>::iterator itr = graph.edges.begin(); itr != graph.edges.end(); ++itr)  {
