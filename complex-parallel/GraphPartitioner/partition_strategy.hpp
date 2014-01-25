@@ -863,6 +863,7 @@ namespace graphp {
 						  edge_counter++;
 					  }
 				}
+				cout << "Pre-partitioning: " << accumulate(lh.begin(), lh.end(), 0) * 100.0 / graph.nedges << "%" << endl;
 				#pragma omp parallel for
 				for(size_t itr = 0; itr < graph.edges.size(); itr++)  {
 					basic_graph::edge_type& e = graph.edges[itr];
