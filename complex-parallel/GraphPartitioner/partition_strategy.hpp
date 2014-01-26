@@ -767,7 +767,8 @@ namespace graphp {
 				size_t edge_counter = 0;
 
 				// threshold
-				const size_t threshold = nparts[i];
+				//const size_t threshold = nparts[i];
+				const size_t threshold = 4 * graph.nedges / graph.nverts;
 
 				//// debug
 				//for(boost::unordered_map<vertex_id_type, vertex_id_type>::iterator itr = graph.vid_to_lvid.begin(); itr != graph.vid_to_lvid.end(); itr++) {
