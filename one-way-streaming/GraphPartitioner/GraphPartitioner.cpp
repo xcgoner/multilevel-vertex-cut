@@ -102,8 +102,12 @@ int main(int argc, char* argv[])
 
 	if(vm.count("histprefix") > 0)
 		graphp::partition_strategy::degreeHistgram(graph, vm["histprefix"].as<string>());
-	else
-		graphp::partition_strategy::run_partition(graph, nparts, strategies, orders, vm["type"].as<string>());
+	else {
+		if(vm.count("times") > 0)
+			graphp::partition_strategy::run_partition(graph, nparts, strategies, orders, vm["type"].as<string>(), vm["times"].as<size_t>());
+		else
+			graphp::partition_strategy::run_partition(graph, nparts, strategies, orders, vm["type"].as<string>());
+	}
 
 #ifdef WIN32
 	system("Pause");
