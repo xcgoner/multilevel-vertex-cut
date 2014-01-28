@@ -166,7 +166,7 @@ namespace graphp {
 			double imbalance;
 			double runtime;
 		};
-		void report_performance(const basic_graph& graph, part_t nparts, report_result& result) {
+		void report_performance(const basic_graph& graph, part_t nparts, report_result& result, bool isAccumulated = false) {
 			// count the vertex-cut
 			size_t vertex_cut_counter = 0;
 
@@ -207,9 +207,16 @@ namespace graphp {
 			//cout << "Average degree: " << 1.0 * boundary_degree / cutted_vertex_num << " : " << 2.0 * graph.origin_edges.size() / graph.origin_verts.size() << endl;
 
 			result.nparts = nparts;
-			result.vertex_cut_counter = vertex_cut_counter;
-			result.replica_factor = 1.0 * (graph.nverts + vertex_cut_counter) / graph.nverts;
-			result.imbalance = 1.0 * max_parts / (graph.nedges / nparts);
+			if(isAccumulated) {
+				result.vertex_cut_counter += vertex_cut_counter;
+				result.replica_factor += 1.0 * (graph.nverts + vertex_cut_counter) / graph.nverts;
+				result.imbalance += 1.0 * max_parts / (graph.nedges / nparts);
+			}
+			else {
+				result.vertex_cut_counter = vertex_cut_counter;
+				result.replica_factor = 1.0 * (graph.nverts + vertex_cut_counter) / graph.nverts;
+				result.imbalance = 1.0 * max_parts / (graph.nedges / nparts);
+			}
 
 			cout << nparts << " "
 				<< vertex_cut_counter << " "
@@ -1567,134 +1574,142 @@ namespace graphp {
 			}
 		}
 
-		void run_partition(basic_graph& graph, vector<part_t>& nparts, vector<string>& strategies, vector<string>& orders, string type) {
+		void run_partition(basic_graph& graph, vector<part_t>& nparts, vector<string>& strategies, vector<string>& orders, string type, size_t times = 1) {
 			vector<basic_graph::vertex_id_type> vertex_order;
 
 			vector<report_result> result_table(orders.size() * strategies.size() * nparts.size());
+			foreach(report_result& result, result_table) {
+					result.vertex_cut_counter = 0;
+					result.replica_factor = 0;
+					result.imbalance = 0;
+					result.runtime  = 0;
+			}
 			//remember to clear the degree before each partitioning ...
-			for(size_t k = 0; k < orders.size(); k++) {
-				string order = orders[k];
-				cout << order << endl;
-				if(order == "random" && type == "vertex")
-					vertex_reorder(graph, vertex_order, 0);
-				else if(order == "bfs" && type == "vertex")
-					vertex_reorder(graph, vertex_order, 1);
-				else if(order == "dfs" && type == "vertex")
-					vertex_reorder(graph, vertex_order, 2);
+			for(size_t times_idx = 0; times_idx < times; times_idx++) {
+				for(size_t k = 0; k < orders.size(); k++) {
+					string order = orders[k];
+					cout << order << endl;
+					if(order == "random" && type == "vertex")
+						vertex_reorder(graph, vertex_order, 0);
+					else if(order == "bfs" && type == "vertex")
+						vertex_reorder(graph, vertex_order, 1);
+					else if(order == "dfs" && type == "vertex")
+						vertex_reorder(graph, vertex_order, 2);
 
-				if(order == "random" && type == "edge") {
-					random_shuffle(graph.ebegin, graph.eend);
-					cout << "random shuffled ..." << endl;
-				}
+					if(order == "random" && type == "edge") {
+						random_shuffle(graph.ebegin, graph.eend);
+						cout << "random shuffled ..." << endl;
+					}
 
-				for(size_t j = 0; j < strategies.size(); j++) {
-					// select the streaming type
-					if(type == "edge") {
-						// select the strategy
-						void (*partition_func)(basic_graph& graph, part_t nparts);
-						string strategy = strategies[j];
-						if(strategy == "random")
-							partition_func = random_partition;
-						else if(strategy == "grid")
-							partition_func = random_partition_constrained;
-						else if(strategy == "chunking")
-							partition_func = chunking_partition;
-						else if(strategy == "powergraph")
-							partition_func = powergraph_partition;
-						else if(strategy == "degree")
-							partition_func = degree_partition;
+					for(size_t j = 0; j < strategies.size(); j++) {
+						// select the streaming type
+						if(type == "edge") {
+							// select the strategy
+							void (*partition_func)(basic_graph& graph, part_t nparts);
+							string strategy = strategies[j];
+							if(strategy == "random")
+								partition_func = random_partition;
+							else if(strategy == "grid")
+								partition_func = random_partition_constrained;
+							else if(strategy == "chunking")
+								partition_func = chunking_partition;
+							else if(strategy == "powergraph")
+								partition_func = powergraph_partition;
+							else if(strategy == "degree")
+								partition_func = degree_partition;
 
-						for(size_t i = 0; i < nparts.size(); i++) {
-							// initialize
-							graph.initialize(nparts[i]);
+							for(size_t i = 0; i < nparts.size(); i++) {
+								// initialize
+								graph.initialize(nparts[i]);
 
-							cout << endl << strategy << endl;
+								cout << endl << strategy << endl;
 
-							boost::timer ti;
-							double runtime;
+								boost::timer ti;
+								double runtime;
 
-							if(strategy == "weighted0") {
-								weighted_partition(graph, nparts[i], 0);
+								if(strategy == "weighted0") {
+									weighted_partition(graph, nparts[i], 0);
+								}
+								else if(strategy == "weighted1") {
+									weighted_partition(graph, nparts[i], 1);
+								}
+								else if(strategy == "weighted2") {
+									weighted_partition(graph, nparts[i], 2);
+								}
+								else {
+									partition_func(graph, nparts[i]);
+								}
+
+								runtime = ti.elapsed();
+								cout << "Time elapsed: " << runtime << endl;
+
+								size_t rid = k * strategies.size() * nparts.size() + j * nparts.size() + i;
+								report_performance(graph, nparts[i], result_table[rid]);
+								result_table[rid].runtime = runtime;
 							}
-							else if(strategy == "weighted1") {
-								weighted_partition(graph, nparts[i], 1);
+						}// end of edge streaming
+						else {
+							// select the strategy
+							void (*partition_func)(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order);
+							string strategy = strategies[j];
+							if(strategy == "random")
+								partition_func = v_random_partition;
+							else if(strategy == "grid")
+								partition_func = v_random_partition_constrainted;
+							if(strategy == "chunking")
+								partition_func = v_chunking_partition;
+							else if(strategy == "powergraph")
+								partition_func = v_powergraph_partition;
+							else if(strategy == "powergraph2")
+								partition_func = v_powergraph2_partition;
+							else if(strategy == "degree")
+								partition_func = v_degree_partition;
+							else if(strategy == "degree2")
+								partition_func = v_degree2_partition;
+							else if(strategy == "powergraphp")
+								partition_func = v_powergraphp_partition;
+							else if(strategy == "degreep")
+								partition_func = v_degreep_partition;
+							else if(strategy == "degreeio0")
+								partition_func = v_degreeio0_partition;
+							else if(strategy == "degreeio")
+								partition_func = v_degreeio_partition;
+							else if(strategy == "degreeio2")
+								partition_func = v_degreeio2_partition;
+							else
+								partition_func = v_random_partition;
+
+							for(size_t i = 0; i < nparts.size(); i++) {
+								// initialize
+								graph.initialize(nparts[i]);
+
+								cout << endl << strategy << endl;
+
+								boost::timer ti;
+								double runtime;
+
+								if(strategy == "weighted0") {
+									v_weighted_partition(graph, nparts[i], vertex_order, 0);
+								}
+								else if(strategy == "weighted1") {
+									v_weighted_partition(graph, nparts[i], vertex_order, 1);
+								}
+								else if(strategy == "weighted2") {
+									v_weighted_partition(graph, nparts[i], vertex_order, 2);
+								}
+								else {
+									partition_func(graph, nparts[i], vertex_order);
+								}
+
+								runtime = ti.elapsed();
+								cout << "Time elapsed: " << runtime << endl;
+
+								size_t rid = k * strategies.size() * nparts.size() + j * nparts.size() + i;
+								report_performance(graph, nparts[i], result_table[rid]);
+								result_table[rid].runtime += runtime;
 							}
-							else if(strategy == "weighted2") {
-								weighted_partition(graph, nparts[i], 2);
-							}
-							else {
-								partition_func(graph, nparts[i]);
-							}
-
-							runtime = ti.elapsed();
-							cout << "Time elapsed: " << runtime << endl;
-
-							size_t rid = k * strategies.size() * nparts.size() + j * nparts.size() + i;
-							report_performance(graph, nparts[i], result_table[rid]);
-							result_table[rid].runtime = runtime;
-						}
-					}// end of edge streaming
-					else {
-						// select the strategy
-						void (*partition_func)(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order);
-						string strategy = strategies[j];
-						if(strategy == "random")
-							partition_func = v_random_partition;
-						else if(strategy == "grid")
-							partition_func = v_random_partition_constrainted;
-						if(strategy == "chunking")
-							partition_func = v_chunking_partition;
-						else if(strategy == "powergraph")
-							partition_func = v_powergraph_partition;
-						else if(strategy == "powergraph2")
-							partition_func = v_powergraph2_partition;
-						else if(strategy == "degree")
-							partition_func = v_degree_partition;
-						else if(strategy == "degree2")
-							partition_func = v_degree2_partition;
-						else if(strategy == "powergraphp")
-							partition_func = v_powergraphp_partition;
-						else if(strategy == "degreep")
-							partition_func = v_degreep_partition;
-						else if(strategy == "degreeio0")
-							partition_func = v_degreeio0_partition;
-						else if(strategy == "degreeio")
-							partition_func = v_degreeio_partition;
-						else if(strategy == "degreeio2")
-							partition_func = v_degreeio2_partition;
-						else
-							partition_func = v_random_partition;
-
-						for(size_t i = 0; i < nparts.size(); i++) {
-							// initialize
-							graph.initialize(nparts[i]);
-
-							cout << endl << strategy << endl;
-
-							boost::timer ti;
-							double runtime;
-
-							if(strategy == "weighted0") {
-								v_weighted_partition(graph, nparts[i], vertex_order, 0);
-							}
-							else if(strategy == "weighted1") {
-								v_weighted_partition(graph, nparts[i], vertex_order, 1);
-							}
-							else if(strategy == "weighted2") {
-								v_weighted_partition(graph, nparts[i], vertex_order, 2);
-							}
-							else {
-								partition_func(graph, nparts[i], vertex_order);
-							}
-
-							runtime = ti.elapsed();
-							cout << "Time elapsed: " << runtime << endl;
-
-							size_t rid = k * strategies.size() * nparts.size() + j * nparts.size() + i;
-							report_performance(graph, nparts[i], result_table[rid]);
-							result_table[rid].runtime = runtime;
-						}
-					}// end of vertex order
+						}// end of vertex order
+					}
 				}
 			}
 
@@ -1702,10 +1717,10 @@ namespace graphp {
 			// report the table
 			foreach(const report_result& result, result_table) {
 				cout << result.nparts << "\t" 
-					<< result.vertex_cut_counter << "\t" 
-					<< result.replica_factor << "\t" 
-					<< result.imbalance << "\t" 
-					<< result.runtime 
+					<< result.vertex_cut_counter / times << "\t" 
+					<< result.replica_factor / times << "\t" 
+					<< result.imbalance / times << "\t" 
+					<< result.runtime / times
 					<< endl;
 			}
 		} // run partition in one thread

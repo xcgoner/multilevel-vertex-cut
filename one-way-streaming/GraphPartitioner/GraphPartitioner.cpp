@@ -30,6 +30,7 @@ int main(int argc, char* argv[])
 		("reverse", po::value<string>(), "Set the paramater of powerlaw...")
 		("rearrange", po::value<string>(), "Rearrange the edges by their source...")
 		("histprefix", po::value<string>(), "The prefix of histgram files...")
+		("times", po::value<string>(), "For random average...")
 	;
 
 	po::variables_map vm;
