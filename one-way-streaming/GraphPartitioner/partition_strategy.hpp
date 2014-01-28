@@ -648,6 +648,7 @@ namespace graphp {
 
 		void vertex_reorder(basic_graph& graph, vector<basic_graph::vertex_id_type>& vertex_order, size_t type) {
 			vertex_order.clear();
+			srand((unsigned)time(NULL));
 			if(type == 0) {
 				// random
 				for(size_t vid = graph.vmap.find_first(); vid != graph.vmap.npos; vid = graph.vmap.find_next(vid)) {
@@ -662,7 +663,16 @@ namespace graphp {
 				boost::dynamic_bitset<> vmap(graph.vmap);
 				while(vcounter > 0) {
 					// find a vertex not visited
-					size_t vid = vmap.find_first();
+					//size_t vid = vmap.find_first();
+					size_t vid;
+					size_t rand_idx = rand() / (double)RAND_MAX * (vmap.count() - 1);
+					for(size_t v_id = vmap.find_first(), idx = 0; v_id != vmap.npos; v_id = vmap.find_next(v_id), idx++) {
+						if(idx == rand_idx) {
+							vid = v_id;
+							break;
+						}
+					}
+
 					// push into the queue
 					vq.push(vid);
 					while(!vq.empty()) {
@@ -706,7 +716,16 @@ namespace graphp {
 				boost::dynamic_bitset<> vmap(graph.vmap);
 				while(vcounter > 0) {
 					// find a vertex not visited
-					size_t vid = vmap.find_first();
+					//size_t vid = vmap.find_first();
+					size_t vid;
+					size_t rand_idx = rand() / (double)RAND_MAX * (vmap.count() - 1);
+					for(size_t v_id = vmap.find_first(), idx = 0; v_id != vmap.npos; v_id = vmap.find_next(v_id), idx++) {
+						if(idx == rand_idx) {
+							vid = v_id;
+							break;
+						}
+					}
+
 					// push into the stack
 					vs.push(vid);
 					while(!vs.empty()) {
