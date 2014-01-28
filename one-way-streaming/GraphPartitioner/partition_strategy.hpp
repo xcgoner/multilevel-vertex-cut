@@ -1586,6 +1586,7 @@ namespace graphp {
 			}
 			//remember to clear the degree before each partitioning ...
 			for(size_t times_idx = 0; times_idx < times; times_idx++) {
+				cout << "Times: " << times_idx << endl;
 				for(size_t k = 0; k < orders.size(); k++) {
 					string order = orders[k];
 					cout << order << endl;
