@@ -1706,7 +1706,7 @@ namespace graphp {
 								cout << "Time elapsed: " << runtime << endl;
 
 								size_t rid = k * strategies.size() * nparts.size() + j * nparts.size() + i;
-								report_performance(graph, nparts[i], result_table[rid]);
+								report_performance(graph, nparts[i], result_table[rid], true);
 								result_table[rid].runtime += runtime;
 							}
 						}// end of vertex order
