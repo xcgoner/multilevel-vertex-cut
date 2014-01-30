@@ -674,6 +674,7 @@ namespace graphp {
 					random_vertex_order.push_back(vid);
 				}
 				random_shuffle(random_vertex_order.begin(), random_vertex_order.end());
+				random_shuffle(random_vertex_order.begin(), random_vertex_order.end());
 				size_t random_vertex_idx = 0;
 
 				while(vcounter > 0) {
