@@ -655,7 +655,6 @@ namespace graphp {
 
 		void vertex_reorder(basic_graph& graph, vector<basic_graph::vertex_id_type>& vertex_order, size_t type) {
 			vertex_order.clear();
-			srand((unsigned)time(NULL));
 			if(type == 0) {
 				// random
 				for(size_t vid = graph.vmap.find_first(); vid != graph.vmap.npos; vid = graph.vmap.find_next(vid)) {
@@ -673,8 +672,7 @@ namespace graphp {
 				for(size_t vid = vmap.find_first(); vid != vmap.npos; vid = vmap.find_next(vid)) {
 					random_vertex_order.push_back(vid);
 				}
-				random_shuffle(random_vertex_order.begin(), random_vertex_order.end());
-				random_shuffle(random_vertex_order.begin(), random_vertex_order.end());
+				std::random_shuffle(random_vertex_order.begin(), random_vertex_order.end());
 				foreach(basic_graph::vertex_id_type vid, random_vertex_order) {
 					cout << vid << endl;
 				}
@@ -1586,7 +1584,7 @@ namespace graphp {
 
 		void run_partition(basic_graph& graph, vector<part_t>& nparts, vector<string>& strategies, vector<string>& orders, string type, size_t times = 1) {
 			vector<basic_graph::vertex_id_type> vertex_order;
-
+			std::srand((unsigned)time(NULL));
 			vector<report_result> result_table(orders.size() * strategies.size() * nparts.size());
 			foreach(report_result& result, result_table) {
 					result.vertex_cut_counter = 0;
