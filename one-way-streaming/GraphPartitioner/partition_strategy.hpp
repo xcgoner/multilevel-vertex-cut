@@ -680,7 +680,8 @@ namespace graphp {
 					// find a vertex not visited
 					//size_t vid = vmap.find_first();
 					size_t vid;
-					for(;vmap[random_vertex_idx] == false; random_vertex_idx++);
+					for(;vmap[random_vertex_idx] == false; random_vertex_idx++) {
+					}
 					vid = random_vertex_idx;
 
 					// push into the queue
