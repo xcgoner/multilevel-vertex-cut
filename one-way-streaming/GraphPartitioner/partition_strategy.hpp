@@ -675,6 +675,10 @@ namespace graphp {
 				}
 				random_shuffle(random_vertex_order.begin(), random_vertex_order.end());
 				random_shuffle(random_vertex_order.begin(), random_vertex_order.end());
+				foreach(basic_graph::vertex_id_type vid, random_vertex_order) {
+					cout << vid << endl;
+				}
+				cout << endl;
 				size_t random_vertex_idx = 0;
 
 				while(vcounter > 0) {
