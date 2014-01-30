@@ -668,17 +668,20 @@ namespace graphp {
 				queue<basic_graph::vertex_id_type> vq;
 				size_t vcounter = graph.vmap.count();
 				boost::dynamic_bitset<> vmap(graph.vmap);
+
+				vector<basic_graph::vertex_id_type> random_vertex_order;
+				for(size_t vid = vmap.find_first(); vid != vmap.npos; vid = vmap.find_next(vid)) {
+					random_vertex_order.push_back(vid);
+				}
+				random_shuffle(random_vertex_order.begin(), random_vertex_order.end());
+				size_t random_vertex_idx = 0;
+
 				while(vcounter > 0) {
 					// find a vertex not visited
 					//size_t vid = vmap.find_first();
 					size_t vid;
-					size_t rand_idx = rand() / (double)RAND_MAX * (vmap.count() - 1);
-					for(size_t v_id = vmap.find_first(), idx = 0; v_id != vmap.npos; v_id = vmap.find_next(v_id), idx++) {
-						if(idx == rand_idx) {
-							vid = v_id;
-							break;
-						}
-					}
+					for(;vmap[random_vertex_idx] == false; random_vertex_idx++);
+					vid = random_vertex_idx;
 
 					// push into the queue
 					vq.push(vid);
@@ -693,6 +696,7 @@ namespace graphp {
 						vcounter--;
 						vmap[vid] = false;
 						vertex_order.push_back(vid);
+						cout << vid << endl;
 						const basic_graph::vertex_type& v = graph.getVert(vid);
 						// get all the neighbours
 						for(size_t ebegin = v.edge_begin; ebegin < v.edge_end; ebegin++) {
