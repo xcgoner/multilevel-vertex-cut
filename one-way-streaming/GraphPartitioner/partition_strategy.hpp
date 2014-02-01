@@ -946,34 +946,33 @@ namespace graphp {
 		part_t edge_to_part_degree2(basic_graph& graph, 
 			const basic_graph::vertex_id_type source,
 			const basic_graph::vertex_id_type target,
-			const size_t source_degree,
-			const size_t target_degree,
 			const vector<size_t>& part_num_edges
 			) {
 				const size_t nparts = part_num_edges.size();
 
 				const basic_graph::vertex_type& source_v = graph.getVert(source);
 				const basic_graph::vertex_type& target_v = graph.getVert(target);
+				const size_t source_degree = source_v.indegree;
+				const size_t target_degree = target_v.indegree;
 
 				// compute the score of each part
 				part_t best_part = -1;
 				double maxscore = 0.0;
-				double epsilon = 0.001;
+				double epsilon = 0.0001;
 				vector<double> part_score(nparts);
 				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
 				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
-
-				// not to be zero
-				double e = 0.001;
-				double sum = source_degree + target_degree + e;
-				double s = target_degree / sum + 1;
-				double t = source_degree / sum + 1;
 
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list[i];
 					size_t td = target_v.mirror_list[i];
 					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-					part_score[i] = bal + (sd > 0) + (sd > 0 && s > t) + (td > 0) + (td > 0 && s < t);
+					bool sd1 = (sd > 0);
+					bool td1 = (td > 0);
+					bool sd2 = (sd1 && target_degree >= source_degree);
+					bool td2 = (td1 && target_degree <= source_degree);
+					bool d0 = (sd2 && td2);
+					part_score[i] = bal + sd1 + sd2 + td1 + td2 - d0;
 				}
 
 				maxscore = *max_element(part_score.begin(), part_score.end());
