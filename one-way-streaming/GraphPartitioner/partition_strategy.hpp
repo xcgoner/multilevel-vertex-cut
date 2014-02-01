@@ -831,7 +831,7 @@ namespace graphp {
 				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
 				double skewness = maxedges / average;
 
-				if(skewness > 1.5) {
+				if(skewness > 1.1) {
 					size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
 
 					vector<part_t> top_parts;
