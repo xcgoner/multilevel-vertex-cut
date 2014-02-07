@@ -51,7 +51,7 @@ namespace graphp {
     bool snap_parser(Graph& graph, const string& srcfilename,
                      const string& str) {
       if (str.empty()) return true;
-      else if (str[0] == '#') {
+      else if (str[0] == '#' || str[0] == '%') {
         cout << str << endl;
       } else {
         size_t source, target;
@@ -68,7 +68,7 @@ namespace graphp {
 	bool snapr_parser(Graph& graph, const string& srcfilename,
 		const string& str) {
 			if (str.empty()) return true;
-			else if (str[0] == '#') {
+			else if (str[0] == '#' || str[0] == '%') {
 				cout << str << endl;
 			} else {
 				size_t source, target;
