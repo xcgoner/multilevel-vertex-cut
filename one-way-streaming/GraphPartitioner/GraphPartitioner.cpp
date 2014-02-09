@@ -26,6 +26,7 @@ int main(int argc, char* argv[])
 		("type", po::value<string>(), "Set the streaming type...")
 		("powerlaw", po::value<size_t>(), "Generate a synthetic powerlaw graph...")
 		("alpha", po::value<double>(), "Set the paramater of powerlaw...")
+		("beta", po::value<double>(), "Set the paramater of powerlaw...")
 		("indegree", po::value<string>(), "Set the paramater of powerlaw...")
 		("reverse", po::value<string>(), "Set the paramater of powerlaw...")
 		("rearrange", po::value<string>(), "Rearrange the edges by their source...")
@@ -91,8 +92,11 @@ int main(int argc, char* argv[])
 		graph.rearrange = true;
 
 	if(vm.count("powerlaw") > 0) {
-		// true for in-degree
-		graph.load_synthetic_powerlaw(vm["powerlaw"].as<size_t>(), false, vm["alpha"].as<double>());
+		// true for in/out-degree
+		if(vm.count("beta") == 0)
+			graph.load_synthetic_powerlaw(vm["powerlaw"].as<size_t>(), false, vm["alpha"].as<double>());
+		else
+			graph.load_synthetic_powerlawio(vm["powerlaw"].as<size_t>(), vm["alpha"].as<double>(), vm["beta"].as<double>());
 	}
 	else if(vm.count("file") > 0 && vm.count("format") > 0) {
 		graph.load_format(vm["file"].as<string>(), vm["format"].as<string>());

@@ -474,6 +474,65 @@ namespace graphp {
 				}
 		} // end of load random powerlaw
 
+		void load_synthetic_powerlawio(size_t nverts,
+			double alpha = 2.1, double beta = 2.1, size_t truncate = (size_t)(-1)) {
+				// A large prime number
+				const size_t HASH_OFFSET = 2654435761;
+
+				// indegree
+				vector<double> probin(min(nverts, truncate), 0);
+				cerr << "constructing pdf for in-degree" << std::endl;
+				for(size_t i = 0; i < probin.size(); ++i)
+					probin[i] = pow(double(i+1), -beta);
+				cerr << "constructing cdf for in-degree" << std::endl;
+				random::pdf2cdf(probin);
+				cerr << "Building graph for in-degree" << std::endl;
+				size_t target_index = 0;
+				size_t addedvtx = 0;
+
+				for(size_t source = 0; source < nverts; source ++) {
+					const size_t in_degree = random::multinomial_cdf(probin) + 1;
+					for(size_t i = 0; i < in_degree; ++i) {
+						target_index = (target_index + HASH_OFFSET)  % nverts;
+						while (source == target_index) {
+							target_index = (target_index + HASH_OFFSET)  % nverts;
+						}
+						this->add_edge_to_storage(target_index, source);
+					}
+					++addedvtx;
+					if (addedvtx % 10000000 == 0) {
+						cerr << addedvtx << " inserted\n";
+					}
+				}
+
+				// outdegree
+				vector<double> probout(min(nverts, truncate), 0);
+				cerr << "constructing pdf for out-degree" << std::endl;
+				for(size_t i = 0; i < probout.size(); ++i)
+					probout[i] = pow(double(i+1), -alpha);
+				cerr << "constructing cdf for out-degree" << std::endl;
+				random::pdf2cdf(probout);
+				cerr << "Building graph for out-degree" << std::endl;
+				target_index = 0;
+				addedvtx = 0;
+
+				for(size_t source = 0; source < nverts; source ++) {
+					const size_t out_degree = random::multinomial_cdf(probout) + 1;
+					for(size_t i = 0; i < out_degree; ++i) {
+						target_index = (target_index + HASH_OFFSET)  % nverts;
+						while (source == target_index) {
+							target_index = (target_index + HASH_OFFSET)  % nverts;
+						}
+						this->add_edge_to_storage(source, target_index);
+					}
+					++addedvtx;
+					if (addedvtx % 10000000 == 0) {
+						cerr << addedvtx << " inserted\n";
+					}
+				}
+				this->rearrange = true;
+		} // end of load random powerlaw
+
 		void load_synthetic_powerlaw1(size_t nverts, bool in_degree = false,
 			double alpha = 2.1, size_t truncate = (size_t)(-1)) {
 				vector<double> prob(min(nverts, truncate), 0);
