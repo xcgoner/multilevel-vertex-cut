@@ -60,7 +60,8 @@ namespace graphp {
         if (targetptr == NULL) return false;
         target = strtoul(targetptr, NULL, 10);
         if(source != target) graph.add_edge_to_storage(source, target);
-		else cout << source << ":" << target << endl;
+		cout << source << ":" << target << endl;
+		getchar();
       }
       return true;
     } // end of snap parser
