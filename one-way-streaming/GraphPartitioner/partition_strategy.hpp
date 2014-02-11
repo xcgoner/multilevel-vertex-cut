@@ -790,8 +790,6 @@ namespace graphp {
 
 		void v_random_partition_constrainted(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
 			sharding_constraint* constraint;
-			cout << "grid ..." << endl;
-			exit(0);
 			constraint = new sharding_constraint(nparts, "grid");
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
@@ -1672,6 +1670,7 @@ namespace graphp {
 							// select the strategy
 							void (*partition_func)(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order);
 							string strategy = strategies[j];
+							cout << strategy == "grid" << endl;
 							if(strategy == "random")
 								partition_func = v_random_partition;
 							else if(strategy == "grid")
