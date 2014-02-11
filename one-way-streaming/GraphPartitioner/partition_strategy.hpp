@@ -1670,7 +1670,7 @@ namespace graphp {
 							// select the strategy
 							void (*partition_func)(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order);
 							string strategy = strategies[j];
-							cout << strategy == "grid" << endl;
+							cout << (strategy == "grid") << endl;
 							if(strategy == "random")
 								partition_func = v_random_partition;
 							else if(strategy == "grid")
