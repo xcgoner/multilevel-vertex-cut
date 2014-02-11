@@ -1670,12 +1670,11 @@ namespace graphp {
 							// select the strategy
 							void (*partition_func)(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order);
 							string strategy = strategies[j];
-							cout << (strategy == "grid") << endl;
 							if(strategy == "random")
 								partition_func = v_random_partition;
 							else if(strategy == "grid")
 								partition_func = v_random_partition_constrainted;
-							if(strategy == "chunking")
+							else if(strategy == "chunking")
 								partition_func = v_chunking_partition;
 							else if(strategy == "powergraph")
 								partition_func = v_powergraph_partition;
