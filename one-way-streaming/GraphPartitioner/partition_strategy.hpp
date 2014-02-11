@@ -790,6 +790,7 @@ namespace graphp {
 
 		void v_random_partition_constrainted(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
 			sharding_constraint* constraint;
+			cout << "grid ..." << endl;
 			constraint = new sharding_constraint(nparts, "grid");
 			typedef pair<vertex_id_type, vertex_id_type> edge_pair_type;
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
