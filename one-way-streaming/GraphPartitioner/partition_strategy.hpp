@@ -1003,6 +1003,25 @@ namespace graphp {
 			}
 		}
 
+		void v_degreer_partition(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
+			foreach(basic_graph::vertex_id_type vid, vertex_order) {
+				basic_graph::vertex_type& v = graph.getVert(vid);
+				for(size_t eidx = v.edge_begin; eidx < v.edge_end; eidx++) {
+					basic_graph::edge_type& e = graph.getEdge(eidx);
+					basic_graph::vertex_type& target_v = graph.getVert(e.target);
+					target_v.degree++;
+					
+					// assign edges
+					part_t assignment;
+					if(v.degree < nparts && target_v.degree < nparts)
+						assignment = hash_vertex(min(vid, e.target)) % nparts;
+					else
+						assignment = (v.degree < target_v.degree ? (hash_vertex(vid) % nparts) : (hash_vertex(e.target) % nparts));
+					assign_edge(graph, e, assignment);
+				}
+			}
+		}
+
 		// for indegree and outdegree
 		part_t edge_to_part_degreeio0(basic_graph& graph, 
 			const basic_graph::vertex_id_type source,
@@ -1665,6 +1684,8 @@ namespace graphp {
 								partition_func = v_degree_partition;
 							else if(strategy == "degree2")
 								partition_func = v_degree2_partition;
+							else if(strategy == "degreer")
+								partition_func = v_degreer_partition;
 							else if(strategy == "powergraphp")
 								partition_func = v_powergraphp_partition;
 							else if(strategy == "degreep")
