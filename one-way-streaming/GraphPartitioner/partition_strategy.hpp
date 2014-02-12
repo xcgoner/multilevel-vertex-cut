@@ -1013,9 +1013,9 @@ namespace graphp {
 					
 					// assign edges
 					part_t assignment;
-					if(v.degree < nparts && target_v.degree < nparts)
-						assignment = hash_vertex(min(vid, e.target)) % nparts;
-					else
+					//if(v.degree < nparts && target_v.degree < nparts)
+					//	assignment = hash_vertex(min(vid, e.target)) % nparts;
+					//else
 						assignment = (v.degree < target_v.degree ? (hash_vertex(vid) % nparts) : (hash_vertex(e.target) % nparts));
 					assign_edge(graph, e, assignment);
 				}
