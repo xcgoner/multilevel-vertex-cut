@@ -1004,12 +1004,16 @@ namespace graphp {
 		}
 
 		void v_degreer_partition(basic_graph& graph, part_t nparts, const vector<basic_graph::vertex_id_type> vertex_order) {
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
+				graph.getVert(e.source).degree++;
+				graph.getVert(e.target).degree++;
+			}
 			foreach(basic_graph::vertex_id_type vid, vertex_order) {
 				basic_graph::vertex_type& v = graph.getVert(vid);
 				for(size_t eidx = v.edge_begin; eidx < v.edge_end; eidx++) {
 					basic_graph::edge_type& e = graph.getEdge(eidx);
 					basic_graph::vertex_type& target_v = graph.getVert(e.target);
-					target_v.degree++;
 					
 					// assign edges
 					part_t assignment;
