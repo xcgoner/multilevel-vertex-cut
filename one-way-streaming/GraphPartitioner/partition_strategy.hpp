@@ -482,6 +482,7 @@ namespace graphp {
 				part_t assignment;
 				assignment = edge_to_part_degree(graph, e.source, e.target, graph.getVert(e.source).degree, graph.getVert(e.target).degree, graph.parts_counter);
 				assign_edge(graph, e, assignment);
+				cout << e.source << ",\t" << e.target << ":\t" << assignment << endl;
 				edge_counter++;
 			}
 			cout << "Total edges assigned: " << edge_counter << endl;
