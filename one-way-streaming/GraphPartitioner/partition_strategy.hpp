@@ -484,6 +484,7 @@ namespace graphp {
 				assign_edge(graph, e, assignment);
 				cout << e.source << ",\t" << e.target << ":\t" << assignment << endl;
 				edge_counter++;
+				char c = getchar();
 			}
 			cout << "Total edges assigned: " << edge_counter << endl;
 		}
