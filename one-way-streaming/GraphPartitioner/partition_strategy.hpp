@@ -467,6 +467,11 @@ namespace graphp {
 					max(source, target));
 				best_part = top_parts[hash_edge(edge_pair) % top_parts.size()];
 
+				// for debug
+				cout << source_degree << ",\t" << target_degree << ":\t" << nparts << endl;
+				cout << source << ",\t" << target << ":\t" << best_part << endl;
+				char c = getchar();
+
 				return best_part;
 		}
 		void degree_partition(basic_graph& graph, part_t nparts) {
@@ -482,9 +487,7 @@ namespace graphp {
 				part_t assignment;
 				assignment = edge_to_part_degree(graph, e.source, e.target, graph.getVert(e.source).degree, graph.getVert(e.target).degree, graph.parts_counter);
 				assign_edge(graph, e, assignment);
-				cout << e.source << ",\t" << e.target << ":\t" << assignment << endl;
 				edge_counter++;
-				char c = getchar();
 			}
 			cout << "Total edges assigned: " << edge_counter << endl;
 		}
