@@ -440,24 +440,16 @@ namespace graphp {
 				size_t minedges = *min_element(part_num_edges.begin(), part_num_edges.end());
 				size_t maxedges = *max_element(part_num_edges.begin(), part_num_edges.end());
 
-				// greedy for degree
-				// nbr_list is not used in streaming partitioning
-				//double sum = source_v.nbr_list.size() + target_v.nbr_list.size();
-				//double s = target_v.nbr_list.size() / sum + 1;
-				//double t = source_v.nbr_list.size() / sum + 1;
-				// use degree in streaming partitioning
-
-				// not to be zero
-				double e = 0.001;
-				double sum = source_degree + target_degree + e * 2;
-				double s = (target_degree + e) / sum + 1;
-				double t = (source_degree + e) / sum + 1;
-
 				for(size_t i = 0; i < nparts; ++i) {
 					size_t sd = source_v.mirror_list[i];
 					size_t td = target_v.mirror_list[i];
 					double bal = (maxedges - part_num_edges[i]) / (epsilon + maxedges - minedges);
-					part_score[i] = bal + ((sd > 0) * s + (td > 0) * t);
+					bool sd1 = (sd > 0);
+					bool td1 = (td > 0);
+					bool sd2 = (sd1 && target_degree >= source_degree);
+					bool td2 = (td1 && target_degree <= source_degree);
+					bool d0 = (sd2 && td2);
+					part_score[i] = bal + sd1 + sd2 + td1 + td2 - d0;
 				}
 
 				maxscore = *max_element(part_score.begin(), part_score.end());
@@ -480,13 +472,19 @@ namespace graphp {
 		void degree_partition(basic_graph& graph, part_t nparts) {
 			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
 				basic_graph::edge_type& e = *itr;
-				// greedy assign
-				part_t assignment;
 				graph.getVert(e.source).degree++;
 				graph.getVert(e.target).degree++;
+			}
+			size_t edge_counter = 0;
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
+				// greedy assign
+				part_t assignment;
 				assignment = edge_to_part_degree(graph, e.source, e.target, graph.getVert(e.source).degree, graph.getVert(e.target).degree, graph.parts_counter);
 				assign_edge(graph, e, assignment);
+				edge_counter++;
 			}
+			cout << "Total edges assigned: " << edge_counter << endl;
 		}
 
 		// for indegree and outdegree
@@ -1618,10 +1616,10 @@ namespace graphp {
 					else if(order == "dfs" && type == "vertex")
 						vertex_reorder(graph, vertex_order, 2);
 
-					if(order == "random" && type == "edge") {
-						random_shuffle(graph.ebegin, graph.eend);
-						cout << "random shuffled ..." << endl;
-					}
+					//if(order == "random" && type == "edge") {
+					//	random_shuffle(graph.ebegin, graph.eend);
+					//	cout << "random shuffled ..." << endl;
+					//}
 
 					for(size_t j = 0; j < strategies.size(); j++) {
 						// select the streaming type
