@@ -468,7 +468,11 @@ namespace graphp {
 				best_part = top_parts[hash_edge(edge_pair) % top_parts.size()];
 
 				// for debug
-				cout << source_degree << ",\t" << target_degree << ":\t" << nparts << endl;
+				foreach(part_t part, top_parts) {
+					std::cout << part << "\t";
+				}
+				cout << endl;
+				cout << source_degree << ",\t" << target_degree << ":\t" << hash_edge(edge_pair) << endl;
 				cout << source << ",\t" << target << ":\t" << best_part << endl;
 				char c = getchar();
 
