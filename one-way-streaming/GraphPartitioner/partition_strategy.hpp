@@ -1759,7 +1759,8 @@ namespace graphp {
 		void degreeHistgram(basic_graph& graph, string prefix) {
 			vector<size_t> indegreeHist;
 			vector<size_t> outdegreeHist;
-			size_t maxInDegree = 0, maxOutDegree = 0;
+			vector<size_t> degreeHist;
+			size_t maxInDegree = 0, maxOutDegree = 0, maxDegree = 0;
 			graph.initialize(graph.nparts);
 			// count the degrees
 			foreach(basic_graph::edge_type& e, graph.edges) {
@@ -1772,6 +1773,8 @@ namespace graphp {
 					maxInDegree = v.indegree;
 				if(v.outdegree > maxOutDegree)
 					maxOutDegree = v.outdegree;
+				if(v.indegree + v.outdegree > maxDegree)
+					maxDegree = v.indegree + v.outdegree;
 			}
 			// count the histgram
 			indegreeHist.resize(maxInDegree + 1);
@@ -1782,12 +1785,17 @@ namespace graphp {
 			foreach(size_t& hist, outdegreeHist) {
 				hist = 0;
 			}
+			degreeHist.resize(maxDegree + 1);
+			foreach(size_t& hist, degreeHist) {
+				hist = 0;
+			}
 			foreach(basic_graph::vertex_type& v, graph.verts) {
 				indegreeHist[v.indegree]++;
 				outdegreeHist[v.outdegree]++;
+				outdegreeHist[v.outdegree + v.indegree]++;
 			}
 			// output
-			ofstream fout1(prefix + "InDegree"), fout2(prefix + "OutDegree");
+			ofstream fout1(prefix + "InDegree"), fout2(prefix + "OutDegree"), fout3(prefix + "Degree");
 			foreach(size_t& hist, indegreeHist) {
 				fout1 << hist << endl;
 			}
@@ -1796,6 +1804,10 @@ namespace graphp {
 				fout2 << hist << endl;
 			}
 			fout2.close();
+			foreach(size_t& hist, degreeHist) {
+				fout3 << hist << endl;
+			}
+			fout3.close();
 		} // get the histgram of indegree and outdegree
 
 	} // end of namespace partition_strategy
