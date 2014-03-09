@@ -1792,7 +1792,7 @@ namespace graphp {
 			foreach(basic_graph::vertex_type& v, graph.verts) {
 				indegreeHist[v.indegree]++;
 				outdegreeHist[v.outdegree]++;
-				outdegreeHist[v.outdegree + v.indegree]++;
+				degreeHist[v.outdegree + v.indegree]++;
 			}
 			// output
 			ofstream fout1(prefix + "InDegree"), fout2(prefix + "OutDegree"), fout3(prefix + "Degree");
