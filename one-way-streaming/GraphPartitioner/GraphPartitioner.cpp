@@ -31,6 +31,7 @@ int main(int argc, char* argv[])
 		("reverse", po::value<string>(), "Set the paramater of powerlaw...")
 		("rearrange", po::value<string>(), "Rearrange the edges by their source...")
 		("histprefix", po::value<string>(), "The prefix of histgram files...")
+		("saveprefix", po::value<string>(), "The prefix of output files...")
 		("times", po::value<size_t>(), "For random average...")
 	;
 
@@ -106,6 +107,8 @@ int main(int argc, char* argv[])
 
 	if(vm.count("histprefix") > 0)
 		graphp::partition_strategy::degreeHistgram(graph, vm["histprefix"].as<string>());
+	else if(vm.count("saveprefix") > 0)
+		graphp::partition_strategy::convertSnap(graph, vm["saveprefix"].as<string>());
 	else {
 		if(vm.count("times") > 0)
 			graphp::partition_strategy::run_partition(graph, nparts, strategies, orders, vm["type"].as<string>(), vm["times"].as<size_t>());

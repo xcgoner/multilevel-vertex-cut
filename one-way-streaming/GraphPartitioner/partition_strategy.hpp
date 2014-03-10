@@ -1756,6 +1756,15 @@ namespace graphp {
 			}
 		} // run partition in one thread
 
+		void convertSnap(basic_graph& graph, string prefix) {
+			ofstream fout(prefix + ".net");
+			for(vector<basic_graph::edge_type>::iterator itr = graph.ebegin; itr != graph.eend; ++itr)  {
+				basic_graph::edge_type& e = *itr;
+				fout << e.source << "\t" << e.target << endl;
+			}
+			fout.close();
+		}
+
 		void degreeHistgram(basic_graph& graph, string prefix) {
 			vector<size_t> indegreeHist;
 			vector<size_t> outdegreeHist;
